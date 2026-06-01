@@ -1,0 +1,53 @@
+<app-auth-card
+  eyebrow="Bienvenido"
+  title="Inicia sesion"
+  subtitle="Entra a tu panel para gestionar tu perfil, servicios y disponibilidad."
+>
+  <form class="grid gap-5" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <app-alert [message]="successMessage()" variant="success" />
+    <app-alert [message]="errorMessage()" variant="danger" />
+
+    <app-form-field
+      controlId="email"
+      label="Email"
+      [required]="true"
+      [error]="fieldError('email')"
+    >
+      <app-input
+        id="email"
+        type="email"
+        autocomplete="email"
+        placeholder="tu@email.com"
+        formControlName="email"
+        [invalid]="!!fieldError('email')"
+      />
+    </app-form-field>
+
+    <app-form-field
+      controlId="password"
+      label="Password"
+      [required]="true"
+      [error]="fieldError('password')"
+    >
+      <app-input
+        id="password"
+        type="password"
+        autocomplete="current-password"
+        placeholder="Tu password"
+        formControlName="password"
+        [invalid]="!!fieldError('password')"
+      />
+    </app-form-field>
+
+    <app-button type="submit" [loading]="authStore.isLoading()" [fullWidth]="true">
+      Iniciar sesion
+    </app-button>
+
+    <p class="text-center text-sm text-slate-600">
+      Todavia no tenes cuenta?
+      <a routerLink="/register" class="font-semibold text-blue-700 hover:text-blue-800">
+        Crear cuenta
+      </a>
+    </p>
+  </form>
+</app-auth-card>

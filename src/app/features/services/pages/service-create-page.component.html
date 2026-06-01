@@ -1,0 +1,18 @@
+<section class="px-4 py-6 sm:px-6 lg:px-8">
+  <app-page-header
+    eyebrow="Servicios"
+    title="Crear servicio"
+    description="Define modalidad, precio, duracion y reglas basicas de publicacion."
+  />
+
+  <div class="mt-6">
+    <app-card>
+      <app-service-form
+        submitLabel="Crear servicio"
+        [isSaving]="isSaving()"
+        [errorMessage]="errorMessage()"
+        (save)="createService($event)"
+      />
+    </app-card>
+  </div>
+</section>

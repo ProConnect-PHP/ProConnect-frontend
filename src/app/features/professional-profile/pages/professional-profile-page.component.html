@@ -1,0 +1,61 @@
+<section class="px-4 py-6 sm:px-6 lg:px-8">
+  <app-page-header
+    eyebrow="Perfil"
+    title="Perfil profesional"
+    description="Cuenta quien sos, que haces y prepara tu presencia para clientes."
+  />
+
+  @if (isLoading()) {
+    <app-loading-spinner label="Cargando perfil..." />
+  } @else {
+    <div class="mt-6 grid gap-4 xl:grid-cols-[0.85fr_1.15fr]">
+      <app-card title="Estado del perfil">
+        @if (profile(); as professionalProfile) {
+          <div class="grid gap-4">
+            <p class="text-sm leading-6 text-slate-700">
+              {{ professionalProfile.bio || 'Todavia no escribiste una bio profesional.' }}
+            </p>
+            <div class="flex flex-wrap gap-2">
+              <app-badge [variant]="professionalProfile.is_verified ? 'success' : 'warning'">
+                {{ professionalProfile.is_verified ? 'Verificado' : 'Sin verificar' }}
+              </app-badge>
+              <app-badge variant="neutral">{{ professionalProfile.avg_rating }} rating</app-badge>
+              <app-badge variant="neutral">
+                {{ professionalProfile.reviews_count }} reviews
+              </app-badge>
+            </div>
+          </div>
+        } @else {
+          <app-empty-state
+            title="No tenes perfil profesional"
+            description="Crea uno para asociar tus servicios y mostrar una presentacion clara."
+          />
+        }
+      </app-card>
+
+      <app-card [title]="profile() ? 'Editar bio' : 'Crear perfil'">
+        <form class="grid gap-5" [formGroup]="form" (ngSubmit)="save()" novalidate>
+          <app-alert [message]="successMessage()" variant="success" />
+          <app-alert [message]="errorMessage()" variant="danger" />
+
+          <app-form-field
+            controlId="bio"
+            label="Bio profesional"
+            hint="Describe tu experiencia, enfoque y el tipo de clientes que ayudas."
+          >
+            <app-textarea
+              id="bio"
+              [rows]="8"
+              placeholder="Coach profesional especializado en liderazgo..."
+              formControlName="bio"
+            />
+          </app-form-field>
+
+          <app-button type="submit" [loading]="isSaving()">
+            {{ profile() ? 'Guardar cambios' : 'Crear perfil' }}
+          </app-button>
+        </form>
+      </app-card>
+    </div>
+  }
+</section>

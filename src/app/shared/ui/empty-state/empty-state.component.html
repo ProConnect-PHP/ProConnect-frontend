@@ -1,0 +1,15 @@
+<div class="rounded-lg border border-dashed border-slate-300 bg-white px-4 py-8 text-center">
+  <div
+    class="mx-auto grid size-12 place-items-center rounded-lg bg-slate-100 text-lg font-black text-slate-500"
+    aria-hidden="true"
+  >
+    {{ icon() }}
+  </div>
+  <h2 class="mt-4 text-base font-semibold text-slate-950">{{ title() }}</h2>
+  @if (description()) {
+    <p class="mx-auto mt-2 max-w-md text-sm text-slate-600">{{ description() }}</p>
+  }
+  <div class="mt-5">
+    <ng-content />
+  </div>
+</div>

@@ -1,0 +1,27 @@
+<section class="px-4 py-6 sm:px-6 lg:px-8">
+  <app-page-header
+    eyebrow="Servicios"
+    title="Editar servicio"
+    description="Actualiza la informacion publica del servicio seleccionado."
+  />
+
+  <div class="mt-6">
+    @if (isLoading()) {
+      <app-loading-spinner label="Cargando servicio..." />
+    } @else {
+      <app-alert [message]="errorMessage()" variant="danger" />
+
+      @if (service(); as loadedService) {
+        <app-card>
+          <app-service-form
+            submitLabel="Guardar cambios"
+            [service]="loadedService"
+            [isSaving]="isSaving()"
+            [errorMessage]="errorMessage()"
+            (save)="updateService($event)"
+          />
+        </app-card>
+      }
+    }
+  </div>
+</section>

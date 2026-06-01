@@ -1,0 +1,15 @@
+<label [for]="controlId()" class="block text-sm font-semibold text-slate-800">
+  {{ label() }}
+  @if (required()) {
+    <span class="text-rose-600" aria-hidden="true">*</span>
+  }
+</label>
+<div class="mt-2">
+  <ng-content />
+</div>
+@if (hint() && !error()) {
+  <p class="mt-2 text-sm text-slate-500">{{ hint() }}</p>
+}
+@if (error()) {
+  <p class="mt-2 text-sm font-medium text-rose-700">{{ error() }}</p>
+}

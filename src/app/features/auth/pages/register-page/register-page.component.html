@@ -1,0 +1,73 @@
+<app-auth-card
+  eyebrow="Nueva cuenta"
+  title="Crea tu cuenta"
+  subtitle="Registra tu usuario y prepara tu espacio profesional en ProConnect."
+>
+  <form class="grid gap-5" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <app-alert [message]="errorMessage()" variant="danger" />
+
+    <app-form-field controlId="name" label="Nombre" [required]="true" [error]="fieldError('name')">
+      <app-input
+        id="name"
+        autocomplete="name"
+        placeholder="Jose Hernandez"
+        formControlName="name"
+        [invalid]="!!fieldError('name')"
+      />
+    </app-form-field>
+
+    <app-form-field controlId="email" label="Email" [required]="true" [error]="fieldError('email')">
+      <app-input
+        id="email"
+        type="email"
+        autocomplete="email"
+        placeholder="jose@proconnect.dev"
+        formControlName="email"
+        [invalid]="!!fieldError('email')"
+      />
+    </app-form-field>
+
+    <app-form-field
+      controlId="password"
+      label="Password"
+      [required]="true"
+      [error]="fieldError('password')"
+    >
+      <app-input
+        id="password"
+        type="password"
+        autocomplete="new-password"
+        placeholder="Minimo 8 caracteres"
+        formControlName="password"
+        [invalid]="!!fieldError('password')"
+      />
+    </app-form-field>
+
+    <app-form-field
+      controlId="password_confirmation"
+      label="Confirmar password"
+      [required]="true"
+      [error]="fieldError('password_confirmation')"
+    >
+      <app-input
+        id="password_confirmation"
+        type="password"
+        autocomplete="new-password"
+        placeholder="Repeti tu password"
+        formControlName="password_confirmation"
+        [invalid]="!!fieldError('password_confirmation')"
+      />
+    </app-form-field>
+
+    <app-button type="submit" [loading]="authStore.isLoading()" [fullWidth]="true">
+      Crear cuenta
+    </app-button>
+
+    <p class="text-center text-sm text-slate-600">
+      Ya tenes cuenta?
+      <a routerLink="/login" class="font-semibold text-blue-700 hover:text-blue-800">
+        Iniciar sesion
+      </a>
+    </p>
+  </form>
+</app-auth-card>

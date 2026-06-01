@@ -1,0 +1,168 @@
+<form class="grid gap-5" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <app-alert [message]="errorMessage()" variant="danger" />
+
+  <div class="grid gap-5 md:grid-cols-2">
+    <app-form-field controlId="name" label="Nombre" [required]="true" [error]="fieldError('name')">
+      <app-input
+        id="name"
+        placeholder="Consultoria inicial"
+        formControlName="name"
+        [invalid]="!!fieldError('name')"
+      />
+    </app-form-field>
+
+    <app-form-field controlId="price" label="Precio" [required]="true" [error]="fieldError('price')">
+      <app-input
+        id="price"
+        type="number"
+        placeholder="1500"
+        formControlName="price"
+        [invalid]="!!fieldError('price')"
+      />
+    </app-form-field>
+  </div>
+
+  <app-form-field controlId="description" label="Descripcion">
+    <app-textarea
+      id="description"
+      [rows]="4"
+      placeholder="Primera sesion de diagnostico..."
+      formControlName="description"
+    />
+  </app-form-field>
+
+  <div class="grid gap-5 md:grid-cols-3">
+    <app-form-field
+      controlId="duration_minutes"
+      label="Duracion"
+      [required]="true"
+      [error]="fieldError('duration_minutes')"
+    >
+      <app-select id="duration_minutes" formControlName="duration_minutes">
+        @for (duration of durations; track duration) {
+          <option [value]="duration">{{ duration }} min</option>
+        }
+      </app-select>
+    </app-form-field>
+
+    <app-form-field controlId="modality" label="Modalidad" [required]="true">
+      <app-select id="modality" formControlName="modality">
+        <option value="remota">Remota</option>
+        <option value="presencial">Presencial</option>
+        <option value="hibrida">Hibrida</option>
+      </app-select>
+    </app-form-field>
+
+    <app-form-field
+      controlId="buffer_minutes"
+      label="Buffer"
+      [required]="true"
+      [error]="fieldError('buffer_minutes')"
+    >
+      <app-input
+        id="buffer_minutes"
+        type="number"
+        placeholder="15"
+        formControlName="buffer_minutes"
+        [invalid]="!!fieldError('buffer_minutes')"
+      />
+    </app-form-field>
+  </div>
+
+  @if (modality() === 'remota' || modality() === 'hibrida') {
+    <app-form-field controlId="link" label="Link de videollamada">
+      <app-input
+        id="link"
+        type="url"
+        placeholder="https://meet.google.com/test"
+        formControlName="link"
+      />
+    </app-form-field>
+  }
+
+  @if (modality() === 'presencial' || modality() === 'hibrida') {
+    <div class="grid gap-5 md:grid-cols-3">
+      <div class="md:col-span-3">
+        <app-form-field controlId="address" label="Direccion">
+          <app-input
+            id="address"
+            placeholder="Montevideo, Uruguay"
+            formControlName="address"
+          />
+        </app-form-field>
+      </div>
+      <app-form-field controlId="latitude" label="Latitud" [error]="fieldError('latitude')">
+        <app-input
+          id="latitude"
+          type="number"
+          placeholder="-34.9011"
+          formControlName="latitude"
+          [invalid]="!!fieldError('latitude')"
+        />
+      </app-form-field>
+      <app-form-field controlId="longitude" label="Longitud" [error]="fieldError('longitude')">
+        <app-input
+          id="longitude"
+          type="number"
+          placeholder="-56.1645"
+          formControlName="longitude"
+          [invalid]="!!fieldError('longitude')"
+        />
+      </app-form-field>
+      <app-form-field controlId="max_bookings_per_client" label="Max. reservas por cliente">
+        <app-input
+          id="max_bookings_per_client"
+          type="number"
+          placeholder="Sin limite"
+          formControlName="max_bookings_per_client"
+        />
+      </app-form-field>
+    </div>
+  }
+
+  <div class="grid gap-5 md:grid-cols-3">
+    <app-form-field
+      controlId="min_reschedule_minutes"
+      label="Min. reprogramacion"
+      [required]="true"
+      [error]="fieldError('min_reschedule_minutes')"
+    >
+      <app-input
+        id="min_reschedule_minutes"
+        type="number"
+        placeholder="10"
+        formControlName="min_reschedule_minutes"
+        [invalid]="!!fieldError('min_reschedule_minutes')"
+      />
+    </app-form-field>
+
+    <app-form-field controlId="starts_at" label="Inicio publicacion">
+      <app-input id="starts_at" type="date" formControlName="starts_at" />
+    </app-form-field>
+
+    <app-form-field controlId="ends_at" label="Fin publicacion">
+      <app-input id="ends_at" type="date" formControlName="ends_at" />
+    </app-form-field>
+  </div>
+
+  <label class="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm font-semibold text-slate-800">
+    <input
+      type="checkbox"
+      class="size-4 rounded border-slate-300 text-blue-600 focus:ring-blue-600"
+      formControlName="is_active"
+    />
+    Servicio activo
+  </label>
+
+  <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+    <a
+      routerLink="/dashboard/services"
+      class="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus:outline focus:outline-2"
+    >
+      Cancelar
+    </a>
+    <app-button type="submit" [loading]="isSaving()">
+      {{ submitLabel() }}
+    </app-button>
+  </div>
+</form>

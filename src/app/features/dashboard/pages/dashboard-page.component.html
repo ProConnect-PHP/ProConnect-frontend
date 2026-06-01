@@ -1,0 +1,130 @@
+<section class="px-4 py-6 sm:px-6 lg:px-8">
+  <app-page-header
+    eyebrow="Dashboard"
+    [title]="'Hola, ' + userName()"
+    description="Un resumen rapido de tu configuracion profesional y de los proximos pasos."
+  >
+    <a
+      routerLink="/dashboard/services/new"
+      class="inline-flex min-h-10 items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline focus:outline-2 focus:outline-blue-700"
+    >
+      Crear servicio
+    </a>
+  </app-page-header>
+
+  @if (isLoading()) {
+    <app-loading-spinner label="Cargando dashboard..." />
+  } @else {
+    @if (errorMessage()) {
+      <div class="mt-6 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-900">
+        {{ errorMessage() }}
+      </div>
+    }
+
+    <div class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <app-card bodyClass="p-4">
+        <p class="text-sm text-slate-500">Perfil profesional</p>
+        <p class="mt-2 text-2xl font-bold text-slate-950">{{ profile() ? 'Activo' : 'Pendiente' }}</p>
+        <p class="mt-2 text-sm text-slate-600">
+          {{ profile() ? 'Bio, rating y verificacion configurados.' : 'Crea tu perfil para publicar servicios.' }}
+        </p>
+      </app-card>
+
+      <app-card bodyClass="p-4">
+        <p class="text-sm text-slate-500">Servicios publicados</p>
+        <p class="mt-2 text-2xl font-bold text-slate-950">{{ services().length }}</p>
+        <p class="mt-2 text-sm text-slate-600">{{ activeServices() }} activos disponibles.</p>
+      </app-card>
+
+      <app-card bodyClass="p-4">
+        <p class="text-sm text-slate-500">Disponibilidad</p>
+        <p class="mt-2 text-2xl font-bold text-slate-950">Fase 3</p>
+        <p class="mt-2 text-sm text-slate-600">Reglas, excepciones y preview de slots.</p>
+      </app-card>
+
+      <app-card bodyClass="p-4">
+        <p class="text-sm text-slate-500">Proxima fase</p>
+        <p class="mt-2 text-2xl font-bold text-slate-950">Reservas</p>
+        <p class="mt-2 text-sm text-slate-600">Booking frontend queda como TODO de Fase 4.</p>
+      </app-card>
+    </div>
+
+    <div class="mt-6 grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
+      <app-card title="Perfil profesional">
+        @if (profile(); as professionalProfile) {
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p class="text-sm leading-6 text-slate-700">
+                {{ professionalProfile.bio || 'Tu bio profesional todavia esta vacia.' }}
+              </p>
+              <div class="mt-4 flex flex-wrap gap-2">
+                <app-badge [variant]="professionalProfile.is_verified ? 'success' : 'warning'">
+                  {{ professionalProfile.is_verified ? 'Verificado' : 'Sin verificar' }}
+                </app-badge>
+                <app-badge variant="neutral">
+                  {{ professionalProfile.avg_rating }} rating
+                </app-badge>
+                <app-badge variant="neutral">
+                  {{ professionalProfile.reviews_count }} reviews
+                </app-badge>
+              </div>
+            </div>
+            <a
+              routerLink="/dashboard/profile"
+              class="rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus:outline focus:outline-2"
+            >
+              Editar
+            </a>
+          </div>
+        } @else {
+          <app-empty-state
+            title="Crea tu perfil profesional"
+            description="El perfil habilita tu presencia profesional y prepara los servicios para clientes."
+          >
+            <a
+              routerLink="/dashboard/profile"
+              class="inline-flex min-h-10 items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline focus:outline-2 focus:outline-blue-700"
+            >
+              Crear perfil profesional
+            </a>
+          </app-empty-state>
+        }
+      </app-card>
+
+      <app-card title="Ultimos servicios">
+        @if (services().length > 0) {
+          <div class="grid gap-3">
+            @for (service of services().slice(0, 3); track service.id) {
+              <article class="rounded-lg border border-slate-200 p-4">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p class="font-semibold text-slate-950">{{ service.name }}</p>
+                    <p class="mt-1 text-sm text-slate-600">
+                      {{ service.duration_minutes }} min · {{ service.modality }} ·
+                      {{ money(service.price) }}
+                    </p>
+                  </div>
+                  <app-badge [variant]="service.is_active ? 'success' : 'neutral'">
+                    {{ service.is_active ? 'Activo' : 'Inactivo' }}
+                  </app-badge>
+                </div>
+              </article>
+            }
+          </div>
+        } @else {
+          <app-empty-state
+            title="Todavia no publicaste servicios"
+            description="Crea el primer servicio para empezar a configurar reglas de disponibilidad."
+          >
+            <a
+              routerLink="/dashboard/services/new"
+              class="inline-flex min-h-10 items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline focus:outline-2 focus:outline-blue-700"
+            >
+              Crear servicio
+            </a>
+          </app-empty-state>
+        }
+      </app-card>
+    </div>
+  }
+</section>

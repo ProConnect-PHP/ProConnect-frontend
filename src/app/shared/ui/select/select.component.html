@@ -1,0 +1,11 @@
+<select
+  [id]="id()"
+  [value]="value()"
+  [disabled]="isDisabled()"
+  [attr.aria-invalid]="invalid()"
+  class="block min-h-11 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm transition focus:border-blue-600 focus:outline focus:outline-2 focus:outline-blue-600 disabled:cursor-not-allowed disabled:bg-slate-100"
+  (change)="handleChange($event)"
+  (blur)="onTouched()"
+>
+  <ng-content />
+</select>
