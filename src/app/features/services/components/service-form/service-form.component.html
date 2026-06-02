@@ -81,34 +81,67 @@
   }
 
   @if (modality() === 'presencial' || modality() === 'hibrida') {
-    <div class="grid gap-5 md:grid-cols-3">
-      <div class="md:col-span-3">
-        <app-form-field controlId="address" label="Direccion">
-          <app-input
-            id="address"
-            placeholder="Montevideo, Uruguay"
-            formControlName="address"
-          />
-        </app-form-field>
-      </div>
-      <app-form-field controlId="latitude" label="Latitud" [error]="fieldError('latitude')">
-        <app-input
-          id="latitude"
-          type="number"
-          placeholder="-34.9011"
-          formControlName="latitude"
-          [invalid]="!!fieldError('latitude')"
+    <div class="grid gap-4">
+      <section class="grid gap-3">
+        <div>
+          <h2 class="text-base font-semibold text-slate-950">Ubicacion del servicio</h2>
+          <p class="mt-1 text-sm leading-6 text-slate-600">
+            Indica donde estara disponible este servicio presencial o hibrido.
+          </p>
+        </div>
+
+        <app-location-picker
+          searchPlaceholder="Buscar direccion o lugar..."
+          [initialLocation]="selectedServiceLocation()"
+          [disabled]="isSaving()"
+          (locationChanged)="onLocationChanged($event)"
+          (cleared)="clearLocation()"
         />
-      </app-form-field>
-      <app-form-field controlId="longitude" label="Longitud" [error]="fieldError('longitude')">
-        <app-input
-          id="longitude"
-          type="number"
-          placeholder="-56.1645"
-          formControlName="longitude"
-          [invalid]="!!fieldError('longitude')"
-        />
-      </app-form-field>
+
+        @if (locationError()) {
+          <div class="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3" role="status">
+            <p class="text-sm font-semibold text-rose-900">{{ locationError() }}</p>
+          </div>
+        }
+      </section>
+
+      <details class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <summary class="cursor-pointer text-sm font-semibold text-slate-800">
+          Opciones avanzadas
+        </summary>
+
+        <div class="mt-4 grid gap-5 md:grid-cols-3">
+          <div class="md:col-span-3">
+            <app-form-field controlId="address" label="Direccion seleccionada">
+              <app-input
+                id="address"
+                placeholder="Montevideo, Uruguay"
+                formControlName="address"
+              />
+            </app-form-field>
+          </div>
+
+          <app-form-field controlId="latitude" label="Latitud" [error]="fieldError('latitude')">
+            <app-input
+              id="latitude"
+              type="number"
+              placeholder="-34.9011"
+              formControlName="latitude"
+              [invalid]="!!fieldError('latitude')"
+            />
+          </app-form-field>
+          <app-form-field controlId="longitude" label="Longitud" [error]="fieldError('longitude')">
+            <app-input
+              id="longitude"
+              type="number"
+              placeholder="-56.1645"
+              formControlName="longitude"
+              [invalid]="!!fieldError('longitude')"
+            />
+          </app-form-field>
+        </div>
+      </details>
+
       <app-form-field controlId="max_bookings_per_client" label="Max. reservas por cliente">
         <app-input
           id="max_bookings_per_client"

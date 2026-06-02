@@ -1,0 +1,74 @@
+<section class="grid gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+  <div>
+    <h3 class="text-base font-semibold text-slate-950">Ubicacion</h3>
+    <p class="mt-1 text-sm leading-6 text-slate-600">
+      @if (showMap()) {
+        Busca una direccion, usa tu ubicacion actual o selecciona un punto en el mapa.
+      } @else {
+        Busca una direccion o usa tu ubicacion actual.
+      }
+    </p>
+  </div>
+
+  <app-location-search-box
+    [placeholder]="searchPlaceholder()"
+    [value]="selectedLocation()?.label ?? null"
+    [disabled]="disabled()"
+    (locationSelected)="onLocationSelected($event)"
+    (cleared)="clearLocation()"
+  />
+
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
+    @if (showRadius()) {
+      <div class="sm:w-44">
+        <app-location-radius-select
+          selectId="location-picker-radius"
+          [radiusKm]="selectedRadius()"
+          [disabled]="disabled()"
+          (radiusChanged)="onRadiusChanged($event)"
+        />
+      </div>
+    }
+
+    <div class="flex flex-1 flex-col gap-2 sm:flex-row sm:justify-end">
+      <button
+        type="button"
+        class="inline-flex min-h-10 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60"
+        aria-label="Usar mi ubicacion actual"
+        [disabled]="disabled() || loadingLocation()"
+        (click)="useCurrentLocation()"
+      >
+        {{ loadingLocation() ? 'Buscando...' : 'Usar mi ubicacion' }}
+      </button>
+      <button
+        type="button"
+        class="inline-flex min-h-10 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60"
+        aria-label="Limpiar ubicacion seleccionada"
+        [disabled]="disabled() || !selectedLocation()"
+        (click)="clearLocation()"
+      >
+        Limpiar ubicacion
+      </button>
+    </div>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3" role="status">
+      <p class="text-sm font-semibold text-rose-900">{{ errorMessage() }}</p>
+    </div>
+  }
+
+  @if (showMap()) {
+    <app-mapbox-map
+      [center]="mapCenter()"
+      [zoom]="12"
+      [selectable]="true"
+      [disabled]="disabled()"
+      [selectedPoint]="selectedLocation()?.coordinates ?? null"
+      [heightClass]="mapHeightClass()"
+      (mapClicked)="onMapClicked($event)"
+    />
+  }
+
+  <app-mapbox-marker-preview [location]="selectedLocation()" />
+</section>

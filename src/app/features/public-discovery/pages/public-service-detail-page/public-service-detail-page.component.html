@@ -1,0 +1,137 @@
+<main class="mx-auto grid w-full max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:px-8">
+  <a
+    routerLink="/services"
+    class="inline-flex w-fit items-center rounded-md text-sm font-semibold text-indigo-700 hover:text-indigo-900 focus:outline focus:outline-2 focus:outline-indigo-600"
+  >
+    Volver a servicios
+  </a>
+
+  @if (loading()) {
+    <section class="grid gap-6 lg:grid-cols-[1fr_380px]" aria-label="Cargando detalle">
+      <div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="animate-pulse">
+          <div class="h-5 w-24 rounded bg-slate-200"></div>
+          <div class="mt-5 h-9 w-3/4 rounded bg-slate-200"></div>
+          <div class="mt-4 h-4 w-full rounded bg-slate-200"></div>
+          <div class="mt-2 h-4 w-5/6 rounded bg-slate-200"></div>
+          <div class="mt-6 h-24 rounded bg-slate-200"></div>
+        </div>
+      </div>
+      <div class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="animate-pulse">
+          <div class="h-6 w-40 rounded bg-slate-200"></div>
+          <div class="mt-4 h-32 rounded bg-slate-200"></div>
+        </div>
+      </div>
+    </section>
+  } @else if (errorMessage()) {
+    <app-empty-state
+      icon="404"
+      [title]="errorMessage() ?? 'Servicio no encontrado'"
+      description="Podes volver al marketplace y explorar otros servicios publicos."
+    >
+      <a
+        routerLink="/services"
+        class="inline-flex min-h-10 items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700"
+      >
+        Explorar servicios
+      </a>
+    </app-empty-state>
+  } @else if (service(); as publicService) {
+    <section class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+      <div class="grid gap-6">
+        <article class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          <div class="flex flex-wrap items-center gap-2">
+            <app-public-modality-badge [modality]="publicService.modality" />
+            <span class="rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700">
+              {{ publicService.duration_minutes }} min
+            </span>
+            <app-public-company-badge [company]="publicService.company" />
+          </div>
+
+          <h1 class="mt-5 text-3xl font-bold text-slate-950 sm:text-4xl">{{ publicService.name }}</h1>
+          <p class="mt-4 max-w-3xl text-base leading-7 text-slate-700">
+            {{ publicService.description || 'Servicio profesional disponible para consulta publica.' }}
+          </p>
+
+          <dl class="mt-6 grid gap-3 sm:grid-cols-2">
+            <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <dt class="text-sm font-semibold text-slate-500">Precio</dt>
+              <dd class="mt-1 text-2xl font-bold text-slate-950">{{ price(publicService.price) }}</dd>
+            </div>
+            <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <dt class="text-sm font-semibold text-slate-500">Duracion</dt>
+              <dd class="mt-1 text-2xl font-bold text-slate-950">{{ publicService.duration_minutes }} min</dd>
+            </div>
+          </dl>
+
+          @if (showLocation(publicService)) {
+            <div class="mt-6 rounded-lg border border-slate-200 bg-white p-4">
+              <h2 class="text-base font-semibold text-slate-950">Ubicacion</h2>
+              <p class="mt-2 text-sm leading-6 text-slate-700">{{ publicService.address }}</p>
+
+              @if (hasMapLocation(publicService)) {
+                <div class="mt-4">
+                  <app-mapbox-map
+                    [center]="{
+                      latitude: publicService.latitude ?? 0,
+                      longitude: publicService.longitude ?? 0
+                    }"
+                    [zoom]="13"
+                    [markers]="serviceMarker(publicService)"
+                    heightClass="h-72"
+                  />
+                </div>
+              }
+            </div>
+          }
+        </article>
+
+        <section class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 class="text-lg font-bold text-slate-950">Politicas visibles</h2>
+          <dl class="mt-4 grid gap-3 sm:grid-cols-2">
+            <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <dt class="text-sm font-semibold text-slate-500">Buffer entre turnos</dt>
+              <dd class="mt-1 text-lg font-bold text-slate-950">{{ publicService.buffer_minutes }} min</dd>
+            </div>
+            <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <dt class="text-sm font-semibold text-slate-500">Reprogramacion minima</dt>
+              <dd class="mt-1 text-lg font-bold text-slate-950">{{ publicService.min_reschedule_minutes }} min</dd>
+            </div>
+          </dl>
+        </section>
+
+        <app-public-availability-preview [serviceId]="publicService.id" />
+      </div>
+
+      <aside class="grid content-start gap-4">
+        @if (publicService.professional; as professional) {
+          <app-public-professional-card [professional]="professional" />
+          <div class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <h2 class="text-base font-semibold text-slate-950">Reputacion publica</h2>
+            <div class="mt-3">
+              <app-public-rating-badge
+                [rating]="professional.avg_rating"
+                [reviewsCount]="professional.reviews_count"
+              />
+            </div>
+          </div>
+        }
+
+        <div class="rounded-lg border border-indigo-200 bg-indigo-50 p-4 shadow-sm">
+          <h2 class="text-base font-bold text-indigo-950">Reserva proximamente</h2>
+          <p class="mt-2 text-sm leading-6 text-indigo-900">
+            El flujo de booking se activara en la Fase 5. Ya podes explorar horarios disponibles.
+          </p>
+          <button
+            type="button"
+            disabled
+            class="mt-4 inline-flex min-h-10 w-full items-center justify-center rounded-md bg-indigo-200 px-4 py-2 text-sm font-semibold text-indigo-700 disabled:cursor-not-allowed"
+          >
+            Disponible en proxima fase
+          </button>
+        </div>
+      </aside>
+    </section>
+  }
+</main>

@@ -4,12 +4,20 @@
     [title]="'Hola, ' + userName()"
     description="Un resumen rapido de tu configuracion profesional y de los proximos pasos."
   >
-    <a
-      routerLink="/dashboard/services/new"
-      class="inline-flex min-h-10 items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline focus:outline-2 focus:outline-blue-700"
-    >
-      Crear servicio
-    </a>
+    <div class="flex flex-col gap-2 sm:flex-row">
+      <a
+        routerLink="/services"
+        class="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-slate-500"
+      >
+        Ver marketplace publico
+      </a>
+      <a
+        routerLink="/dashboard/services/new"
+        class="inline-flex min-h-10 items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline focus:outline-2 focus:outline-blue-700"
+      >
+        Crear servicio
+      </a>
+    </div>
   </app-page-header>
 
   @if (isLoading()) {

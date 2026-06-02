@@ -1,0 +1,64 @@
+<main class="flex flex-1 flex-col bg-slate-50">
+  <app-marketplace-hero
+    [search]="query().search"
+    (searchChanged)="onSearchChange($event)"
+  />
+
+  <app-public-service-filter-bar
+    [query]="query()"
+    [hasActiveFilters]="hasActiveFilters()"
+    (quickFilterChanged)="onFiltersChange($event)"
+    (openFilters)="openFiltersDrawer()"
+    (clearFilters)="clearFilters()"
+  />
+
+  <section class="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <app-public-active-filters
+      [query]="query()"
+      (removeFilter)="removeFilter($event)"
+    />
+
+    <app-public-services-result-header
+      [total]="meta()?.total ?? 0"
+      [viewMode]="viewMode()"
+      [sort]="query().sort ?? 'recent'"
+      (viewModeChanged)="setViewMode($event)"
+      (sortChanged)="onSortChange($event)"
+    />
+
+    <div class="mb-5 grid gap-3">
+      <app-alert [message]="validationMessage()" variant="warning" />
+      <app-alert [message]="errorMessage()" variant="danger" />
+    </div>
+
+    @if (viewMode() === 'map') {
+      <app-public-services-map-layout
+        [services]="services()"
+        [loading]="loading()"
+        [selectedServiceId]="selectedMapServiceId()"
+        (serviceSelected)="onMapServiceSelected($event)"
+        (clearFilters)="clearFilters()"
+      />
+    } @else {
+      <app-public-services-list
+        [services]="services()"
+        [loading]="loading()"
+        (clearFilters)="clearFilters()"
+      />
+    }
+
+    @if (!loading() && services().length > 0) {
+      <div class="mt-6">
+        <app-public-pagination [meta]="meta()" (pageChange)="onPageChange($event)" />
+      </div>
+    }
+  </section>
+
+  <app-public-service-filters-drawer
+    [open]="filtersDrawerOpen()"
+    [query]="query()"
+    (closed)="closeFiltersDrawer()"
+    (filtersApplied)="applyAdvancedFilters($event)"
+    (filtersCleared)="clearFilters()"
+  />
+</main>

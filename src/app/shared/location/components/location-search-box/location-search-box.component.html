@@ -1,0 +1,63 @@
+<div class="relative">
+  <label class="sr-only" for="location-search">Buscar ubicacion</label>
+  <div class="flex min-h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 shadow-sm transition focus-within:border-indigo-400 focus-within:ring-4 focus-within:ring-indigo-100">
+    <span class="text-sm font-semibold text-slate-500" aria-hidden="true">Buscar</span>
+    <input
+      id="location-search"
+      type="search"
+      class="min-h-8 w-full bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-500 disabled:cursor-not-allowed disabled:text-slate-500"
+      [placeholder]="placeholder()"
+      [formControl]="searchControl"
+      autocomplete="off"
+      role="combobox"
+      aria-autocomplete="list"
+      [attr.aria-expanded]="suggestions().length > 0"
+      aria-controls="location-search-results"
+      (keydown.enter)="$event.preventDefault()"
+    />
+    @if (searchControl.value) {
+      <button
+        type="button"
+        class="rounded-xl px-2 py-1 text-sm font-semibold text-slate-600 hover:bg-slate-100 focus:outline focus:outline-2 focus:outline-indigo-600"
+        aria-label="Limpiar ubicacion"
+        [disabled]="disabled()"
+        (click)="clear()"
+      >
+        Limpiar
+      </button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="absolute z-50 mt-2 w-full rounded-2xl border border-slate-200 bg-white p-3 text-sm font-medium text-slate-600 shadow-xl" role="status">
+      Buscando ubicaciones...
+    </div>
+  } @else if (suggestions().length > 0) {
+    <ul
+      id="location-search-results"
+      class="absolute z-50 mt-2 max-h-72 w-full overflow-auto rounded-2xl border border-slate-200 bg-white shadow-xl"
+      role="listbox"
+    >
+      @for (suggestion of suggestions(); track suggestion.id) {
+        <li role="option">
+          <button
+            type="button"
+            class="block w-full px-4 py-3 text-left hover:bg-slate-50 focus:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600"
+            (click)="selectSuggestion(suggestion)"
+          >
+            <span class="block text-sm font-semibold text-slate-950">{{ suggestion.label }}</span>
+            <span class="mt-1 block text-sm text-slate-600">{{ suggestion.placeName }}</span>
+          </button>
+        </li>
+      }
+    </ul>
+  } @else if (hasSearched() && !errorMessage()) {
+    <div class="absolute z-50 mt-2 w-full rounded-2xl border border-slate-200 bg-white p-3 text-sm font-medium text-slate-600 shadow-xl" role="status">
+      No encontramos esa ubicacion.
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <p class="mt-2 text-sm font-medium text-rose-800" role="status">{{ errorMessage() }}</p>
+  }
+</div>

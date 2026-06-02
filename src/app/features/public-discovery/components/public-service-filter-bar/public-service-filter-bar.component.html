@@ -1,0 +1,127 @@
+<section class="border-b border-slate-200 bg-white">
+  <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+    <div class="-mx-4 overflow-x-auto px-4">
+      <div class="flex min-w-max items-center gap-2">
+        <label class="relative inline-flex items-center">
+          <span class="sr-only">Modalidad</span>
+          <select
+            class="appearance-none rounded-full border px-4 py-2.5 pr-9 text-sm font-semibold shadow-sm outline-none transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+            [class.border-indigo-200]="query().modality"
+            [class.bg-indigo-50]="query().modality"
+            [class.text-indigo-700]="query().modality"
+            [class.border-slate-200]="!query().modality"
+            [class.bg-white]="!query().modality"
+            [class.text-slate-700]="!query().modality"
+            [value]="query().modality ?? ''"
+            (change)="onModalityChange($event)"
+          >
+            <option value="">Modalidad</option>
+            @for (modality of modalities; track modality) {
+              <option [value]="modality">{{ modalityLabel(modality) }}</option>
+            }
+          </select>
+          <span class="pointer-events-none absolute right-3 text-xs text-slate-400" aria-hidden="true">v</span>
+        </label>
+
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-600"
+          [class.border-indigo-200]="hasPriceFilter()"
+          [class.bg-indigo-50]="hasPriceFilter()"
+          [class.text-indigo-700]="hasPriceFilter()"
+          [class.border-slate-200]="!hasPriceFilter()"
+          [class.bg-white]="!hasPriceFilter()"
+          [class.text-slate-700]="!hasPriceFilter()"
+          (click)="openFilters.emit()"
+        >
+          {{ priceLabel() }}
+        </button>
+
+        <label class="relative inline-flex items-center">
+          <span class="sr-only">Duracion</span>
+          <select
+            class="appearance-none rounded-full border px-4 py-2.5 pr-9 text-sm font-semibold shadow-sm outline-none transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+            [class.border-indigo-200]="query().duration_minutes"
+            [class.bg-indigo-50]="query().duration_minutes"
+            [class.text-indigo-700]="query().duration_minutes"
+            [class.border-slate-200]="!query().duration_minutes"
+            [class.bg-white]="!query().duration_minutes"
+            [class.text-slate-700]="!query().duration_minutes"
+            [value]="query().duration_minutes ?? ''"
+            (change)="onDurationChange($event)"
+          >
+            <option value="">Duracion</option>
+            @for (duration of durations; track duration) {
+              <option [value]="duration">{{ duration }} min</option>
+            }
+          </select>
+          <span class="pointer-events-none absolute right-3 text-xs text-slate-400" aria-hidden="true">v</span>
+        </label>
+
+        <label
+          class="inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
+          [class.border-indigo-200]="query().available_date"
+          [class.bg-indigo-50]="query().available_date"
+          [class.text-indigo-700]="query().available_date"
+          [class.border-slate-200]="!query().available_date"
+          [class.bg-white]="!query().available_date"
+          [class.text-slate-700]="!query().available_date"
+        >
+          <span>Fecha</span>
+          <input
+            type="date"
+            class="w-32 bg-transparent text-sm font-semibold outline-none"
+            [value]="query().available_date ?? ''"
+            (change)="onDateChange($event)"
+          />
+        </label>
+
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-600"
+          [class.border-indigo-200]="hasLocationFilter()"
+          [class.bg-indigo-50]="hasLocationFilter()"
+          [class.text-indigo-700]="hasLocationFilter()"
+          [class.border-slate-200]="!hasLocationFilter()"
+          [class.bg-white]="!hasLocationFilter()"
+          [class.text-slate-700]="!hasLocationFilter()"
+          (click)="openFilters.emit()"
+        >
+          {{ locationLabel() }}
+        </button>
+
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-600"
+          [class.border-indigo-200]="query().is_verified"
+          [class.bg-indigo-50]="query().is_verified"
+          [class.text-indigo-700]="query().is_verified"
+          [class.border-slate-200]="!query().is_verified"
+          [class.bg-white]="!query().is_verified"
+          [class.text-slate-700]="!query().is_verified"
+          (click)="toggleVerified()"
+        >
+          Solo verificados
+        </button>
+
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-600"
+          (click)="openFilters.emit()"
+        >
+          Mas filtros
+        </button>
+
+        @if (hasActiveFilters()) {
+          <button
+            type="button"
+            class="inline-flex items-center gap-2 rounded-full bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-200 focus:outline focus:outline-2 focus:outline-indigo-600"
+            (click)="clearFilters.emit()"
+          >
+            Limpiar
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+</section>

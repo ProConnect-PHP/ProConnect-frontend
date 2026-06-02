@@ -1,0 +1,94 @@
+<article class="group flex h-full flex-col overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:border-indigo-200 hover:shadow-xl">
+  <div class="border-b border-slate-100 bg-gradient-to-br from-slate-50 to-white p-5">
+    <div class="flex items-start justify-between gap-3">
+      <div class="flex flex-wrap gap-2">
+        <app-public-modality-badge [modality]="service().modality" />
+        <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+          {{ service().duration_minutes }} min
+        </span>
+      </div>
+
+      <div class="rounded-2xl bg-slate-950 px-3 py-2 text-sm font-black text-white shadow-sm">
+        {{ price(service().price) }}
+      </div>
+    </div>
+
+    <h3 class="mt-5 line-clamp-2 text-lg font-black tracking-tight text-slate-950">
+      {{ service().name }}
+    </h3>
+    <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">
+      {{ descriptionPreview(service()) }}
+    </p>
+
+    <div class="mt-4 flex flex-wrap gap-2">
+      <app-public-company-badge [company]="service().company" />
+      @if (service().professional; as professional) {
+        @if (professional.is_verified) {
+          <span class="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800">
+            Verificado
+          </span>
+        }
+      }
+    </div>
+  </div>
+
+  <div class="flex flex-1 flex-col justify-between p-5">
+    <div class="grid gap-4">
+      <div class="flex items-center gap-3">
+        @if (service().professional?.user?.avatar_url) {
+          <img
+            class="size-11 rounded-full object-cover"
+            [src]="service().professional?.user?.avatar_url"
+            [alt]="'Avatar de ' + professionalName(service().professional)"
+          />
+        } @else {
+          <div
+            class="grid size-11 place-items-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700"
+            aria-hidden="true"
+          >
+            {{ professionalInitial(service().professional) }}
+          </div>
+        }
+
+        <div class="min-w-0">
+          @if (service().professional; as professional) {
+            <a
+              class="truncate text-sm font-bold text-slate-900 hover:text-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-600"
+              [routerLink]="['/professionals', professional.id]"
+            >
+              {{ professionalName(professional) }}
+            </a>
+            <p class="mt-1 text-xs text-slate-500">
+              {{ professional.reviews_count > 0 ? professional.avg_rating + ' rating' : 'Sin reviews todavia' }}
+            </p>
+          } @else {
+            <p class="truncate text-sm font-bold text-slate-900">{{ professionalName(null) }}</p>
+            <p class="mt-1 text-xs text-slate-500">Perfil publico pendiente</p>
+          }
+        </div>
+      </div>
+
+      @if (showLocation(service())) {
+        <p class="line-clamp-1 text-sm font-medium text-slate-600">
+          {{ service().address }}
+        </p>
+      }
+    </div>
+
+    <div class="mt-5 grid grid-cols-2 gap-2">
+      <a
+        class="inline-flex min-h-11 items-center justify-center rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700"
+        [routerLink]="['/services', service().id]"
+      >
+        Ver detalle
+      </a>
+      <a
+        class="inline-flex min-h-11 items-center justify-center rounded-2xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-bold text-indigo-700 transition hover:bg-indigo-100 focus:outline focus:outline-2 focus:outline-indigo-600"
+        [routerLink]="['/services', service().id]"
+        fragment="availability"
+      >
+        Horarios
+      </a>
+    </div>
+  </div>
+</article>

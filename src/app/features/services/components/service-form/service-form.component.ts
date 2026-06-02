@@ -6,10 +6,12 @@ import {
   inject,
   input,
   output,
+  signal,
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { merge } from 'rxjs';
 
 import { AppAlertComponent } from '../../../../shared/ui/alert/alert.component';
 import { AppButtonComponent } from '../../../../shared/ui/button/button.component';
@@ -17,6 +19,9 @@ import { AppFormFieldComponent } from '../../../../shared/ui/form-field/form-fie
 import { AppInputComponent } from '../../../../shared/ui/input/input.component';
 import { AppSelectComponent } from '../../../../shared/ui/select/select.component';
 import { AppTextareaComponent } from '../../../../shared/ui/textarea/textarea.component';
+import { LocationPickerComponent } from '../../../../shared/location/components/location-picker/location-picker.component';
+import { SelectedLocation } from '../../../../shared/location/models/location.models';
+import { coordinatesLabel } from '../../../../shared/location/utils/coordinates.util';
 import {
   Service,
   ServiceDuration,
@@ -53,6 +58,7 @@ type ServiceFormControls = {
     AppInputComponent,
     AppSelectComponent,
     AppTextareaComponent,
+    LocationPickerComponent,
   ],
   templateUrl: './service-form.component.html',
   styleUrl: './service-form.component.css',
@@ -69,6 +75,8 @@ export class ServiceFormComponent {
   readonly save = output<StoreServiceRequest>();
 
   readonly durations: ServiceDuration[] = [15, 30, 45, 60, 90, 120];
+  readonly selectedServiceLocation = signal<SelectedLocation | null>(null);
+  readonly locationError = signal<string | null>(null);
 
   readonly form = this.fb.group({
     name: ['', [Validators.required]],
@@ -117,20 +125,50 @@ export class ServiceFormComponent {
       };
 
       this.form.patchValue(value, { emitEvent: false });
+      this.selectedServiceLocation.set(locationFromControls(value.address, value.latitude, value.longitude));
     });
 
     this.form.controls.latitude.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.form.controls.latitude.updateValueAndValidity({ emitEvent: false }));
+
+    merge(
+      this.form.controls.address.valueChanges,
+      this.form.controls.latitude.valueChanges,
+      this.form.controls.longitude.valueChanges,
+    )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.syncAdvancedLocationFromControls());
+
+    this.form.controls.modality.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((modality) => {
+        if (modality !== 'remota') return;
+        this.locationError.set(null);
+        this.selectedServiceLocation.set(null);
+        this.form.patchValue(
+          {
+            address: '',
+            latitude: '',
+            longitude: '',
+          },
+          { emitEvent: false },
+        );
+      });
   }
 
   submit(): void {
-    if (this.form.invalid || !this.hasValidNumbers()) {
+    const locationError = this.locationValidationError();
+    this.locationError.set(locationError);
+
+    if (this.form.invalid || !this.hasValidNumbers() || locationError) {
       this.form.markAllAsTouched();
       return;
     }
 
     const value = this.form.getRawValue();
+    const hasPhysicalLocation = value.modality === 'presencial' || value.modality === 'hibrida';
+    const hasRemoteLocation = value.modality === 'remota' || value.modality === 'hibrida';
 
     this.save.emit({
       name: value.name.trim(),
@@ -138,10 +176,10 @@ export class ServiceFormComponent {
       price: Number(value.price),
       duration_minutes: Number(value.duration_minutes) as ServiceDuration,
       modality: value.modality,
-      address: nullableText(value.address),
-      link: nullableText(value.link),
-      latitude: numberOrNull(value.latitude),
-      longitude: numberOrNull(value.longitude),
+      address: hasPhysicalLocation ? nullableText(value.address) : null,
+      link: hasRemoteLocation ? nullableText(value.link) : null,
+      latitude: hasPhysicalLocation ? numberOrNull(value.latitude) : null,
+      longitude: hasPhysicalLocation ? numberOrNull(value.longitude) : null,
       max_bookings_per_client: integerOrNull(value.max_bookings_per_client),
       min_reschedule_minutes: Number(value.min_reschedule_minutes),
       buffer_minutes: Number(value.buffer_minutes),
@@ -149,6 +187,32 @@ export class ServiceFormComponent {
       ends_at: nullableText(value.ends_at),
       is_active: value.is_active,
     });
+  }
+
+  onLocationChanged(location: SelectedLocation): void {
+    this.locationError.set(null);
+    this.selectedServiceLocation.set(location);
+    this.form.patchValue({
+      address: location.label,
+      latitude: String(location.coordinates.latitude),
+      longitude: String(location.coordinates.longitude),
+    });
+  }
+
+  clearLocation(): void {
+    this.selectedServiceLocation.set(null);
+    this.form.patchValue({
+      address: '',
+      latitude: '',
+      longitude: '',
+    });
+  }
+
+  syncAdvancedLocationFromControls(): void {
+    const value = this.form.getRawValue();
+    this.selectedServiceLocation.set(
+      locationFromControls(value.address, value.latitude, value.longitude),
+    );
   }
 
   fieldError(controlName: keyof ServiceFormControls): string | null {
@@ -177,6 +241,29 @@ export class ServiceFormComponent {
       (longitude === null || (longitude >= -180 && longitude <= 180))
     );
   }
+
+  private locationValidationError(): string | null {
+    const value = this.form.getRawValue();
+    if (value.modality === 'remota') return null;
+
+    const address = nullableText(value.address);
+    const latitude = numberOrNull(value.latitude);
+    const longitude = numberOrNull(value.longitude);
+
+    if (!address || latitude === null || longitude === null) {
+      return 'Selecciona la ubicacion del servicio en el mapa.';
+    }
+
+    if (latitude < -90 || latitude > 90) {
+      return 'La latitud debe estar entre -90 y 90.';
+    }
+
+    if (longitude < -180 || longitude > 180) {
+      return 'La longitud debe estar entre -180 y 180.';
+    }
+
+    return null;
+  }
 }
 
 function nullableText(value: string): string | null {
@@ -193,4 +280,22 @@ function numberOrNull(value: string): number | null {
 function integerOrNull(value: string): number | null {
   const numberValue = numberOrNull(value);
   return numberValue === null ? null : Math.trunc(numberValue);
+}
+
+function locationFromControls(
+  address: string,
+  latitudeValue: string,
+  longitudeValue: string,
+): SelectedLocation | null {
+  const latitude = numberOrNull(latitudeValue);
+  const longitude = numberOrNull(longitudeValue);
+
+  if (latitude === null || longitude === null) return null;
+
+  const coordinates = { latitude, longitude };
+
+  return {
+    label: nullableText(address) ?? `Ubicacion seleccionada (${coordinatesLabel(coordinates)})`,
+    coordinates,
+  };
 }

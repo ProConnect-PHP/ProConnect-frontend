@@ -20,6 +20,38 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'services',
+        title: 'Servicios | ProConnect',
+        loadComponent: () =>
+          import(
+            './features/public-discovery/pages/public-services-page/public-services-page.component'
+          ).then((m) => m.PublicServicesPageComponent),
+      },
+      {
+        path: 'services/:id/availability',
+        title: 'Disponibilidad publica | ProConnect',
+        loadComponent: () =>
+          import(
+            './features/availability/pages/public-availability-page/public-availability-page.component'
+          ).then((m) => m.PublicAvailabilityPageComponent),
+      },
+      {
+        path: 'services/:serviceId',
+        title: 'Detalle del servicio | ProConnect',
+        loadComponent: () =>
+          import(
+            './features/public-discovery/pages/public-service-detail-page/public-service-detail-page.component'
+          ).then((m) => m.PublicServiceDetailPageComponent),
+      },
+      {
+        path: 'professionals/:professionalId',
+        title: 'Perfil profesional | ProConnect',
+        loadComponent: () =>
+          import(
+            './features/public-discovery/pages/public-professional-profile-page/public-professional-profile-page.component'
+          ).then((m) => m.PublicProfessionalProfilePageComponent),
+      },
+      {
         path: 'login',
         title: 'Iniciar sesion | ProConnect',
         canActivate: [guestGuard],
@@ -36,14 +68,6 @@ export const routes: Routes = [
           import('./features/auth/pages/register-page/register-page.component').then(
             (m) => m.RegisterPageComponent,
           ),
-      },
-      {
-        path: 'services/:id/availability',
-        title: 'Disponibilidad publica | ProConnect',
-        loadComponent: () =>
-          import(
-            './features/availability/pages/public-availability-page/public-availability-page.component'
-          ).then((m) => m.PublicAvailabilityPageComponent),
       },
     ],
   },
