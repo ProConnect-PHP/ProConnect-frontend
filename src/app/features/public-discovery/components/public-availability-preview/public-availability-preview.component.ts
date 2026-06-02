@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs/operators';
@@ -23,6 +23,7 @@ export class PublicAvailabilityPreviewComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly serviceId = input.required<string | number>();
+  readonly slotSelected = output<AvailabilitySlot | null>();
   readonly slots = signal<AvailabilitySlot[]>([]);
   readonly selectedSlot = signal<AvailabilitySlot | null>(null);
   readonly loading = signal(false);
@@ -42,7 +43,7 @@ export class PublicAvailabilityPreviewComponent implements OnInit {
       return;
     }
 
-    this.selectedSlot.set(null);
+    this.clearSelectedSlot();
     this.errorMessage.set(null);
     this.loading.set(true);
 
@@ -63,6 +64,7 @@ export class PublicAvailabilityPreviewComponent implements OnInit {
 
   selectSlot(slot: AvailabilitySlot): void {
     this.selectedSlot.set(slot);
+    this.slotSelected.emit(slot);
   }
 
   slotLabel(slot: AvailabilitySlot): string {
@@ -71,6 +73,11 @@ export class PublicAvailabilityPreviewComponent implements OnInit {
 
   isSelected(slot: AvailabilitySlot): boolean {
     return this.selectedSlot()?.starts_at === slot.starts_at;
+  }
+
+  private clearSelectedSlot(): void {
+    this.selectedSlot.set(null);
+    this.slotSelected.emit(null);
   }
 
   private errorFrom(error: unknown): string {

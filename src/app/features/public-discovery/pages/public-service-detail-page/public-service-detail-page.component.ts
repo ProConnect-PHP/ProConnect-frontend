@@ -1,20 +1,24 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { of } from 'rxjs';
 import { catchError, finalize, map, switchMap } from 'rxjs/operators';
 
+import { AuthStore } from '../../../../core/auth/services/auth.store';
 import { ApiClientError } from '../../../../core/http/models/api-error.model';
 import { AppEmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
 import { MapboxMapComponent } from '../../../../shared/location/components/mapbox-map/mapbox-map.component';
 import { MapMarker } from '../../../../shared/location/models/location.models';
+import { BookingsApi } from '../../../bookings/data-access/bookings.api';
+import { CreateBookingPanelComponent } from '../../../bookings/components/create-booking-panel/create-booking-panel.component';
+import { bookingErrorMessage } from '../../../bookings/utils/booking-error-message.util';
 import { PublicAvailabilityPreviewComponent } from '../../components/public-availability-preview/public-availability-preview.component';
 import { PublicCompanyBadgeComponent } from '../../components/public-company-badge/public-company-badge.component';
 import { PublicModalityBadgeComponent } from '../../components/public-modality-badge/public-modality-badge.component';
 import { PublicProfessionalCardComponent } from '../../components/public-professional-card/public-professional-card.component';
 import { PublicRatingBadgeComponent } from '../../components/public-rating-badge/public-rating-badge.component';
 import { PublicDiscoveryApi } from '../../data-access/public-discovery.api';
-import { PublicService, PublicServiceResponse } from '../../models/public-discovery.models';
+import { AvailabilitySlot, PublicService, PublicServiceResponse } from '../../models/public-discovery.models';
 import { formatPrice } from '../../utils/price-format.util';
 
 @Component({
@@ -22,6 +26,7 @@ import { formatPrice } from '../../utils/price-format.util';
   imports: [
     RouterLink,
     AppEmptyStateComponent,
+    CreateBookingPanelComponent,
     MapboxMapComponent,
     PublicAvailabilityPreviewComponent,
     PublicCompanyBadgeComponent,
@@ -34,12 +39,18 @@ import { formatPrice } from '../../utils/price-format.util';
 })
 export class PublicServiceDetailPageComponent implements OnInit {
   private readonly api = inject(PublicDiscoveryApi);
+  private readonly bookingsApi = inject(BookingsApi);
+  private readonly authStore = inject(AuthStore);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly service = signal<PublicService | null>(null);
+  readonly selectedSlot = signal<AvailabilitySlot | null>(null);
   readonly loading = signal(true);
   readonly errorMessage = signal<string | null>(null);
+  readonly bookingLoading = signal(false);
+  readonly bookingErrorMessage = signal<string | null>(null);
 
   ngOnInit(): void {
     this.route.paramMap
@@ -81,9 +92,47 @@ export class PublicServiceDetailPageComponent implements OnInit {
     ];
   }
 
+  onSlotSelected(slot: AvailabilitySlot | null): void {
+    this.selectedSlot.set(slot);
+    this.bookingErrorMessage.set(null);
+  }
+
+  createBooking(slot: AvailabilitySlot): void {
+    const service = this.service();
+    if (!service || this.bookingLoading()) return;
+
+    if (!this.authStore.isAuthenticated()) {
+      void this.router.navigate(['/login'], {
+        queryParams: {
+          returnUrl: this.router.url,
+          redirectTo: this.router.url,
+        },
+      });
+      return;
+    }
+
+    this.bookingLoading.set(true);
+    this.bookingErrorMessage.set(null);
+
+    this.bookingsApi
+      .createBooking(service.id, { starts_at: slot.starts_at })
+      .pipe(
+        finalize(() => this.bookingLoading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (response) => {
+          void this.router.navigate(['/my-bookings', response.booking.id]);
+        },
+        error: (error: unknown) => this.bookingErrorMessage.set(bookingErrorMessage(error)),
+      });
+  }
+
   private fetchService(serviceId: string | null) {
     this.loading.set(true);
     this.errorMessage.set(null);
+    this.selectedSlot.set(null);
+    this.bookingErrorMessage.set(null);
 
     if (!serviceId) {
       this.loading.set(false);

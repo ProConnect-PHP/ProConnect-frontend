@@ -1,5 +1,7 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+
+import { AuthStore } from '../../auth/services/auth.store';
 
 @Component({
   selector: 'app-public-layout',
@@ -8,4 +10,8 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
   styleUrl: './public-layout.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PublicLayoutComponent {}
+export class PublicLayoutComponent {
+  private readonly authStore = inject(AuthStore);
+
+  readonly isAuthenticated = this.authStore.isAuthenticated;
+}

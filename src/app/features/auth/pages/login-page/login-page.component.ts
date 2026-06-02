@@ -59,7 +59,10 @@ export class LoginPageComponent {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          const redirectTo = this.route.snapshot.queryParamMap.get('redirectTo') ?? '/dashboard';
+          const redirectTo =
+            this.route.snapshot.queryParamMap.get('returnUrl') ??
+            this.route.snapshot.queryParamMap.get('redirectTo') ??
+            '/dashboard';
           void this.router.navigateByUrl(redirectTo);
         },
         error: (error: unknown) => this.errorMessage.set(this.errorFrom(error)),

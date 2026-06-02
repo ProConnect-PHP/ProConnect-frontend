@@ -25,6 +25,11 @@
         <a routerLink="/services" routerLinkActive="text-slate-950">
           Servicios
         </a>
+        @if (isAuthenticated()) {
+          <a routerLink="/my-bookings" routerLinkActive="text-slate-950">
+            Mis reservas
+          </a>
+        }
       </div>
 
       <div class="flex items-center gap-2">
@@ -34,18 +39,33 @@
         >
           Servicios
         </a>
-        <a
-          routerLink="/login"
-          class="rounded-2xl px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 focus:outline focus:outline-2"
-        >
-          Iniciar sesion
-        </a>
-        <a
-          routerLink="/register"
-          class="rounded-2xl bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700"
-        >
-          Crear cuenta
-        </a>
+        @if (isAuthenticated()) {
+          <a
+            routerLink="/my-bookings"
+            class="rounded-2xl px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 focus:outline focus:outline-2 sm:hidden"
+          >
+            Mis reservas
+          </a>
+          <a
+            routerLink="/dashboard"
+            class="rounded-2xl bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700"
+          >
+            Dashboard
+          </a>
+        } @else {
+          <a
+            routerLink="/login"
+            class="rounded-2xl px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 focus:outline focus:outline-2"
+          >
+            Iniciar sesion
+          </a>
+          <a
+            routerLink="/register"
+            class="rounded-2xl bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700"
+          >
+            Crear cuenta
+          </a>
+        }
       </div>
     </nav>
   </header>

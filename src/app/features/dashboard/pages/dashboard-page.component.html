@@ -51,9 +51,9 @@
       </app-card>
 
       <app-card bodyClass="p-4">
-        <p class="text-sm text-slate-500">Proxima fase</p>
-        <p class="mt-2 text-2xl font-bold text-slate-950">Reservas</p>
-        <p class="mt-2 text-sm text-slate-600">Booking frontend queda como TODO de Fase 4.</p>
+        <p class="text-sm text-slate-500">Reservas</p>
+        <p class="mt-2 text-2xl font-bold text-slate-950">Activas</p>
+        <p class="mt-2 text-sm text-slate-600">Gestiona turnos propios y reservas recibidas.</p>
       </app-card>
     </div>
 
@@ -108,7 +108,7 @@
                   <div>
                     <p class="font-semibold text-slate-950">{{ service.name }}</p>
                     <p class="mt-1 text-sm text-slate-600">
-                      {{ service.duration_minutes }} min · {{ service.modality }} ·
+                      {{ service.duration_minutes }} min - {{ service.modality }} -
                       {{ money(service.price) }}
                     </p>
                   </div>
@@ -133,6 +133,30 @@
           </app-empty-state>
         }
       </app-card>
+    </div>
+
+    <div class="mt-6 grid gap-4 md:grid-cols-2">
+      <a
+        routerLink="/my-bookings"
+        class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline focus:outline-2 focus:outline-indigo-600"
+      >
+        <p class="text-sm font-bold uppercase tracking-wide text-indigo-600">Cliente</p>
+        <h2 class="mt-2 text-xl font-black tracking-tight text-slate-950">Mis reservas</h2>
+        <p class="mt-2 text-sm leading-6 text-slate-600">
+          Revisa, cancela o reprograma tus turnos como cliente.
+        </p>
+      </a>
+
+      <a
+        routerLink="/professional/bookings"
+        class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline focus:outline-2 focus:outline-indigo-600"
+      >
+        <p class="text-sm font-bold uppercase tracking-wide text-indigo-600">Profesional</p>
+        <h2 class="mt-2 text-xl font-black tracking-tight text-slate-950">Reservas recibidas</h2>
+        <p class="mt-2 text-sm leading-6 text-slate-600">
+          Confirma turnos pendientes y gestiona reservas de tus servicios.
+        </p>
+      </a>
     </div>
   }
 </section>

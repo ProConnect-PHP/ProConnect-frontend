@@ -1,6 +1,4 @@
-import { NgTemplateOutlet } from '@angular/common';
-import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
-import { ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
@@ -37,7 +35,6 @@ const defaultQuery: PublicServicesQuery = {
   per_page: 12,
   sort: 'recent',
 };
-
 
 @Component({
   selector: 'app-public-services-page',

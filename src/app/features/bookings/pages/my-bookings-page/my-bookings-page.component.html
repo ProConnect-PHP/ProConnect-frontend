@@ -1,0 +1,63 @@
+<main class="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+  <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wide text-indigo-600">Reservas</p>
+      <h1 class="mt-2 text-3xl font-black tracking-tight text-slate-950">Mis reservas</h1>
+      <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+        Gestiona tus proximos turnos y revisa tu historial.
+      </p>
+    </div>
+    <a
+      routerLink="/services"
+      class="inline-flex min-h-11 items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700"
+    >
+      Explorar servicios
+    </a>
+  </header>
+
+  <div class="mt-6 grid gap-3">
+    <app-alert [message]="successMessage()" variant="success" />
+    <app-alert [message]="errorMessage()" variant="danger" />
+  </div>
+
+  <div class="mt-6">
+    <app-booking-filters
+      context="client"
+      [activeFilter]="activeFilter()"
+      (filterChanged)="setFilter($event)"
+    />
+  </div>
+
+  <section class="mt-6 grid gap-4">
+    @if (loading()) {
+      @for (item of skeletonItems; track item) {
+        <app-booking-skeleton />
+      }
+    } @else if (filteredBookings().length === 0) {
+      <app-booking-empty-state context="client" />
+    } @else {
+      @for (booking of filteredBookings(); track booking.id) {
+        <app-booking-card
+          [booking]="booking"
+          context="client"
+          (cancelClicked)="openCancelDialog($event)"
+          (rescheduleClicked)="openRescheduleDialog($event)"
+        />
+      }
+    }
+  </section>
+
+  <app-booking-cancel-dialog
+    [open]="!!selectedCancelBooking()"
+    [booking]="selectedCancelBooking()"
+    (closed)="closeDialogs()"
+    (bookingUpdated)="onBookingUpdated($event, 'Reserva cancelada correctamente.')"
+  />
+
+  <app-booking-reschedule-dialog
+    [open]="!!selectedRescheduleBooking()"
+    [booking]="selectedRescheduleBooking()"
+    (closed)="closeDialogs()"
+    (bookingUpdated)="onBookingUpdated($event, 'Reserva reprogramada correctamente.')"
+  />
+</main>

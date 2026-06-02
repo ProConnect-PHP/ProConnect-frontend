@@ -29,6 +29,9 @@ export class DashboardLayoutComponent implements OnInit {
     { label: 'Perfil profesional', shortLabel: 'Perfil', path: '/dashboard/profile' },
     { label: 'Servicios', shortLabel: 'Servicios', path: '/dashboard/services' },
     { label: 'Disponibilidad', shortLabel: 'Agenda', path: '/dashboard/availability' },
+    { label: 'Mis reservas', shortLabel: 'Mias', path: '/my-bookings' },
+    { label: 'Reservas profesionales', shortLabel: 'Reservas', path: '/professional/bookings' },
+    { label: 'Marketplace', shortLabel: 'Market', path: '/services' },
   ];
 
   ngOnInit(): void {

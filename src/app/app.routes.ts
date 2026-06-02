@@ -52,6 +52,42 @@ export const routes: Routes = [
           ).then((m) => m.PublicProfessionalProfilePageComponent),
       },
       {
+        path: 'my-bookings',
+        title: 'Mis reservas | ProConnect',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import(
+            './features/bookings/pages/my-bookings-page/my-bookings-page.component'
+          ).then((m) => m.MyBookingsPageComponent),
+      },
+      {
+        path: 'my-bookings/:bookingId',
+        title: 'Detalle de reserva | ProConnect',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import(
+            './features/bookings/pages/booking-detail-page/booking-detail-page.component'
+          ).then((m) => m.BookingDetailPageComponent),
+      },
+      {
+        path: 'professional/bookings',
+        title: 'Reservas profesionales | ProConnect',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import(
+            './features/bookings/pages/professional-bookings-page/professional-bookings-page.component'
+          ).then((m) => m.ProfessionalBookingsPageComponent),
+      },
+      {
+        path: 'professional/bookings/:bookingId',
+        title: 'Detalle de reserva profesional | ProConnect',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import(
+            './features/bookings/pages/professional-booking-detail-page/professional-booking-detail-page.component'
+          ).then((m) => m.ProfessionalBookingDetailPageComponent),
+      },
+      {
         path: 'login',
         title: 'Iniciar sesion | ProConnect',
         canActivate: [guestGuard],

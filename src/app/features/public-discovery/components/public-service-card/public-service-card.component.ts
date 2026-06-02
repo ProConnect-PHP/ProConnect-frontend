@@ -1,12 +1,10 @@
-import { Component, input } from '@angular/core';
-import { ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { PublicProfessional, PublicService } from '../../models/public-discovery.models';
 import { formatPrice } from '../../utils/price-format.util';
 import { PublicCompanyBadgeComponent } from '../public-company-badge/public-company-badge.component';
 import { PublicModalityBadgeComponent } from '../public-modality-badge/public-modality-badge.component';
-
 
 @Component({
   selector: 'app-public-service-card',
