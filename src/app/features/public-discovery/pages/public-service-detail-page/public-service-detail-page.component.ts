@@ -12,6 +12,7 @@ import { MapMarker } from '../../../../shared/location/models/location.models';
 import { BookingsApi } from '../../../bookings/data-access/bookings.api';
 import { CreateBookingPanelComponent } from '../../../bookings/components/create-booking-panel/create-booking-panel.component';
 import { bookingErrorMessage } from '../../../bookings/utils/booking-error-message.util';
+import { ServiceReviewsSectionComponent } from '../../../reviews/components/service-reviews-section/service-reviews-section.component';
 import { PublicAvailabilityPreviewComponent } from '../../components/public-availability-preview/public-availability-preview.component';
 import { PublicCompanyBadgeComponent } from '../../components/public-company-badge/public-company-badge.component';
 import { PublicModalityBadgeComponent } from '../../components/public-modality-badge/public-modality-badge.component';
@@ -33,6 +34,7 @@ import { formatPrice } from '../../utils/price-format.util';
     PublicModalityBadgeComponent,
     PublicProfessionalCardComponent,
     PublicRatingBadgeComponent,
+    ServiceReviewsSectionComponent,
   ],
   templateUrl: './public-service-detail-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

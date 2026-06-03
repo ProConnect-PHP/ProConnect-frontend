@@ -1,0 +1,72 @@
+<form class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm" [formGroup]="form" (ngSubmit)="submit()">
+  <div>
+    <h2 class="text-lg font-bold text-slate-950">{{ title() }}</h2>
+    <p class="mt-1 text-sm leading-6 text-slate-600">{{ helperText() }}</p>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="mt-4 rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800" role="alert">
+      {{ errorMessage() }}
+    </div>
+  }
+
+  <div class="mt-5 grid gap-5">
+    <div>
+      <app-rating-input formControlName="rating" [invalid]="ratingInvalid() || ratingBackendErrors().length > 0" />
+      @if (ratingInvalid()) {
+        <p class="mt-2 text-sm font-medium text-rose-700" id="review-rating-error">
+          Selecciona una calificacion entre 1 y 5.
+        </p>
+      }
+      @for (error of ratingBackendErrors(); track error) {
+        <p class="mt-2 text-sm font-medium text-rose-700">{{ error }}</p>
+      }
+    </div>
+
+    <div>
+      <label class="text-sm font-semibold text-slate-800" for="review-comment">
+        Comentario
+      </label>
+      <textarea
+        id="review-comment"
+        class="mt-2 min-h-32 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:outline focus:outline-2 focus:outline-indigo-600 disabled:cursor-not-allowed disabled:bg-slate-100"
+        formControlName="comment"
+        maxlength="3000"
+        aria-describedby="review-comment-help review-comment-count"
+        placeholder="Conta que tal fue tu experiencia."
+      ></textarea>
+      <div class="mt-2 flex flex-col gap-1 text-sm sm:flex-row sm:items-center sm:justify-between">
+        <p class="text-slate-500" id="review-comment-help">Opcional. No publiques informacion sensible.</p>
+        <p class="font-medium text-slate-600" id="review-comment-count">{{ commentLength() }}/3000</p>
+      </div>
+      @if (commentInvalid()) {
+        <p class="mt-2 text-sm font-medium text-rose-700">
+          El comentario no puede superar los 3000 caracteres.
+        </p>
+      }
+      @for (error of commentBackendErrors(); track error) {
+        <p class="mt-2 text-sm font-medium text-rose-700">{{ error }}</p>
+      }
+    </div>
+  </div>
+
+  <div class="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+    @if (mode() === 'edit') {
+      <button
+        type="button"
+        class="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600"
+        [disabled]="submitting()"
+        (click)="cancelled.emit()"
+      >
+        Cancelar
+      </button>
+    }
+    <button
+      type="submit"
+      class="inline-flex min-h-10 items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
+      [disabled]="form.invalid || submitting() || disabled()"
+    >
+      {{ submitLabel() }}
+    </button>
+  </div>
+</form>

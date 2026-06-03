@@ -105,6 +105,12 @@
           [serviceId]="publicService.id"
           (slotSelected)="onSlotSelected($event)"
         />
+
+        <app-service-reviews-section
+          [serviceId]="publicService.id"
+          [avgRating]="publicService.professional?.avg_rating ?? null"
+          [reviewsCount]="publicService.professional?.reviews_count ?? null"
+        />
       </div>
 
       <aside class="grid content-start gap-4">

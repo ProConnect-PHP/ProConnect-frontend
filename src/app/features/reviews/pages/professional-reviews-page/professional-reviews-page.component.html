@@ -1,0 +1,83 @@
+<section class="px-4 py-6 sm:px-6 lg:px-8">
+  <app-page-header
+    eyebrow="Reputacion"
+    title="Reseñas de tus servicios"
+    description="Responde reseñas verificadas desde los servicios que ya publicaste."
+  >
+    <a
+      routerLink="/dashboard/services"
+      class="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600"
+    >
+      Ver servicios
+    </a>
+  </app-page-header>
+
+  <div class="mt-6 grid gap-3">
+    <app-alert [message]="successMessage()" variant="success" />
+    <app-alert [message]="errorMessage()" variant="danger" />
+  </div>
+
+  @if (loading()) {
+    <div class="mt-6">
+      <app-loading-spinner label="Cargando reseñas..." />
+    </div>
+  } @else if (groups().length === 0) {
+    <div class="mt-6">
+      <app-empty-state
+        title="No encontramos reseñas para mostrar"
+        description="Las reseñas aparecerán cuando clientes completen reservas en tus servicios."
+      >
+        <a
+          routerLink="/dashboard/services"
+          class="inline-flex min-h-10 items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700"
+        >
+          Revisar servicios
+        </a>
+      </app-empty-state>
+    </div>
+  } @else {
+    <div class="mt-6 grid gap-6">
+      @for (group of groups(); track group.service.id) {
+        <section class="grid gap-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 class="text-lg font-bold text-slate-950">{{ group.service.name }}</h2>
+              <p class="mt-1 text-sm text-slate-600">
+                {{ group.meta?.total ?? group.reviews.length }} reseñas visibles
+              </p>
+            </div>
+            <a
+              class="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600"
+              [routerLink]="['/services', group.service.id]"
+            >
+              Ver publico
+            </a>
+          </div>
+
+          @if (group.errorMessage) {
+            <div class="rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">
+              {{ group.errorMessage }}
+            </div>
+          } @else if (group.reviews.length === 0) {
+            <div class="rounded-lg border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
+              Este servicio todavia no tiene reseñas.
+            </div>
+          } @else {
+            <div class="grid gap-4">
+              @for (review of group.reviews; track review.id) {
+                <app-review-card
+                  [review]="review"
+                  [canReply]="canReply(review)"
+                  [canEditReply]="canEditReply(review)"
+                  [currentProfessionalId]="profile()?.id ?? null"
+                  (replySubmitted)="onReplyCreated(review, $event)"
+                  (replyUpdated)="onReplyUpdated(review, $event)"
+                />
+              }
+            </div>
+          }
+        </section>
+      }
+    </div>
+  }
+</section>

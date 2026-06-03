@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiBaseUrl: 'http://localhost:8000/api/v1',
+  apiBaseUrl: 'http://localhost:80/api/v1',
   mapbox: {
     accessToken: 'pk.eyJ1IjoiZ3lhYmlzaXRvIiwiYSI6ImNtcG91czhlNDA4NWcycnB5cXo5cmZtNzUifQ.Xr-oAMmAwYGU6aO0wBi5Nw',
     defaultCenter: {

@@ -1,0 +1,20 @@
+<section id="reviews" class="grid gap-5" aria-labelledby="service-reviews-title">
+  <div>
+    <h2 id="service-reviews-title" class="text-2xl font-bold text-slate-950">Opiniones de clientes</h2>
+    <p class="mt-1 text-sm leading-6 text-slate-600">
+      Reseñas verificadas de personas que reservaron este servicio.
+    </p>
+  </div>
+
+  <app-review-summary [rating]="summaryRating()" [reviewsCount]="summaryCount()" />
+
+  <app-review-list
+    [reviews]="reviews()"
+    [meta]="meta()"
+    [loading]="loading()"
+    [loadingMore]="loadingMore()"
+    [errorMessage]="errorMessage()"
+    (loadMore)="loadMore()"
+    (retry)="retry()"
+  />
+</section>

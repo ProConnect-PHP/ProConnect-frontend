@@ -36,6 +36,60 @@
       <div class="grid gap-6">
         <app-booking-detail-card [booking]="currentBooking" context="client" />
         <app-booking-timeline [booking]="currentBooking" />
+
+        <section class="grid gap-4">
+          <div>
+            <h2 class="text-xl font-bold text-slate-950">Tu reseña</h2>
+            <p class="mt-1 text-sm leading-6 text-slate-600">
+              Las reseñas vienen de reservas reales finalizadas.
+            </p>
+          </div>
+
+          @if (currentBooking.status !== 'completed') {
+            <div class="rounded-lg border border-slate-200 bg-white p-5 text-sm leading-6 text-slate-700 shadow-sm">
+              Podras reseñar este servicio cuando la reserva este finalizada.
+            </div>
+          } @else if (currentBooking.review; as review) {
+            @if (editingReview()) {
+              <app-review-form
+                mode="edit"
+                [bookingId]="currentBooking.id"
+                [initialReview]="review"
+                (reviewUpdated)="onReviewUpdated($event)"
+                (cancelled)="cancelReviewEdit()"
+              />
+            } @else {
+              <app-review-card [review]="review" [compact]="true" />
+
+              <div class="flex flex-col gap-2 sm:flex-row">
+                <button
+                  type="button"
+                  class="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600"
+                  (click)="startReviewEdit()"
+                >
+                  Editar reseña
+                </button>
+                @if (review.comment) {
+                  <button
+                    type="button"
+                    class="inline-flex min-h-10 items-center justify-center rounded-md border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100 focus:outline focus:outline-2 focus:outline-rose-700 disabled:cursor-not-allowed disabled:opacity-70"
+                    [disabled]="deletingReviewComment()"
+                    (click)="deleteReviewComment(review)"
+                  >
+                    {{ deletingReviewComment() ? 'Eliminando...' : 'Eliminar comentario' }}
+                  </button>
+                }
+              </div>
+            }
+          } @else {
+            <!-- TODO backend: BookingResource deberia incluir review para editar/eliminar desde esta vista. -->
+            <app-review-form
+              mode="create"
+              [bookingId]="currentBooking.id"
+              (reviewCreated)="onReviewCreated($event)"
+            />
+          }
+        </section>
       </div>
 
       <aside class="grid content-start gap-4">

@@ -58,9 +58,14 @@
             >
               {{ professionalName(professional) }}
             </a>
-            <p class="mt-1 text-xs text-slate-500">
-              {{ professional.reviews_count > 0 ? professional.avg_rating + ' rating' : 'Sin reviews todavia' }}
-            </p>
+            @if (professional.reviews_count > 0) {
+              <div class="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
+                <app-rating-stars [rating]="professional.avg_rating" size="sm" />
+                <span>{{ professional.avg_rating.toFixed(1) }} ({{ ratingLabel(professional) }})</span>
+              </div>
+            } @else {
+              <p class="mt-1 text-xs text-slate-500">Sin reseñas todavia</p>
+            }
           } @else {
             <p class="truncate text-sm font-bold text-slate-900">{{ professionalName(null) }}</p>
             <p class="mt-1 text-xs text-slate-500">Perfil publico pendiente</p>

@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { PublicProfessional, PublicService } from '../../models/public-discovery.models';
+import { RatingStarsComponent } from '../../../reviews/components/rating-stars/rating-stars.component';
 import { formatPrice } from '../../utils/price-format.util';
 import { PublicCompanyBadgeComponent } from '../public-company-badge/public-company-badge.component';
 import { PublicModalityBadgeComponent } from '../public-modality-badge/public-modality-badge.component';
@@ -12,6 +13,7 @@ import { PublicModalityBadgeComponent } from '../public-modality-badge/public-mo
     RouterLink,
     PublicCompanyBadgeComponent,
     PublicModalityBadgeComponent,
+    RatingStarsComponent,
   ],
   templateUrl: './public-service-card.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,5 +41,11 @@ export class PublicServiceCardComponent {
 
   showLocation(service: PublicService): boolean {
     return service.modality !== 'remota' && !!service.address;
+  }
+
+  ratingLabel(professional: PublicProfessional): string {
+    const count = professional.reviews_count;
+    if (count === 1) return '1 reseña';
+    return `${count} reseñas`;
   }
 }

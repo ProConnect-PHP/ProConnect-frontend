@@ -1,0 +1,27 @@
+<span
+  class="inline-flex items-center gap-1"
+  role="img"
+  [attr.aria-label]="ariaLabel()"
+  [attr.aria-readonly]="readonly()"
+>
+  @for (star of stars; track star) {
+    <span
+      class="relative inline-block leading-none"
+      [class.text-sm]="size() === 'sm'"
+      [class.text-base]="size() === 'md'"
+      [class.text-xl]="size() === 'lg'"
+      aria-hidden="true"
+    >
+      <span class="text-slate-300 dark:text-slate-700">&#9733;</span>
+      <span class="absolute inset-0 overflow-hidden text-yellow-400" [style.width]="fillPercent(star)">
+        &#9733;
+      </span>
+    </span>
+  }
+
+  @if (showValue()) {
+    <span class="ml-1 text-sm font-semibold text-slate-700">
+      {{ displayValue() }}
+    </span>
+  }
+</span>

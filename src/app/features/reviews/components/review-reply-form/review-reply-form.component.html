@@ -1,0 +1,58 @@
+<form class="rounded-lg border border-slate-200 bg-slate-50 p-4" [formGroup]="form" (ngSubmit)="submit()">
+  <div>
+    <h3 class="text-base font-bold text-slate-950">{{ title() }}</h3>
+    <p class="mt-1 text-sm text-slate-600">
+      Responde de forma clara y profesional. La respuesta sera publica.
+    </p>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="mt-4 rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800" role="alert">
+      {{ errorMessage() }}
+    </div>
+  }
+
+  <div class="mt-4">
+    <label class="text-sm font-semibold text-slate-800" for="review-reply-body">
+      Respuesta
+    </label>
+    <textarea
+      id="review-reply-body"
+      class="mt-2 min-h-28 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-indigo-500 focus:outline focus:outline-2 focus:outline-indigo-600 disabled:cursor-not-allowed disabled:bg-slate-100"
+      formControlName="body"
+      maxlength="3000"
+      aria-describedby="review-reply-help review-reply-count"
+      placeholder="Escribi tu respuesta al cliente."
+    ></textarea>
+    <div class="mt-2 flex flex-col gap-1 text-sm sm:flex-row sm:items-center sm:justify-between">
+      <p class="text-slate-500" id="review-reply-help">Minimo 2 caracteres.</p>
+      <p class="font-medium text-slate-600" id="review-reply-count">{{ bodyLength() }}/3000</p>
+    </div>
+    @if (bodyInvalid()) {
+      <p class="mt-2 text-sm font-medium text-rose-700">
+        La respuesta debe tener entre 2 y 3000 caracteres.
+      </p>
+    }
+    @for (error of bodyBackendErrors(); track error) {
+      <p class="mt-2 text-sm font-medium text-rose-700">{{ error }}</p>
+    }
+  </div>
+
+  <div class="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+    <button
+      type="button"
+      class="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600"
+      [disabled]="submitting()"
+      (click)="cancelled.emit()"
+    >
+      Cancelar
+    </button>
+    <button
+      type="submit"
+      class="inline-flex min-h-10 items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
+      [disabled]="form.invalid || submitting()"
+    >
+      {{ submitLabel() }}
+    </button>
+  </div>
+</form>

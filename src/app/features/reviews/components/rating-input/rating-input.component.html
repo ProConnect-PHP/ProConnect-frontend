@@ -1,0 +1,29 @@
+<fieldset class="grid gap-2" [attr.aria-invalid]="invalid()">
+  <legend class="text-sm font-semibold text-slate-800">{{ label() }}</legend>
+
+  <div class="flex items-center gap-1">
+    @for (star of stars; track star) {
+      <button
+        type="button"
+        class="grid size-10 place-items-center rounded-md border text-xl leading-none transition focus:outline focus:outline-2 focus:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60"
+        [class.border-yellow-300]="isActive(star)"
+        [class.bg-yellow-50]="isActive(star)"
+        [class.text-yellow-500]="isActive(star)"
+        [class.border-slate-200]="!isActive(star)"
+        [class.bg-white]="!isActive(star)"
+        [class.text-slate-300]="!isActive(star)"
+        [class.ring-2]="invalid()"
+        [class.ring-rose-300]="invalid()"
+        [disabled]="disabled()"
+        [attr.aria-label]="star + ' de 5 estrellas'"
+        [attr.aria-pressed]="value() === star"
+        (click)="selectRating(star)"
+        (mouseenter)="previewRating(star)"
+        (mouseleave)="clearPreview()"
+        (blur)="markTouched()"
+      >
+        <span aria-hidden="true">&#9733;</span>
+      </button>
+    }
+  </div>
+</fieldset>

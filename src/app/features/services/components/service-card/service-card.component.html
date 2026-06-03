@@ -32,6 +32,13 @@
       >
         Disponibilidad
       </a>
+      <a
+        routerLink="/dashboard/reviews"
+        [queryParams]="{ serviceId: service().id }"
+        class="rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus:outline focus:outline-2"
+      >
+        Reseñas
+      </a>
       <button
         type="button"
         class="rounded-md bg-rose-600 px-3 py-2 text-sm font-semibold text-white hover:bg-rose-700 focus:outline focus:outline-2 focus:outline-rose-700"

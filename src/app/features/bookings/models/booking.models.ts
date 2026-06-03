@@ -1,4 +1,5 @@
 import { PublicService } from '../../public-discovery/models/public-discovery.models';
+import { Review } from '../../reviews/data-access/reviews.models';
 
 export type BookingStatus =
   | 'pending'
@@ -41,6 +42,7 @@ export type Booking = {
   cancellation_reason: string | null;
   reschedule_reason: string | null;
   service?: PublicService | null;
+  review?: Review | null;
   professional?: BookingProfessionalSummary | null;
   client?: BookingUserSummary | null;
   created_at: string;

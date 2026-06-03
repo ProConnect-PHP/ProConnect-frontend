@@ -168,6 +168,14 @@ export const routes: Routes = [
             './features/availability/pages/availability-manager-page/availability-manager-page.component'
           ).then((m) => m.AvailabilityManagerPageComponent),
       },
+      {
+        path: 'reviews',
+        title: 'Reseñas | ProConnect',
+        loadComponent: () =>
+          import(
+            './features/reviews/pages/professional-reviews-page/professional-reviews-page.component'
+          ).then((m) => m.ProfessionalReviewsPageComponent),
+      },
     ],
   },
   {
