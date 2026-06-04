@@ -101,6 +101,8 @@
           </dl>
         </section>
 
+        <app-service-packages-section [serviceId]="publicService.id" />
+
         <app-public-availability-preview
           [serviceId]="publicService.id"
           (slotSelected)="onSlotSelected($event)"
@@ -132,6 +134,7 @@
           [selectedSlot]="selectedSlot()"
           [loading]="bookingLoading()"
           [error]="bookingErrorMessage()"
+          [isAuthenticated]="isAuthenticated()"
           (bookingSubmitted)="createBooking($event)"
         />
       </aside>

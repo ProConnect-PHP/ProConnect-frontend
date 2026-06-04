@@ -1,13 +1,20 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
 
 import { AppAlertComponent } from '../../../../shared/ui/alert/alert.component';
+import { BookingPackageSelectorComponent } from '../../../packages/components/booking-package-selector/booking-package-selector.component';
+import { ClientPackage } from '../../../packages/data-access/packages.models';
 import { AvailabilitySlot, PublicService } from '../../../public-discovery/models/public-discovery.models';
 import { formatPrice } from '../../../public-discovery/utils/price-format.util';
 import { formatBookingDate, formatBookingTimeRange } from '../../utils/booking-date-format.util';
 
+export type CreateBookingSubmission = {
+  slot: AvailabilitySlot;
+  clientPackage: ClientPackage | null;
+};
+
 @Component({
   selector: 'app-create-booking-panel',
-  imports: [AppAlertComponent],
+  imports: [AppAlertComponent, BookingPackageSelectorComponent],
   template: `
     <aside class="sticky top-24 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
       <div>
@@ -54,6 +61,17 @@ import { formatBookingDate, formatBookingTimeRange } from '../../utils/booking-d
         </div>
       </dl>
 
+      @if (isAuthenticated()) {
+        <div class="mt-5">
+          <app-booking-package-selector
+            [serviceId]="service().id"
+            [professionalId]="service().professional?.id ?? null"
+            [selectedStartsAt]="selectedSlot()?.starts_at ?? null"
+            (clientPackageSelected)="onClientPackageSelected($event)"
+          />
+        </div>
+      }
+
       <div class="mt-5">
         <app-alert [message]="error()" variant="danger" />
       </div>
@@ -75,17 +93,28 @@ export class CreateBookingPanelComponent {
   readonly selectedSlot = input<AvailabilitySlot | null>(null);
   readonly loading = input(false);
   readonly error = input<string | null>(null);
+  readonly isAuthenticated = input(false);
 
-  readonly bookingSubmitted = output<AvailabilitySlot>();
+  readonly bookingSubmitted = output<CreateBookingSubmission>();
+
+  readonly selectedClientPackage = signal<ClientPackage | null>(null);
 
   submit(): void {
     const selectedSlot = this.selectedSlot();
     if (!selectedSlot || this.loading()) return;
-    this.bookingSubmitted.emit(selectedSlot);
+    this.bookingSubmitted.emit({
+      slot: selectedSlot,
+      clientPackage: this.selectedClientPackage(),
+    });
+  }
+
+  onClientPackageSelected(clientPackage: ClientPackage | null): void {
+    this.selectedClientPackage.set(clientPackage);
   }
 
   buttonLabel(): string {
     if (this.loading()) return 'Creando reserva...';
+    if (this.selectedSlot() && this.selectedClientPackage()) return 'Reservar usando paquete';
     return this.selectedSlot() ? 'Reservar turno' : 'Selecciona un horario';
   }
 

@@ -1,6 +1,7 @@
 import { PublicService } from '../../public-discovery/models/public-discovery.models';
 import { Review } from '../../reviews/data-access/reviews.models';
 import type { Payment } from '../../payments/data-access/payments.models';
+import type { ClientPackage, PackageSession } from '../../packages/data-access/packages.models';
 
 export type BookingStatus =
   | 'pending'
@@ -40,12 +41,17 @@ export type Booking = {
   paid_at: string | null;
   completed_at: string | null;
   no_show_at: string | null;
+  payment_source?: 'payment' | 'package' | string | null;
+  client_package_id?: string | null;
   cancellation_reason: string | null;
   reschedule_reason: string | null;
   service?: PublicService | null;
   review?: Review | null;
   // TODO backend: BookingResource should include payment when loading booking details.
   payment?: Payment | null;
+  // TODO backend: BookingResource should include client_package/package_session for package-backed bookings.
+  client_package?: ClientPackage | null;
+  package_session?: PackageSession | null;
   professional?: BookingProfessionalSummary | null;
   client?: BookingUserSummary | null;
   created_at: string;
@@ -62,6 +68,7 @@ export type BookingsResponse = {
 
 export type CreateBookingRequest = {
   starts_at: string;
+  client_package_id?: string;
 };
 
 export type CancelBookingRequest = {

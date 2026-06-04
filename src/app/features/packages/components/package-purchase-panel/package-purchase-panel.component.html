@@ -1,0 +1,63 @@
+<section class="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm" aria-labelledby="package-purchase-title">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+    <div>
+      <div class="flex flex-wrap items-center gap-2">
+        <h2 id="package-purchase-title" class="text-lg font-black tracking-tight text-slate-950">
+          Comprar paquete
+        </h2>
+        <span class="rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700">
+          Compra simulada
+        </span>
+      </div>
+      <p class="mt-2 text-sm leading-6 text-slate-600">
+        Esta compra es simulada para demo. No se realizara ningun cargo real.
+      </p>
+    </div>
+    <button
+      type="button"
+      class="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600"
+      (click)="closed.emit()"
+    >
+      Cancelar
+    </button>
+  </div>
+
+  <dl class="mt-5 grid gap-3 text-sm">
+    <div class="rounded-2xl bg-slate-50 p-4">
+      <dt class="font-semibold text-slate-500">Paquete</dt>
+      <dd class="mt-1 font-bold text-slate-950">{{ packageProduct().name }}</dd>
+    </div>
+    <div class="grid gap-3 sm:grid-cols-2">
+      <div class="rounded-2xl bg-slate-50 p-4">
+        <dt class="font-semibold text-slate-500">Sesiones incluidas</dt>
+        <dd class="mt-1 font-bold text-slate-950">{{ packageProduct().sessions_count }}</dd>
+      </div>
+      <div class="rounded-2xl bg-slate-50 p-4">
+        <dt class="font-semibold text-slate-500">Vigencia</dt>
+        <dd class="mt-1 font-bold text-slate-950">{{ validity(packageProduct()) }}</dd>
+      </div>
+    </div>
+    <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+      <dt class="font-semibold text-emerald-700">Precio total</dt>
+      <dd class="mt-1 text-2xl font-black text-emerald-950">{{ price(packageProduct()) }}</dd>
+      <dd class="mt-1 text-emerald-900">{{ pricePerSession(packageProduct()) }}</dd>
+    </div>
+  </dl>
+
+  <div class="mt-4" aria-live="assertive">
+    @if (errorMessage()) {
+      <div class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-950">
+        {{ errorMessage() }}
+      </div>
+    }
+  </div>
+
+  <button
+    type="button"
+    class="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-md bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 focus:outline focus:outline-2 focus:outline-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+    [disabled]="submitting()"
+    (click)="confirmPurchase()"
+  >
+    {{ submitting() ? 'Confirmando...' : 'Confirmar compra simulada' }}
+  </button>
+</section>

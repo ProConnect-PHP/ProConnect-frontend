@@ -1,0 +1,65 @@
+<main class="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+  <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wide text-indigo-600">Paquetes</p>
+      <h1 class="mt-2 text-3xl font-black tracking-tight text-slate-950">Mis paquetes</h1>
+      <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+        Revisa tu saldo de sesiones y reserva usando paquetes activos.
+      </p>
+    </div>
+    <a
+      routerLink="/services"
+      class="inline-flex min-h-11 items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700"
+    >
+      Explorar servicios
+    </a>
+  </header>
+
+  <div class="mt-6 grid gap-3">
+    <app-alert [message]="errorMessage()" variant="danger" />
+  </div>
+
+  <section class="mt-6 flex gap-2 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-3 shadow-sm" aria-label="Filtros de paquetes">
+    @for (filter of filters; track filter.value) {
+      <button
+        type="button"
+        class="shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition focus:outline focus:outline-2 focus:outline-indigo-600"
+        [class.border-slate-950]="activeFilter() === filter.value"
+        [class.bg-slate-950]="activeFilter() === filter.value"
+        [class.text-white]="activeFilter() === filter.value"
+        [class.border-slate-200]="activeFilter() !== filter.value"
+        [class.bg-white]="activeFilter() !== filter.value"
+        [class.text-slate-700]="activeFilter() !== filter.value"
+        (click)="setFilter(filter.value)"
+      >
+        {{ filter.label }}
+      </button>
+    }
+  </section>
+
+  <section class="mt-6 grid gap-4">
+    @if (loading()) {
+      <app-loading-spinner label="Cargando paquetes..." />
+    } @else if (clientPackages().length === 0) {
+      <app-empty-state
+        icon="PK"
+        title="Todavia no tenes paquetes."
+        description="Compra un paquete desde el detalle de un servicio para reservar varias sesiones."
+      >
+        <a
+          routerLink="/services"
+          class="inline-flex min-h-10 items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700"
+        >
+          Explorar servicios
+        </a>
+      </app-empty-state>
+    } @else {
+      @for (clientPackage of clientPackages(); track clientPackage.id) {
+        <app-client-package-card
+          [clientPackage]="clientPackage"
+          (bookClicked)="bookPackage($event)"
+        />
+      }
+    }
+  </section>
+</main>

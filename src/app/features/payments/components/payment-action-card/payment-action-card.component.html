@@ -9,7 +9,12 @@
     </div>
   </div>
 
-  @if (paymentConfirmed()) {
+  @if (coveredByPackage()) {
+    <div class="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-950">
+      <p class="font-bold">Cubierta con paquete</p>
+      <p>Esta reserva usa una sesion disponible de un paquete. No requiere pago individual.</p>
+    </div>
+  } @else if (paymentConfirmed()) {
     <div class="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <p class="text-sm font-bold text-emerald-950">Pago confirmado.</p>

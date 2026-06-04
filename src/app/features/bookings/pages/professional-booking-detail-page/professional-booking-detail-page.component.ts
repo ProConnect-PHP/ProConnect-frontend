@@ -6,6 +6,7 @@ import { catchError, finalize, map, switchMap } from 'rxjs/operators';
 
 import { AppAlertComponent } from '../../../../shared/ui/alert/alert.component';
 import { AppEmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
+import { BookingPackageSummaryComponent } from '../../../packages/components/booking-package-summary/booking-package-summary.component';
 import { BookingsApi } from '../../data-access/bookings.api';
 import { Booking, BookingResponse } from '../../models/booking.models';
 import { bookingErrorMessage } from '../../utils/booking-error-message.util';
@@ -25,6 +26,7 @@ import { BookingTimelineComponent } from '../../components/booking-timeline/book
     BookingActionsComponent,
     BookingCancelDialogComponent,
     BookingDetailCardComponent,
+    BookingPackageSummaryComponent,
     BookingRescheduleDialogComponent,
     BookingSkeletonComponent,
     BookingTimelineComponent,

@@ -79,6 +79,24 @@ export const routes: Routes = [
           ).then((m) => m.MyPaymentsPageComponent),
       },
       {
+        path: 'my-packages',
+        title: 'Mis paquetes | ProConnect',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import(
+            './features/packages/pages/my-packages-page/my-packages-page.component'
+          ).then((m) => m.MyPackagesPageComponent),
+      },
+      {
+        path: 'client-packages/:clientPackageId',
+        title: 'Detalle de paquete | ProConnect',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import(
+            './features/packages/pages/client-package-detail-page/client-package-detail-page.component'
+          ).then((m) => m.ClientPackageDetailPageComponent),
+      },
+      {
         path: 'professional/bookings',
         title: 'Reservas profesionales | ProConnect',
         canActivate: [authGuard],
@@ -104,6 +122,33 @@ export const routes: Routes = [
           import(
             './features/payments/pages/professional-payments-page/professional-payments-page.component'
           ).then((m) => m.ProfessionalPaymentsPageComponent),
+      },
+      {
+        path: 'professional/package-products',
+        title: 'Paquetes profesionales | ProConnect',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import(
+            './features/packages/pages/professional-package-products-page/professional-package-products-page.component'
+          ).then((m) => m.ProfessionalPackageProductsPageComponent),
+      },
+      {
+        path: 'professional/package-products/:packageProductId',
+        title: 'Detalle de paquete profesional | ProConnect',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import(
+            './features/packages/pages/professional-package-product-detail-page/professional-package-product-detail-page.component'
+          ).then((m) => m.ProfessionalPackageProductDetailPageComponent),
+      },
+      {
+        path: 'professional/client-packages',
+        title: 'Paquetes vendidos | ProConnect',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import(
+            './features/packages/pages/professional-sold-packages-page/professional-sold-packages-page.component'
+          ).then((m) => m.ProfessionalSoldPackagesPageComponent),
       },
       {
         path: 'login',

@@ -72,6 +72,8 @@
     </div>
 
     <aside class="grid content-start gap-4">
+      <app-booking-package-summary [booking]="currentBooking" />
+
       <!-- TODO backend: BookingResource deberia incluir payment para mostrar el detalle completo del pago. -->
       <app-payment-action-card [booking]="currentBooking" [payment]="currentBooking.payment ?? null"
         (paymentCompleted)="onPaymentCompleted($event)" (bookingShouldRefresh)="reloadBooking()" />

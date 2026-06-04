@@ -1,0 +1,61 @@
+<section class="rounded-lg border border-slate-200 bg-white p-6 shadow-sm" aria-labelledby="service-packages-title">
+  <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wide text-indigo-600">Paquetes</p>
+      <h2 id="service-packages-title" class="mt-1 text-lg font-bold text-slate-950">
+        Paquetes disponibles
+      </h2>
+      <p class="mt-2 text-sm leading-6 text-slate-600">
+        Compra varias sesiones simuladas y reserva usando tu saldo disponible.
+      </p>
+    </div>
+  </div>
+
+  <div class="mt-4 grid gap-3" aria-live="polite">
+    @if (successMessage()) {
+      <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-950">
+        {{ successMessage() }}
+        <a routerLink="/my-packages" class="ml-1 underline decoration-emerald-700 underline-offset-2">
+          Ver mis paquetes
+        </a>
+      </div>
+    }
+
+    @if (errorMessage()) {
+      <div class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-950">
+        {{ errorMessage() }}
+      </div>
+    }
+  </div>
+
+  <div class="mt-5 grid gap-4">
+    @if (loading()) {
+      <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-semibold text-slate-700">
+        Cargando paquetes...
+      </div>
+    } @else if (packageProducts().length === 0) {
+      <div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-600">
+        Este servicio todavia no tiene paquetes disponibles.
+      </div>
+    } @else {
+      @for (packageProduct of packageProducts(); track packageProduct.id) {
+        <app-package-product-card
+          [packageProduct]="packageProduct"
+          variant="public"
+          [showService]="false"
+          (purchaseClicked)="startPurchase($event)"
+        />
+      }
+    }
+  </div>
+
+  @if (selectedPackageProduct(); as packageProduct) {
+    <div class="mt-5">
+      <app-package-purchase-panel
+        [packageProduct]="packageProduct"
+        (purchased)="onPurchased($event)"
+        (closed)="closePurchase()"
+      />
+    </div>
+  }
+</section>

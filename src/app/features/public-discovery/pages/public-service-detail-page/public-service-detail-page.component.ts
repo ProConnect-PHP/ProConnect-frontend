@@ -10,8 +10,13 @@ import { AppEmptyStateComponent } from '../../../../shared/ui/empty-state/empty-
 import { MapboxMapComponent } from '../../../../shared/location/components/mapbox-map/mapbox-map.component';
 import { MapMarker } from '../../../../shared/location/models/location.models';
 import { BookingsApi } from '../../../bookings/data-access/bookings.api';
-import { CreateBookingPanelComponent } from '../../../bookings/components/create-booking-panel/create-booking-panel.component';
+import {
+  CreateBookingPanelComponent,
+  CreateBookingSubmission,
+} from '../../../bookings/components/create-booking-panel/create-booking-panel.component';
 import { bookingErrorMessage } from '../../../bookings/utils/booking-error-message.util';
+import { mapPackageApiError } from '../../../packages/data-access/packages-error.mapper';
+import { ServicePackagesSectionComponent } from '../../../packages/components/service-packages-section/service-packages-section.component';
 import { ServiceReviewsSectionComponent } from '../../../reviews/components/service-reviews-section/service-reviews-section.component';
 import { PublicAvailabilityPreviewComponent } from '../../components/public-availability-preview/public-availability-preview.component';
 import { PublicCompanyBadgeComponent } from '../../components/public-company-badge/public-company-badge.component';
@@ -34,6 +39,7 @@ import { formatPrice } from '../../utils/price-format.util';
     PublicModalityBadgeComponent,
     PublicProfessionalCardComponent,
     PublicRatingBadgeComponent,
+    ServicePackagesSectionComponent,
     ServiceReviewsSectionComponent,
   ],
   templateUrl: './public-service-detail-page.component.html',
@@ -53,6 +59,7 @@ export class PublicServiceDetailPageComponent implements OnInit {
   readonly errorMessage = signal<string | null>(null);
   readonly bookingLoading = signal(false);
   readonly bookingErrorMessage = signal<string | null>(null);
+  readonly isAuthenticated = this.authStore.isAuthenticated;
 
   ngOnInit(): void {
     this.route.paramMap
@@ -99,7 +106,7 @@ export class PublicServiceDetailPageComponent implements OnInit {
     this.bookingErrorMessage.set(null);
   }
 
-  createBooking(slot: AvailabilitySlot): void {
+  createBooking(submission: CreateBookingSubmission): void {
     const service = this.service();
     if (!service || this.bookingLoading()) return;
 
@@ -117,7 +124,10 @@ export class PublicServiceDetailPageComponent implements OnInit {
     this.bookingErrorMessage.set(null);
 
     this.bookingsApi
-      .createBooking(service.id, { starts_at: slot.starts_at })
+      .createBooking(service.id, {
+        starts_at: submission.slot.starts_at,
+        ...(submission.clientPackage ? { client_package_id: submission.clientPackage.id } : {}),
+      })
       .pipe(
         finalize(() => this.bookingLoading.set(false)),
         takeUntilDestroyed(this.destroyRef),
@@ -126,7 +136,8 @@ export class PublicServiceDetailPageComponent implements OnInit {
         next: (response) => {
           void this.router.navigate(['/my-bookings', response.booking.id]);
         },
-        error: (error: unknown) => this.bookingErrorMessage.set(bookingErrorMessage(error)),
+        error: (error: unknown) =>
+          this.bookingErrorMessage.set(mapPackageApiError(error, bookingErrorMessage(error))),
       });
   }
 

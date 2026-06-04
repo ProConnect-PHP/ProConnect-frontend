@@ -1,0 +1,41 @@
+<article class="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
+  <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div>
+      <div class="flex flex-wrap items-center gap-2">
+        <span
+          class="rounded-full border px-3 py-1 text-xs font-bold"
+          [class.border-emerald-200]="clientPackage().status === 'active'"
+          [class.bg-emerald-50]="clientPackage().status === 'active'"
+          [class.text-emerald-700]="clientPackage().status === 'active'"
+          [class.border-slate-200]="clientPackage().status !== 'active'"
+          [class.bg-slate-100]="clientPackage().status !== 'active'"
+          [class.text-slate-700]="clientPackage().status !== 'active'"
+        >
+          {{ statusLabel(clientPackage()) }}
+        </span>
+        <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+          {{ clientPackage().remaining_sessions }} disponibles
+        </span>
+      </div>
+      <h3 class="mt-4 text-xl font-black tracking-tight text-slate-950">
+        {{ packageName(clientPackage()) }}
+      </h3>
+      <p class="mt-2 text-sm font-semibold text-slate-700">Cliente: {{ clientName(clientPackage()) }}</p>
+      <p class="mt-1 text-sm text-slate-600">Servicio: {{ serviceName(clientPackage()) }}</p>
+    </div>
+
+    <div class="sm:text-right">
+      <p class="text-lg font-black text-slate-950">{{ money(clientPackage()) }}</p>
+      <p class="mt-1 text-sm text-slate-500">Comprado {{ formatDate(clientPackage().purchased_at) }}</p>
+    </div>
+  </div>
+
+  <div class="mt-5">
+    <app-package-session-progress
+      [total]="clientPackage().total_sessions"
+      [used]="clientPackage().used_sessions"
+      [remaining]="clientPackage().remaining_sessions"
+      [status]="clientPackage().status"
+    />
+  </div>
+</article>

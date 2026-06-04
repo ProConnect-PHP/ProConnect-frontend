@@ -1,0 +1,66 @@
+<section class="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4" aria-labelledby="booking-package-selector-title">
+  <div>
+    <h3 id="booking-package-selector-title" class="text-sm font-black text-slate-950">
+      Usar paquete
+    </h3>
+    <p class="mt-1 text-sm leading-6 text-slate-600">
+      Elegi una sesion disponible o paga la reserva individualmente.
+    </p>
+  </div>
+
+  <div class="grid gap-2" role="radiogroup" aria-labelledby="booking-package-selector-title">
+    <button
+      type="button"
+      class="rounded-2xl border p-3 text-left text-sm transition focus:outline focus:outline-2 focus:outline-indigo-600"
+      [class.border-slate-950]="isSelected(null)"
+      [class.bg-slate-950]="isSelected(null)"
+      [class.text-white]="isSelected(null)"
+      [class.border-slate-200]="!isSelected(null)"
+      [class.bg-slate-50]="!isSelected(null)"
+      [class.text-slate-700]="!isSelected(null)"
+      [attr.aria-checked]="isSelected(null)"
+      role="radio"
+      (click)="selectClientPackage(null)"
+    >
+      <span class="block font-bold">Pagar reserva individualmente</span>
+      <span class="mt-1 block text-sm">No usar paquete para este turno.</span>
+    </button>
+
+    @if (loading()) {
+      <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm font-semibold text-slate-700">
+        Cargando paquetes...
+      </div>
+    } @else if (errorMessage()) {
+      <div class="rounded-2xl border border-rose-200 bg-rose-50 p-3 text-sm font-semibold text-rose-950" aria-live="assertive">
+        {{ errorMessage() }}
+      </div>
+    } @else {
+      @for (clientPackage of usableClientPackages(); track clientPackage.id) {
+        <button
+          type="button"
+          class="rounded-2xl border p-3 text-left text-sm transition focus:outline focus:outline-2 focus:outline-indigo-600"
+          [class.border-emerald-600]="isSelected(clientPackage)"
+          [class.bg-emerald-50]="isSelected(clientPackage)"
+          [class.text-emerald-950]="isSelected(clientPackage)"
+          [class.border-slate-200]="!isSelected(clientPackage)"
+          [class.bg-white]="!isSelected(clientPackage)"
+          [class.text-slate-700]="!isSelected(clientPackage)"
+          [attr.aria-checked]="isSelected(clientPackage)"
+          role="radio"
+          (click)="selectClientPackage(clientPackage)"
+        >
+          <span class="block font-bold">{{ packageName(clientPackage) }}</span>
+          <span class="mt-1 block">
+            {{ clientPackage.remaining_sessions }} sesiones disponibles · {{ expiresLabel(clientPackage) }}
+          </span>
+        </button>
+      }
+
+      @if (usableClientPackages().length === 0) {
+        <div class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-3 text-sm text-slate-600">
+          No tenes paquetes activos aplicables para este servicio.
+        </div>
+      }
+    }
+  </div>
+</section>

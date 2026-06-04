@@ -1,0 +1,79 @@
+<main class="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+  <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wide text-indigo-600">Paquetes profesionales</p>
+      <h1 class="mt-2 text-3xl font-black tracking-tight text-slate-950">Mis paquetes de venta</h1>
+      <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+        Crea paquetes para vender multiples sesiones a tus clientes.
+      </p>
+    </div>
+    <button
+      type="button"
+      class="inline-flex min-h-11 items-center justify-center rounded-md bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 focus:outline focus:outline-2 focus:outline-slate-700"
+      (click)="startCreate()"
+    >
+      Crear paquete
+    </button>
+  </header>
+
+  <div class="mt-6 grid gap-3">
+    <app-alert [message]="successMessage()" variant="success" />
+    <app-alert [message]="errorMessage()" variant="danger" />
+  </div>
+
+  @if (profileRequired()) {
+    <section class="mt-6 rounded-[2rem] border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-950">
+      <h2 class="text-base font-black">Necesitas completar tu perfil profesional para gestionar paquetes.</h2>
+      <a
+        routerLink="/dashboard/profile"
+        class="mt-4 inline-flex min-h-10 items-center justify-center rounded-md bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 focus:outline focus:outline-2 focus:outline-slate-700"
+      >
+        Completar perfil
+      </a>
+    </section>
+  } @else {
+    @if (showForm()) {
+      <div class="mt-6">
+        <app-package-product-form
+          [mode]="editingPackageProduct() ? 'edit' : 'create'"
+          [initialValue]="editingPackageProduct()"
+          [services]="services()"
+          [submitting]="saving()"
+          [errorMessage]="errorMessage()"
+          (submitted)="savePackageProduct($event)"
+          (cancelled)="cancelForm()"
+        />
+      </div>
+    }
+
+    <section class="mt-6 grid gap-4">
+      @if (loading()) {
+        <app-loading-spinner label="Cargando paquetes..." />
+      } @else if (packageProducts().length === 0) {
+        <app-empty-state
+          icon="PK"
+          title="Todavia no creaste paquetes."
+          description="Crea paquetes para vender multiples sesiones a tus clientes."
+        >
+          <button
+            type="button"
+            class="inline-flex min-h-10 items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700"
+            (click)="startCreate()"
+          >
+            Crear paquete
+          </button>
+        </app-empty-state>
+      } @else {
+        @for (packageProduct of packageProducts(); track packageProduct.id) {
+          <app-package-product-card
+            [packageProduct]="packageProduct"
+            variant="professional"
+            (editClicked)="startEdit($event)"
+            (toggleActiveClicked)="toggleActive($event)"
+            (deleteClicked)="deletePackageProduct($event)"
+          />
+        }
+      }
+    </section>
+  }
+</main>

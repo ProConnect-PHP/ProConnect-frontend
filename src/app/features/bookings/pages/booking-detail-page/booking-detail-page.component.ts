@@ -11,6 +11,7 @@ import { ReviewFormComponent } from '../../../reviews/components/review-form/rev
 import { ReviewsApi } from '../../../reviews/data-access/reviews.api';
 import { mapReviewApiError } from '../../../reviews/data-access/reviews-error.mapper';
 import { Review } from '../../../reviews/data-access/reviews.models';
+import { BookingPackageSummaryComponent } from '../../../packages/components/booking-package-summary/booking-package-summary.component';
 import { PaymentActionCardComponent } from '../../../payments/components/payment-action-card/payment-action-card.component';
 import { Payment } from '../../../payments/data-access/payments.models';
 import { BookingsApi } from '../../data-access/bookings.api';
@@ -32,6 +33,7 @@ import { BookingTimelineComponent } from '../../components/booking-timeline/book
     BookingActionsComponent,
     BookingCancelDialogComponent,
     BookingDetailCardComponent,
+    BookingPackageSummaryComponent,
     BookingRescheduleDialogComponent,
     BookingSkeletonComponent,
     BookingTimelineComponent,

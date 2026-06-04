@@ -1,0 +1,55 @@
+<main class="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+  <a
+    routerLink="/professional/package-products"
+    class="inline-flex w-fit items-center rounded-md text-sm font-bold text-indigo-700 hover:text-indigo-900 focus:outline focus:outline-2 focus:outline-indigo-600"
+  >
+    Volver a paquetes
+  </a>
+
+  <div class="mt-6 grid gap-3">
+    <app-alert [message]="successMessage()" variant="success" />
+    <app-alert [message]="errorMessage()" variant="danger" />
+  </div>
+
+  @if (loading()) {
+    <app-loading-spinner label="Cargando paquete..." />
+  } @else if (!packageProduct()) {
+    <app-empty-state icon="PK" title="Paquete no encontrado" />
+  } @else if (packageProduct(); as currentPackageProduct) {
+    <section class="mt-6 grid gap-6">
+      <app-package-product-card
+        [packageProduct]="currentPackageProduct"
+        variant="professional"
+        [showActions]="false"
+      />
+
+      @if (editing()) {
+        <app-package-product-form
+          mode="edit"
+          [initialValue]="currentPackageProduct"
+          [services]="services()"
+          [submitting]="saving()"
+          [errorMessage]="errorMessage()"
+          (submitted)="savePackageProduct($event)"
+          (cancelled)="cancelEdit()"
+        />
+      } @else {
+        <div class="flex flex-col gap-2 sm:flex-row">
+          <button
+            type="button"
+            class="inline-flex min-h-10 items-center justify-center rounded-md bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 focus:outline focus:outline-2 focus:outline-slate-700"
+            (click)="startEdit()"
+          >
+            Editar paquete
+          </button>
+          <a
+            routerLink="/professional/client-packages"
+            class="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600"
+          >
+            Ver paquetes vendidos
+          </a>
+        </div>
+      }
+    </section>
+  }
+</main>

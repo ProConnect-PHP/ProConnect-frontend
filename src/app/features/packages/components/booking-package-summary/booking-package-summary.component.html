@@ -1,0 +1,28 @@
+@if (booking().payment_source === 'package' || booking().client_package_id || booking().package_session) {
+  <section class="rounded-[2rem] border border-emerald-200 bg-emerald-50 p-5 shadow-sm" aria-labelledby="booking-package-title">
+    <p class="text-xs font-bold uppercase tracking-wide text-emerald-700">Pago / paquete</p>
+    <h2 id="booking-package-title" class="mt-1 text-lg font-black tracking-tight text-emerald-950">
+      Reserva cubierta con paquete
+    </h2>
+    <p class="mt-2 text-sm leading-6 text-emerald-950">
+      Esta reserva fue cubierta con un paquete de sesiones.
+    </p>
+
+    <dl class="mt-4 grid gap-3 text-sm">
+      <div class="rounded-2xl border border-emerald-200 bg-white/70 p-3">
+        <dt class="font-semibold text-emerald-700">Paquete</dt>
+        <dd class="mt-1 font-bold text-emerald-950">{{ packageName() }}</dd>
+      </div>
+      <div class="rounded-2xl border border-emerald-200 bg-white/70 p-3">
+        <dt class="font-semibold text-emerald-700">Estado de sesion</dt>
+        <dd class="mt-1 font-bold text-emerald-950">{{ sessionStatusLabel() }}</dd>
+      </div>
+    </dl>
+
+    @if (!booking().client_package) {
+      <p class="mt-4 text-sm leading-6 text-emerald-950">
+        El backend todavia no incluyo el detalle del paquete en esta reserva.
+      </p>
+    }
+  </section>
+}

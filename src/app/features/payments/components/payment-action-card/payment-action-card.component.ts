@@ -24,10 +24,21 @@ export class PaymentActionCardComponent {
   readonly lastFailedIntent = signal<PaymentIntent | null>(null);
 
   readonly displayedPayment = computed(() => this.completedPayment() ?? this.payment());
-  readonly paymentConfirmed = computed(
-    () => this.booking().status === 'paid' || this.displayedPayment()?.status === 'succeeded',
+  readonly coveredByPackage = computed(
+    () => this.booking().payment_source === 'package' || !!this.booking().client_package_id,
   );
-  readonly canPay = computed(() => this.booking().status === 'confirmed' && !this.paymentConfirmed());
+  readonly paymentConfirmed = computed(
+    () =>
+      this.coveredByPackage() ||
+      this.booking().status === 'paid' ||
+      this.displayedPayment()?.status === 'succeeded',
+  );
+  readonly canPay = computed(
+    () =>
+      this.booking().status === 'confirmed' &&
+      !this.paymentConfirmed() &&
+      !this.coveredByPackage(),
+  );
   readonly statusMessage = computed(() => this.messageForStatus(this.booking().status));
 
   openCheckout(): void {
@@ -74,6 +85,9 @@ export class PaymentActionCardComponent {
   private messageForStatus(status: Booking['status']): string {
     switch (status) {
       case 'confirmed':
+        if (this.coveredByPackage()) {
+          return 'Esta reserva esta cubierta con una sesion de paquete.';
+        }
         return 'Esta reserva esta confirmada y pendiente de pago.';
       case 'paid':
         return 'Pago confirmado.';

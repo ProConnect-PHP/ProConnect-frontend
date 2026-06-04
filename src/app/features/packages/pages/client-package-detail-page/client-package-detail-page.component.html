@@ -1,0 +1,46 @@
+<main class="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+  <a
+    routerLink="/my-packages"
+    class="inline-flex w-fit items-center rounded-md text-sm font-bold text-indigo-700 hover:text-indigo-900 focus:outline focus:outline-2 focus:outline-indigo-600"
+  >
+    Volver a mis paquetes
+  </a>
+
+  <div class="mt-6 grid gap-3">
+    <app-alert [message]="errorMessage()" variant="danger" />
+  </div>
+
+  @if (loading()) {
+    <app-loading-spinner label="Cargando paquete..." />
+  } @else if (!clientPackage()) {
+    <app-empty-state
+      icon="PK"
+      title="Paquete no encontrado"
+      description="Podes volver a tus paquetes para revisar tu saldo."
+    />
+  } @else if (clientPackage(); as currentPackage) {
+    <section class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <div class="grid gap-6">
+        <app-client-package-card [clientPackage]="currentPackage" (bookClicked)="bookPackage($event)" />
+
+        <section class="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 class="text-lg font-black tracking-tight text-slate-950">Historial de sesiones</h2>
+          @if ((currentPackage.package_sessions ?? currentPackage.sessions ?? []).length > 0) {
+            <div class="mt-4 grid gap-3">
+              @for (session of currentPackage.package_sessions ?? currentPackage.sessions ?? []; track session.id) {
+                <article class="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm">
+                  <p class="font-bold text-slate-950">{{ session.status }}</p>
+                  <p class="mt-1 text-slate-600">Reserva: {{ session.booking_id }}</p>
+                </article>
+              }
+            </div>
+          } @else {
+            <p class="mt-4 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600">
+              Historial de sesiones proximamente.
+            </p>
+          }
+        </section>
+      </div>
+    </section>
+  }
+</main>
