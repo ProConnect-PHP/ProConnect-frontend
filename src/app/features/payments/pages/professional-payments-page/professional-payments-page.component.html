@@ -1,0 +1,68 @@
+<main class="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+  <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wide text-indigo-600">Pagos profesionales</p>
+      <h1 class="mt-2 text-3xl font-black tracking-tight text-slate-950">Pagos recibidos</h1>
+      <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+        Consulta los pagos simulados confirmados para tus reservas.
+      </p>
+    </div>
+    <a
+      routerLink="/professional/bookings"
+      class="inline-flex min-h-11 items-center justify-center rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600"
+    >
+      Ver reservas recibidas
+    </a>
+  </header>
+
+  <div class="mt-6 grid gap-3">
+    <app-alert [message]="errorMessage()" variant="danger" />
+  </div>
+
+  @if (profileRequired()) {
+    <section class="mt-6 rounded-[2rem] border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-950">
+      <h2 class="text-base font-black">Necesitas completar tu perfil profesional para ver pagos.</h2>
+      <p class="mt-1">Cuando tu perfil este listo, vas a poder revisar los pagos recibidos.</p>
+      <a
+        routerLink="/dashboard/profile"
+        class="mt-4 inline-flex min-h-10 items-center justify-center rounded-md bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 focus:outline focus:outline-2 focus:outline-slate-700"
+      >
+        Completar perfil
+      </a>
+    </section>
+  } @else {
+    <section class="mt-6">
+      @if (loading()) {
+        <app-loading-spinner label="Cargando pagos recibidos..." />
+      } @else {
+        <app-payments-list [payments]="payments()" context="professional" />
+      }
+    </section>
+
+    @if (!loading() && meta().last_page > 1) {
+      <nav class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" aria-label="Paginacion de pagos recibidos">
+        <p class="text-sm font-semibold text-slate-600">
+          Pagina {{ meta().current_page }} de {{ meta().last_page }} - {{ meta().total }} pagos
+        </p>
+        <div class="flex gap-2">
+          <button
+            type="button"
+            class="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60"
+            [disabled]="!canGoPrevious()"
+            (click)="previousPage()"
+          >
+            Anterior
+          </button>
+          <button
+            type="button"
+            class="inline-flex min-h-10 items-center justify-center rounded-md bg-slate-950 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800 focus:outline focus:outline-2 focus:outline-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+            [disabled]="!canGoNext()"
+            (click)="nextPage()"
+          >
+            Siguiente
+          </button>
+        </div>
+      </nav>
+    }
+  }
+</main>

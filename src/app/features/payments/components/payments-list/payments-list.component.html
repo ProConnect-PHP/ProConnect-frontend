@@ -1,0 +1,45 @@
+@if (payments().length === 0) {
+  <app-empty-state icon="$" [title]="emptyTitle()" [description]="emptyDescription()" />
+} @else {
+  <div class="grid gap-4">
+    @for (payment of payments(); track payment.id) {
+      <article class="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <app-payment-status-badge [status]="payment.status" />
+              <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+                {{ providerLabel(payment) }}
+              </span>
+            </div>
+
+            <h2 class="mt-4 text-2xl font-black tracking-tight text-slate-950">
+              {{ money(payment) }}
+            </h2>
+            <p class="mt-2 text-sm leading-6 text-slate-600">
+              Fecha: {{ formatDateTime(payment.paid_at ?? payment.created_at) }}
+            </p>
+            <p class="mt-1 break-all text-sm leading-6 text-slate-600">
+              Reserva: {{ payment.booking_id }}
+            </p>
+          </div>
+
+          <div class="grid gap-2 sm:min-w-44">
+            <a
+              class="inline-flex min-h-10 items-center justify-center rounded-md bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 focus:outline focus:outline-2 focus:outline-slate-700"
+              [routerLink]="bookingLink(payment)"
+            >
+              Ver reserva
+            </a>
+          </div>
+        </div>
+
+        @if (payment.failure_reason) {
+          <div class="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-950">
+            {{ payment.failure_reason }}
+          </div>
+        }
+      </article>
+    }
+  </div>
+}

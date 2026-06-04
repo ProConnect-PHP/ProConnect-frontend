@@ -1,8 +1,6 @@
 <main class="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-  <a
-    routerLink="/my-bookings"
-    class="inline-flex w-fit items-center rounded-md text-sm font-bold text-indigo-700 hover:text-indigo-900 focus:outline focus:outline-2 focus:outline-indigo-600"
-  >
+  <a routerLink="/my-bookings"
+    class="inline-flex w-fit items-center rounded-md text-sm font-bold text-indigo-700 hover:text-indigo-900 focus:outline focus:outline-2 focus:outline-indigo-600">
     Volver a mis reservas
   </a>
 
@@ -12,113 +10,86 @@
   </div>
 
   @if (loading()) {
-    <section class="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
-      <app-booking-skeleton />
-      <app-booking-skeleton />
-    </section>
+  <section class="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+    <app-booking-skeleton />
+    <app-booking-skeleton />
+  </section>
   } @else if (!booking()) {
-    <div class="mt-6">
-      <app-empty-state
-        icon="RS"
-        title="Reserva no encontrada"
-        description="Podes volver a tus reservas para revisar tus turnos."
-      >
-        <a
-          routerLink="/my-bookings"
-          class="inline-flex min-h-10 items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700"
-        >
-          Ver mis reservas
-        </a>
-      </app-empty-state>
-    </div>
+  <div class="mt-6">
+    <app-empty-state icon="RS" title="Reserva no encontrada"
+      description="Podes volver a tus reservas para revisar tus turnos.">
+      <a routerLink="/my-bookings"
+        class="inline-flex min-h-10 items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700">
+        Ver mis reservas
+      </a>
+    </app-empty-state>
+  </div>
   } @else if (booking(); as currentBooking) {
-    <section class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-      <div class="grid gap-6">
-        <app-booking-detail-card [booking]="currentBooking" context="client" />
-        <app-booking-timeline [booking]="currentBooking" />
+  <section class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+    <div class="grid gap-6">
+      <app-booking-detail-card [booking]="currentBooking" context="client" />
+      <app-booking-timeline [booking]="currentBooking" />
 
-        <section class="grid gap-4">
-          <div>
-            <h2 class="text-xl font-bold text-slate-950">Tu reseña</h2>
-            <p class="mt-1 text-sm leading-6 text-slate-600">
-              Las reseñas vienen de reservas reales finalizadas.
-            </p>
-          </div>
+      <section class="grid gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-slate-950">Tu reseña</h2>
+          <p class="mt-1 text-sm leading-6 text-slate-600">
+            Las reseñas vienen de reservas reales finalizadas.
+          </p>
+        </div>
 
-          @if (currentBooking.status !== 'completed') {
-            <div class="rounded-lg border border-slate-200 bg-white p-5 text-sm leading-6 text-slate-700 shadow-sm">
-              Podras reseñar este servicio cuando la reserva este finalizada.
-            </div>
-          } @else if (currentBooking.review; as review) {
-            @if (editingReview()) {
-              <app-review-form
-                mode="edit"
-                [bookingId]="currentBooking.id"
-                [initialReview]="review"
-                (reviewUpdated)="onReviewUpdated($event)"
-                (cancelled)="cancelReviewEdit()"
-              />
-            } @else {
-              <app-review-card [review]="review" [compact]="true" />
+        @if (currentBooking.status !== 'completed') {
+        <div class="rounded-lg border border-slate-200 bg-white p-5 text-sm leading-6 text-slate-700 shadow-sm">
+          Podras reseñar este servicio cuando la reserva este finalizada.
+        </div>
+        } @else if (currentBooking.review; as review) {
+        @if (editingReview()) {
+        <app-review-form mode="edit" [bookingId]="currentBooking.id" [initialReview]="review"
+          (reviewUpdated)="onReviewUpdated($event)" (cancelled)="cancelReviewEdit()" />
+        } @else {
+        <app-review-card [review]="review" [compact]="true" />
 
-              <div class="flex flex-col gap-2 sm:flex-row">
-                <button
-                  type="button"
-                  class="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600"
-                  (click)="startReviewEdit()"
-                >
-                  Editar reseña
-                </button>
-                @if (review.comment) {
-                  <button
-                    type="button"
-                    class="inline-flex min-h-10 items-center justify-center rounded-md border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100 focus:outline focus:outline-2 focus:outline-rose-700 disabled:cursor-not-allowed disabled:opacity-70"
-                    [disabled]="deletingReviewComment()"
-                    (click)="deleteReviewComment(review)"
-                  >
-                    {{ deletingReviewComment() ? 'Eliminando...' : 'Eliminar comentario' }}
-                  </button>
-                }
-              </div>
-            }
-          } @else {
-            <!-- TODO backend: BookingResource deberia incluir review para editar/eliminar desde esta vista. -->
-            <app-review-form
-              mode="create"
-              [bookingId]="currentBooking.id"
-              (reviewCreated)="onReviewCreated($event)"
-            />
+        <div class="flex flex-col gap-2 sm:flex-row">
+          <button type="button"
+            class="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600"
+            (click)="startReviewEdit()">
+            Editar reseña
+          </button>
+          @if (review.comment) {
+          <button type="button"
+            class="inline-flex min-h-10 items-center justify-center rounded-md border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100 focus:outline focus:outline-2 focus:outline-rose-700 disabled:cursor-not-allowed disabled:opacity-70"
+            [disabled]="deletingReviewComment()" (click)="deleteReviewComment(review)">
+            {{ deletingReviewComment() ? 'Eliminando...' : 'Eliminar comentario' }}
+          </button>
           }
-        </section>
-      </div>
+        </div>
+        }
+        } @else {
+        <!-- TODO backend: BookingResource deberia incluir review para editar/eliminar desde esta vista. -->
+        <app-review-form mode="create" [bookingId]="currentBooking.id" (reviewCreated)="onReviewCreated($event)" />
+        }
+      </section>
+    </div>
 
-      <aside class="grid content-start gap-4">
-        <section class="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 class="text-lg font-black tracking-tight text-slate-950">Acciones</h2>
-          <div class="mt-4">
-            <app-booking-actions
-              [booking]="currentBooking"
-              context="client"
-              (cancelClicked)="openCancelDialog()"
-              (rescheduleClicked)="openRescheduleDialog()"
-            />
-          </div>
-        </section>
-      </aside>
-    </section>
+    <aside class="grid content-start gap-4">
+      <!-- TODO backend: BookingResource deberia incluir payment para mostrar el detalle completo del pago. -->
+      <app-payment-action-card [booking]="currentBooking" [payment]="currentBooking.payment ?? null"
+        (paymentCompleted)="onPaymentCompleted($event)" (bookingShouldRefresh)="reloadBooking()" />
 
-    <app-booking-cancel-dialog
-      [open]="cancelDialogOpen()"
-      [booking]="currentBooking"
-      (closed)="closeDialogs()"
-      (bookingUpdated)="onBookingUpdated($event, 'Reserva cancelada correctamente.')"
-    />
+      <section class="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 class="text-lg font-black tracking-tight text-slate-950">Acciones</h2>
+        <div class="mt-4">
+          <app-booking-actions [booking]="currentBooking" context="client" (cancelClicked)="openCancelDialog()"
+            (rescheduleClicked)="openRescheduleDialog()" />
+        </div>
+      </section>
+    </aside>
+  </section>
 
-    <app-booking-reschedule-dialog
-      [open]="rescheduleDialogOpen()"
-      [booking]="currentBooking"
-      (closed)="closeDialogs()"
-      (bookingUpdated)="onBookingUpdated($event, 'Reserva reprogramada correctamente.')"
-    />
+  <app-booking-cancel-dialog [open]="cancelDialogOpen()" [booking]="currentBooking" (closed)="closeDialogs()"
+    (bookingUpdated)="onBookingUpdated($event, 'Reserva cancelada correctamente.')" />
+
+  <app-booking-reschedule-dialog [open]="rescheduleDialogOpen()" [booking]="currentBooking" (closed)="closeDialogs()"
+    (bookingUpdated)="onBookingUpdated($event, 'Reserva reprogramada correctamente.')" />
   }
 </main>

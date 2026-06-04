@@ -11,6 +11,7 @@
 npm-debug.log
 yarn-error.log
 .codex-ng-serve.*.log
+.codex-ng-payments.*.log
 
 # IDEs and editors
 .idea/

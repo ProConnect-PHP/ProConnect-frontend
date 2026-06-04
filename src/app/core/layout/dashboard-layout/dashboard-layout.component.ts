@@ -31,7 +31,9 @@ export class DashboardLayoutComponent implements OnInit {
     { label: 'Disponibilidad', shortLabel: 'Agenda', path: '/dashboard/availability' },
     { label: 'Reseñas', shortLabel: 'Reseñas', path: '/dashboard/reviews' },
     { label: 'Mis reservas', shortLabel: 'Mias', path: '/my-bookings' },
+    { label: 'Mis pagos', shortLabel: 'Pagos', path: '/my-payments' },
     { label: 'Reservas profesionales', shortLabel: 'Reservas', path: '/professional/bookings' },
+    { label: 'Pagos recibidos', shortLabel: 'Recibidos', path: '/professional/payments' },
     { label: 'Marketplace', shortLabel: 'Market', path: '/services' },
   ];
 

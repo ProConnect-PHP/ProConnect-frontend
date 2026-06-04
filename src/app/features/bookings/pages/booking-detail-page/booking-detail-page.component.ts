@@ -11,6 +11,8 @@ import { ReviewFormComponent } from '../../../reviews/components/review-form/rev
 import { ReviewsApi } from '../../../reviews/data-access/reviews.api';
 import { mapReviewApiError } from '../../../reviews/data-access/reviews-error.mapper';
 import { Review } from '../../../reviews/data-access/reviews.models';
+import { PaymentActionCardComponent } from '../../../payments/components/payment-action-card/payment-action-card.component';
+import { Payment } from '../../../payments/data-access/payments.models';
 import { BookingsApi } from '../../data-access/bookings.api';
 import { Booking, BookingResponse } from '../../models/booking.models';
 import { bookingErrorMessage } from '../../utils/booking-error-message.util';
@@ -33,6 +35,7 @@ import { BookingTimelineComponent } from '../../components/booking-timeline/book
     BookingRescheduleDialogComponent,
     BookingSkeletonComponent,
     BookingTimelineComponent,
+    PaymentActionCardComponent,
     ReviewCardComponent,
     ReviewFormComponent,
   ],
@@ -81,6 +84,23 @@ export class BookingDetailPageComponent implements OnInit {
     const currentBooking = this.booking();
     this.booking.set(currentBooking ? { ...currentBooking, ...booking } : booking);
     this.successMessage.set(message);
+  }
+
+  onPaymentCompleted(payment: Payment): void {
+    this.mergeBookingPayment(payment);
+    this.successMessage.set('Pago confirmado correctamente.');
+  }
+
+  reloadBooking(): void {
+    const bookingId = this.booking()?.id ?? this.route.snapshot.paramMap.get('bookingId');
+
+    this.fetchBooking(bookingId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((response) => {
+        if (response?.booking) {
+          this.booking.set(response.booking);
+        }
+      });
   }
 
   onReviewCreated(review: Review): void {
@@ -152,6 +172,21 @@ export class BookingDetailPageComponent implements OnInit {
     this.booking.set({
       ...currentBooking,
       review,
+    });
+  }
+
+  private mergeBookingPayment(payment: Payment): void {
+    const currentBooking = this.booking();
+    if (!currentBooking) return;
+
+    const nextStatus: Booking['status'] =
+      payment.booking?.status === 'paid' ? 'paid' : currentBooking.status;
+
+    this.booking.set({
+      ...currentBooking,
+      status: nextStatus,
+      paid_at: payment.paid_at ?? currentBooking.paid_at,
+      payment,
     });
   }
 }

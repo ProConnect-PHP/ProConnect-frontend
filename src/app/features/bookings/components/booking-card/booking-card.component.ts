@@ -16,6 +16,11 @@ import { BookingStatusBadgeComponent } from '../booking-status-badge/booking-sta
         <div class="min-w-0">
           <div class="flex flex-wrap items-center gap-2">
             <app-booking-status-badge [status]="booking().status" />
+            @if (context() === 'client' && booking().status === 'confirmed') {
+              <span class="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">
+                Pendiente de pago
+              </span>
+            }
             <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
               {{ booking().modality }}
             </span>
@@ -39,6 +44,14 @@ import { BookingStatusBadgeComponent } from '../booking-status-badge/booking-sta
           >
             Ver detalle
           </a>
+          @if (context() === 'client' && booking().status === 'confirmed') {
+            <a
+              class="inline-flex min-h-10 items-center justify-center rounded-md border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-bold text-amber-800 shadow-sm transition hover:bg-amber-100 focus:outline focus:outline-2 focus:outline-amber-700"
+              [routerLink]="detailLink(booking())"
+            >
+              Pagar
+            </a>
+          }
         </div>
       </div>
 

@@ -1,5 +1,6 @@
 import { PublicService } from '../../public-discovery/models/public-discovery.models';
 import { Review } from '../../reviews/data-access/reviews.models';
+import type { Payment } from '../../payments/data-access/payments.models';
 
 export type BookingStatus =
   | 'pending'
@@ -43,6 +44,8 @@ export type Booking = {
   reschedule_reason: string | null;
   service?: PublicService | null;
   review?: Review | null;
+  // TODO backend: BookingResource should include payment when loading booking details.
+  payment?: Payment | null;
   professional?: BookingProfessionalSummary | null;
   client?: BookingUserSummary | null;
   created_at: string;

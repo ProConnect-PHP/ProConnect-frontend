@@ -70,6 +70,15 @@ export const routes: Routes = [
           ).then((m) => m.BookingDetailPageComponent),
       },
       {
+        path: 'my-payments',
+        title: 'Mis pagos | ProConnect',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import(
+            './features/payments/pages/my-payments-page/my-payments-page.component'
+          ).then((m) => m.MyPaymentsPageComponent),
+      },
+      {
         path: 'professional/bookings',
         title: 'Reservas profesionales | ProConnect',
         canActivate: [authGuard],
@@ -86,6 +95,15 @@ export const routes: Routes = [
           import(
             './features/bookings/pages/professional-booking-detail-page/professional-booking-detail-page.component'
           ).then((m) => m.ProfessionalBookingDetailPageComponent),
+      },
+      {
+        path: 'professional/payments',
+        title: 'Pagos recibidos | ProConnect',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import(
+            './features/payments/pages/professional-payments-page/professional-payments-page.component'
+          ).then((m) => m.ProfessionalPaymentsPageComponent),
       },
       {
         path: 'login',

@@ -1,0 +1,55 @@
+<main class="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+  <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wide text-indigo-600">Pagos</p>
+      <h1 class="mt-2 text-3xl font-black tracking-tight text-slate-950">Mis pagos</h1>
+      <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+        Revisa los pagos simulados asociados a tus reservas.
+      </p>
+    </div>
+    <a
+      routerLink="/my-bookings"
+      class="inline-flex min-h-11 items-center justify-center rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600"
+    >
+      Ver reservas
+    </a>
+  </header>
+
+  <div class="mt-6 grid gap-3">
+    <app-alert [message]="errorMessage()" variant="danger" />
+  </div>
+
+  <section class="mt-6">
+    @if (loading()) {
+      <app-loading-spinner label="Cargando pagos..." />
+    } @else {
+      <app-payments-list [payments]="payments()" context="client" />
+    }
+  </section>
+
+  @if (!loading() && meta().last_page > 1) {
+    <nav class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" aria-label="Paginacion de pagos">
+      <p class="text-sm font-semibold text-slate-600">
+        Pagina {{ meta().current_page }} de {{ meta().last_page }} - {{ meta().total }} pagos
+      </p>
+      <div class="flex gap-2">
+        <button
+          type="button"
+          class="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60"
+          [disabled]="!canGoPrevious()"
+          (click)="previousPage()"
+        >
+          Anterior
+        </button>
+        <button
+          type="button"
+          class="inline-flex min-h-10 items-center justify-center rounded-md bg-slate-950 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800 focus:outline focus:outline-2 focus:outline-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+          [disabled]="!canGoNext()"
+          (click)="nextPage()"
+        >
+          Siguiente
+        </button>
+      </div>
+    </nav>
+  }
+</main>
