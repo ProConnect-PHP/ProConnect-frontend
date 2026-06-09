@@ -1,8 +1,8 @@
 export const environment = {
   production: true,
-  apiBaseUrl: 'https://api.proconnect.app/api/v1',
+  apiBaseUrl: 'https://tallerphp.gyabisito.dev/api/v1',
   mapbox: {
-    accessToken: 'REEMPLAZAR_EN_DEPLOY',
+    accessToken: 'pk.eyJ1IjoiZ3lhYmlzaXRvIiwiYSI6ImNtcG91czhlNDA4NWcycnB5cXo5cmZtNzUifQ.Xr-oAMmAwYGU6aO0wBi5Nw',
     defaultCenter: {
       latitude: -34.9011,
       longitude: -56.1645,

@@ -1,0 +1,82 @@
+@if (joining()) {
+  <main class="grid min-h-screen place-items-center bg-slate-950 px-4 text-white">
+    <app-loading-spinner label="Entrando a la sala simulada..." />
+  </main>
+} @else if (errorMessage()) {
+  <main class="grid min-h-screen place-items-center bg-slate-950 px-4 py-8 text-white">
+    <section class="w-full max-w-xl rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-sm">
+      <p class="text-xs font-bold uppercase tracking-wide text-rose-300">Sesion virtual</p>
+      <h1 class="mt-2 text-2xl font-black tracking-tight text-white">No pudimos entrar a la sala</h1>
+      <div class="mt-5">
+        <app-alert [message]="errorMessage()" variant="danger" />
+      </div>
+      <div class="mt-5 flex flex-col gap-3 sm:flex-row">
+        <button
+          type="button"
+          class="inline-flex min-h-10 items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-slate-100 focus:outline focus:outline-2 focus:outline-white"
+          (click)="retryJoin()"
+        >
+          Reintentar join
+        </button>
+        <a
+          routerLink="/video-sessions/my"
+          class="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-700 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800 focus:outline focus:outline-2 focus:outline-white"
+        >
+          Ver mis sesiones
+        </a>
+      </div>
+    </section>
+  </main>
+} @else if (join(); as currentJoin) {
+  @if (videoSession(); as currentVideoSession) {
+    @switch (currentJoin.provider) {
+      @case ('simulator') {
+        <app-simulator-room
+          [videoSession]="currentVideoSession"
+          [join]="currentJoin"
+          (leaveClicked)="leaveRoom()"
+        />
+      }
+      @case ('livekit') {
+        <main class="grid min-h-screen place-items-center bg-slate-950 px-4 py-8 text-white">
+          <section class="w-full max-w-xl rounded-2xl border border-slate-800 bg-slate-900 p-6">
+            <p class="text-xs font-bold uppercase tracking-wide text-emerald-300">LiveKit</p>
+            <h1 class="mt-2 text-2xl font-black tracking-tight text-white">Sala real pendiente</h1>
+            <p class="mt-3 text-sm leading-6 text-slate-300">
+              El backend ya entrego room y token, pero esta fase renderiza solo el simulador. Aca se montaria un LiveKitRoomComponent.
+            </p>
+            <button
+              type="button"
+              class="mt-5 inline-flex min-h-10 items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-slate-100 focus:outline focus:outline-2 focus:outline-white"
+              (click)="leaveRoom()"
+            >
+              Volver a la reserva
+            </button>
+          </section>
+        </main>
+      }
+      @default {
+        <main class="grid min-h-screen place-items-center bg-slate-950 px-4 py-8 text-white">
+          <section class="w-full max-w-xl rounded-2xl border border-slate-800 bg-slate-900 p-6">
+            <p class="text-xs font-bold uppercase tracking-wide text-emerald-300">URL externa</p>
+            <h1 class="mt-2 text-2xl font-black tracking-tight text-white">Sala externa no abierta automaticamente</h1>
+            <p class="mt-3 text-sm leading-6 text-slate-300">
+              No redirigimos automaticamente para mantener el token fuera de la URL y dejar claro que esta fase es simulada.
+            </p>
+            <button
+              type="button"
+              class="mt-5 inline-flex min-h-10 items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-slate-100 focus:outline focus:outline-2 focus:outline-white"
+              (click)="leaveRoom()"
+            >
+              Volver a la reserva
+            </button>
+          </section>
+        </main>
+      }
+    }
+  }
+} @else if (videoSession(); as currentVideoSession) {
+  <main class="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 lg:px-8">
+    <app-video-join-panel [videoSession]="currentVideoSession" (joined)="onJoined($event)" />
+  </main>
+}

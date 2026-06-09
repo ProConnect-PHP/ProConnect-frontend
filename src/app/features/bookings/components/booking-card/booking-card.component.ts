@@ -24,6 +24,11 @@ import { BookingStatusBadgeComponent } from '../booking-status-badge/booking-sta
             <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
               {{ booking().modality }}
             </span>
+            @if (hasVirtualSessionModality(booking())) {
+              <span class="rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700">
+                Sesion virtual
+              </span>
+            }
           </div>
 
           <h2 class="mt-4 line-clamp-2 text-xl font-black tracking-tight text-slate-950">
@@ -51,6 +56,17 @@ import { BookingStatusBadgeComponent } from '../booking-status-badge/booking-sta
             >
               Pagar
             </a>
+          }
+          @if (booking().video_session; as videoSession) {
+            @if (videoSession.can_join_now && canJoinVideoSession(videoSession.status)) {
+              <a
+                class="inline-flex min-h-10 items-center justify-center rounded-md border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-800 shadow-sm transition hover:bg-emerald-100 focus:outline focus:outline-2 focus:outline-emerald-700"
+                [routerLink]="['/video-sessions', videoSession.id, 'room']"
+                [state]="{ videoSession: videoSession }"
+              >
+                Unirse
+              </a>
+            }
           }
         </div>
       </div>
@@ -97,6 +113,14 @@ export class BookingCardComponent {
 
   price(value: string | number): string {
     return formatPrice(value);
+  }
+
+  hasVirtualSessionModality(booking: Booking): boolean {
+    return booking.modality === 'remota' || booking.modality === 'hibrida';
+  }
+
+  canJoinVideoSession(status: string): boolean {
+    return status !== 'ended' && status !== 'cancelled' && status !== 'expired';
   }
 
   detailLink(booking: Booking): string {

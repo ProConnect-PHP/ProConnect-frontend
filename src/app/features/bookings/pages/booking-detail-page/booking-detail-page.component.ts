@@ -14,11 +14,16 @@ import { Review } from '../../../reviews/data-access/reviews.models';
 import { BookingPackageSummaryComponent } from '../../../packages/components/booking-package-summary/booking-package-summary.component';
 import { PaymentActionCardComponent } from '../../../payments/components/payment-action-card/payment-action-card.component';
 import { Payment } from '../../../payments/data-access/payments.models';
+import { VideoSessionActionCardComponent } from '../../../video-sessions/components/video-session-action-card/video-session-action-card.component';
+import type {
+  VideoSession,
+  VideoSessionJoin,
+} from '../../../video-sessions/data-access/video-sessions.models';
 import { BookingsApi } from '../../data-access/bookings.api';
 import { Booking, BookingResponse } from '../../models/booking.models';
 import { bookingErrorMessage } from '../../utils/booking-error-message.util';
-import { BookingActionsComponent } from '../../components/booking-actions/booking-actions.component';
 import { BookingCancelDialogComponent } from '../../components/booking-cancel-dialog/booking-cancel-dialog.component';
+import { BookingDetailActionsComponent } from '../../components/booking-detail-actions/booking-detail-actions.component';
 import { BookingDetailCardComponent } from '../../components/booking-detail-card/booking-detail-card.component';
 import { BookingRescheduleDialogComponent } from '../../components/booking-reschedule-dialog/booking-reschedule-dialog.component';
 import { BookingSkeletonComponent } from '../../components/booking-skeleton/booking-skeleton.component';
@@ -30,8 +35,8 @@ import { BookingTimelineComponent } from '../../components/booking-timeline/book
     RouterLink,
     AppAlertComponent,
     AppEmptyStateComponent,
-    BookingActionsComponent,
     BookingCancelDialogComponent,
+    BookingDetailActionsComponent,
     BookingDetailCardComponent,
     BookingPackageSummaryComponent,
     BookingRescheduleDialogComponent,
@@ -40,6 +45,7 @@ import { BookingTimelineComponent } from '../../components/booking-timeline/book
     PaymentActionCardComponent,
     ReviewCardComponent,
     ReviewFormComponent,
+    VideoSessionActionCardComponent,
   ],
   templateUrl: './booking-detail-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -91,6 +97,15 @@ export class BookingDetailPageComponent implements OnInit {
   onPaymentCompleted(payment: Payment): void {
     this.mergeBookingPayment(payment);
     this.successMessage.set('Pago confirmado correctamente.');
+  }
+
+  onVideoSessionEnsured(videoSession: VideoSession): void {
+    this.mergeBookingVideoSession(videoSession);
+    this.successMessage.set('Sala virtual preparada correctamente.');
+  }
+
+  onVideoSessionJoined(_join: VideoSessionJoin): void {
+    this.successMessage.set('Acceso a sesion virtual generado correctamente.');
   }
 
   reloadBooking(): void {
@@ -189,6 +204,16 @@ export class BookingDetailPageComponent implements OnInit {
       status: nextStatus,
       paid_at: payment.paid_at ?? currentBooking.paid_at,
       payment,
+    });
+  }
+
+  private mergeBookingVideoSession(videoSession: VideoSession): void {
+    const currentBooking = this.booking();
+    if (!currentBooking) return;
+
+    this.booking.set({
+      ...currentBooking,
+      video_session: videoSession,
     });
   }
 }

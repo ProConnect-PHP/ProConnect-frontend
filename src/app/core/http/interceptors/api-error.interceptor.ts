@@ -109,7 +109,33 @@ function toClientError(error: unknown): ApiClientError {
 
 function extractPayload(error: HttpErrorResponse): ApiErrorPayload | null {
   if (isApiErrorResponse(error.error)) return error.error.error;
+  if (isLaravelValidationResponse(error.error)) {
+    return {
+      type: 'ValidationError',
+      message: error.error.message,
+      details: error.error.errors,
+    };
+  }
   return null;
+}
+
+function isLaravelValidationResponse(
+  value: unknown,
+): value is { message: string; errors: Record<string, string[]> } {
+  if (!value || typeof value !== 'object') return false;
+
+  const candidate = value as {
+    message?: unknown;
+    errors?: unknown;
+  };
+
+  if (typeof candidate.message !== 'string' || !candidate.errors) return false;
+  if (typeof candidate.errors !== 'object' || Array.isArray(candidate.errors)) return false;
+
+  return Object.values(candidate.errors).every(
+    (messages) =>
+      Array.isArray(messages) && messages.every((message) => typeof message === 'string'),
+  );
 }
 
 function httpStatusToType(status: number): string {

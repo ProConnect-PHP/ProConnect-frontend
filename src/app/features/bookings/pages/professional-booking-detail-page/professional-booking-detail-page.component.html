@@ -41,6 +41,14 @@
       <aside class="grid content-start gap-4">
         <app-booking-package-summary [booking]="currentBooking" />
 
+        <app-video-session-action-card
+          [booking]="currentBooking"
+          [videoSession]="currentBooking.video_session ?? null"
+          (videoSessionEnsured)="onVideoSessionEnsured($event)"
+          (joined)="onVideoSessionJoined($event)"
+          (bookingShouldRefresh)="reloadBooking()"
+        />
+
         <section class="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
           <h2 class="text-lg font-black tracking-tight text-slate-950">Acciones</h2>
           <div class="mt-4">

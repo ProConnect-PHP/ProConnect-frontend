@@ -29,14 +29,21 @@ export class DashboardLayoutComponent implements OnInit {
     { label: 'Perfil profesional', shortLabel: 'Perfil', path: '/dashboard/profile' },
     { label: 'Servicios', shortLabel: 'Servicios', path: '/dashboard/services' },
     { label: 'Disponibilidad', shortLabel: 'Agenda', path: '/dashboard/availability' },
+    {
+      label: 'Reservas y recordatorios',
+      shortLabel: 'Config.',
+      path: '/dashboard/settings/booking-policy',
+    },
     { label: 'Reseñas', shortLabel: 'Reseñas', path: '/dashboard/reviews' },
     { label: 'Mis reservas', shortLabel: 'Mias', path: '/my-bookings' },
     { label: 'Mis pagos', shortLabel: 'Pagos', path: '/my-payments' },
     { label: 'Mis paquetes', shortLabel: 'Paq. mios', path: '/my-packages' },
+    { label: 'Mis sesiones virtuales', shortLabel: 'Video', path: '/video-sessions/my' },
     { label: 'Reservas profesionales', shortLabel: 'Reservas', path: '/professional/bookings' },
     { label: 'Paquetes', shortLabel: 'Paq.', path: '/professional/package-products' },
     { label: 'Paquetes vendidos', shortLabel: 'Vendidos', path: '/professional/client-packages' },
     { label: 'Pagos recibidos', shortLabel: 'Recibidos', path: '/professional/payments' },
+    { label: 'Sesiones virtuales', shortLabel: 'Salas', path: '/professional/video-sessions' },
     { label: 'Marketplace', shortLabel: 'Market', path: '/services' },
   ];
 

@@ -1,11 +1,14 @@
 import { ApiClientError } from '../../../core/http/models/api-error.model';
 
-export function bookingErrorMessage(error: unknown): string {
+export function bookingErrorMessage(
+  error: unknown,
+  fallback = 'No pudimos completar la operacion. Intenta nuevamente.',
+): string {
   if (error instanceof ApiClientError) {
-    return bookingErrorMessageFromType(error.type, error.message);
+    return bookingErrorMessageFromType(error.type, error.message || fallback);
   }
 
-  return 'No pudimos completar la operacion. Intenta nuevamente.';
+  return fallback;
 }
 
 export function bookingErrorMessageFromType(

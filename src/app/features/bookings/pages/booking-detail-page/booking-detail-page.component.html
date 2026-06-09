@@ -78,13 +78,19 @@
       <app-payment-action-card [booking]="currentBooking" [payment]="currentBooking.payment ?? null"
         (paymentCompleted)="onPaymentCompleted($event)" (bookingShouldRefresh)="reloadBooking()" />
 
-      <section class="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 class="text-lg font-black tracking-tight text-slate-950">Acciones</h2>
-        <div class="mt-4">
-          <app-booking-actions [booking]="currentBooking" context="client" (cancelClicked)="openCancelDialog()"
-            (rescheduleClicked)="openRescheduleDialog()" />
-        </div>
-      </section>
+      <app-video-session-action-card
+        [booking]="currentBooking"
+        [videoSession]="currentBooking.video_session ?? null"
+        (videoSessionEnsured)="onVideoSessionEnsured($event)"
+        (joined)="onVideoSessionJoined($event)"
+        (bookingShouldRefresh)="reloadBooking()"
+      />
+
+      <app-booking-detail-actions
+        [booking]="currentBooking"
+        (cancelClicked)="openCancelDialog()"
+        (rescheduleClicked)="openRescheduleDialog()"
+      />
     </aside>
   </section>
 
