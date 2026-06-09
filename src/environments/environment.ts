@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiBaseUrl: 'https://api.proconnect.app/api/v1',
+  apiBaseUrl: 'https://apitallerphp.gyabisito.dev/api/v1',
   mapbox: {
     accessToken: 'REEMPLAZAR_EN_DEPLOY',
     defaultCenter: {
