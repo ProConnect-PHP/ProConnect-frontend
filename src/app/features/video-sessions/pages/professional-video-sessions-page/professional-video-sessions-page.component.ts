@@ -106,7 +106,7 @@ export class ProfessionalVideoSessionsPageComponent implements OnInit {
   }
 
   joinSession(videoSession: VideoSession): void {
-    void this.router.navigate(['/video-sessions', videoSession.id, 'room'], {
+    void this.router.navigate(['/video-sessions', videoSession.booking_id, 'join'], {
       state: { videoSession },
     });
   }

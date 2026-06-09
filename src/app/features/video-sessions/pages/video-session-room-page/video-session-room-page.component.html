@@ -1,82 +1,179 @@
-@if (joining()) {
-  <main class="grid min-h-screen place-items-center bg-slate-950 px-4 text-white">
-    <app-loading-spinner label="Entrando a la sala simulada..." />
-  </main>
-} @else if (errorMessage()) {
-  <main class="grid min-h-screen place-items-center bg-slate-950 px-4 py-8 text-white">
-    <section class="w-full max-w-xl rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-sm">
-      <p class="text-xs font-bold uppercase tracking-wide text-rose-300">Sesion virtual</p>
-      <h1 class="mt-2 text-2xl font-black tracking-tight text-white">No pudimos entrar a la sala</h1>
-      <div class="mt-5">
-        <app-alert [message]="errorMessage()" variant="danger" />
+<section class="min-h-screen bg-slate-950 pb-28 text-white">
+  <div class="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+    <header
+      class="flex flex-col gap-4 border-b border-slate-800 pb-5 md:flex-row md:items-center md:justify-between"
+    >
+      <div>
+        <p class="text-sm font-medium text-blue-300">ProConnect Video</p>
+        <h1 class="mt-1 text-2xl font-semibold tracking-tight md:text-3xl">
+          Videollamada de sesion
+        </h1>
+        <p class="mt-2 text-sm leading-6 text-slate-400">
+          Conectate con audio y video en una sala segura asociada a tu reserva.
+        </p>
       </div>
-      <div class="mt-5 flex flex-col gap-3 sm:flex-row">
-        <button
-          type="button"
-          class="inline-flex min-h-10 items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-slate-100 focus:outline focus:outline-2 focus:outline-white"
-          (click)="retryJoin()"
+
+      @if (connected()) {
+        <div
+          class="w-fit rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-200"
+          role="status"
         >
-          Reintentar join
-        </button>
-        <a
-          routerLink="/video-sessions/my"
-          class="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-700 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800 focus:outline focus:outline-2 focus:outline-white"
+          Conectado
+        </div>
+      } @else if (connecting()) {
+        <div
+          class="w-fit rounded-2xl border border-blue-500/30 bg-blue-500/10 px-4 py-2 text-sm text-blue-200"
+          role="status"
         >
-          Ver mis sesiones
-        </a>
-      </div>
-    </section>
-  </main>
-} @else if (join(); as currentJoin) {
-  @if (videoSession(); as currentVideoSession) {
-    @switch (currentJoin.provider) {
-      @case ('simulator') {
-        <app-simulator-room
-          [videoSession]="currentVideoSession"
-          [join]="currentJoin"
-          (leaveClicked)="leaveRoom()"
-        />
+          Conectando...
+        </div>
+      } @else {
+        <div
+          class="w-fit rounded-2xl border border-slate-700 bg-slate-900 px-4 py-2 text-sm text-slate-300"
+          role="status"
+        >
+          En espera
+        </div>
       }
-      @case ('livekit') {
-        <main class="grid min-h-screen place-items-center bg-slate-950 px-4 py-8 text-white">
-          <section class="w-full max-w-xl rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <p class="text-xs font-bold uppercase tracking-wide text-emerald-300">LiveKit</p>
-            <h1 class="mt-2 text-2xl font-black tracking-tight text-white">Sala real pendiente</h1>
-            <p class="mt-3 text-sm leading-6 text-slate-300">
-              El backend ya entrego room y token, pero esta fase renderiza solo el simulador. Aca se montaria un LiveKitRoomComponent.
-            </p>
-            <button
-              type="button"
-              class="mt-5 inline-flex min-h-10 items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-slate-100 focus:outline focus:outline-2 focus:outline-white"
-              (click)="leaveRoom()"
-            >
-              Volver a la reserva
-            </button>
-          </section>
-        </main>
+    </header>
+
+    @if (!connected()) {
+      <app-video-session-waiting-state
+        [loading]="connecting()"
+        [error]="displayedError()"
+        (cameraChange)="switchCamera($event)"
+        (microphoneChange)="switchMicrophone($event)"
+        (retryPermissions)="retryPermissions()"
+        (join)="join()"
+      />
+    } @else {
+      @if (displayedError()) {
+        <div
+          class="rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100"
+          role="alert"
+        >
+          {{ displayedError() }}
+        </div>
       }
-      @default {
-        <main class="grid min-h-screen place-items-center bg-slate-950 px-4 py-8 text-white">
-          <section class="w-full max-w-xl rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <p class="text-xs font-bold uppercase tracking-wide text-emerald-300">URL externa</p>
-            <h1 class="mt-2 text-2xl font-black tracking-tight text-white">Sala externa no abierta automaticamente</h1>
-            <p class="mt-3 text-sm leading-6 text-slate-300">
-              No redirigimos automaticamente para mantener el token fuera de la URL y dejar claro que esta fase es simulada.
-            </p>
-            <button
-              type="button"
-              class="mt-5 inline-flex min-h-10 items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-slate-100 focus:outline focus:outline-2 focus:outline-white"
-              (click)="leaveRoom()"
-            >
-              Volver a la reserva
-            </button>
-          </section>
-        </main>
+
+      <main class="grid gap-4 lg:grid-cols-2">
+        <article
+          class="relative h-[320px] overflow-hidden rounded-3xl border border-slate-800 bg-black shadow-xl sm:h-[420px]"
+          [attr.aria-label]="'Video local de ' + localParticipantName()"
+        >
+          <video
+            #localVideo
+            autoplay
+            muted
+            playsinline
+            class="h-full w-full object-cover"
+          ></video>
+
+          @if (!state().cameraEnabled) {
+            <div class="absolute inset-0 grid place-items-center bg-slate-900">
+              <div class="text-center text-slate-300">
+                <div
+                  class="mx-auto mb-3 flex size-16 items-center justify-center rounded-full bg-slate-800 text-xl font-semibold"
+                >
+                  {{ localInitial() }}
+                </div>
+                <p class="text-sm">Camara apagada</p>
+              </div>
+            </div>
+          }
+
+          <div
+            class="absolute inset-x-4 bottom-4 flex items-center justify-between gap-3 rounded-2xl bg-black/65 px-3 py-2 text-sm text-white backdrop-blur"
+          >
+            <span class="truncate font-semibold">{{ localParticipantName() }} (vos)</span>
+            <span class="shrink-0 text-xs text-slate-200">
+              {{
+                state().microphoneEnabled
+                  ? 'Microfono activo'
+                  : 'Microfono silenciado'
+              }}
+            </span>
+          </div>
+        </article>
+
+        @for (participant of remoteParticipants(); track participant.identity) {
+          <app-video-session-participant-tile [participant]="participant" />
+        } @empty {
+          <article
+            class="flex h-[320px] items-center justify-center rounded-3xl border border-dashed border-slate-700 bg-slate-900 p-8 text-center sm:h-[420px]"
+          >
+            <div>
+              <div
+                class="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-slate-800 text-sm font-black tracking-wider text-slate-300"
+                aria-hidden="true"
+              >
+                ...
+              </div>
+              <h2 class="text-lg font-semibold text-slate-200">
+                Esperando al otro participante
+              </h2>
+              <p class="mt-2 max-w-sm text-sm leading-6 text-slate-400">
+                Cuando el cliente o profesional ingrese a la sala, aparecera
+                automaticamente aca.
+              </p>
+            </div>
+          </article>
+        }
+      </main>
+
+      <app-video-session-control-bar
+        [cameraEnabled]="state().cameraEnabled"
+        [microphoneEnabled]="state().microphoneEnabled"
+        [disabled]="controlsDisabled()"
+        [settingsOpen]="settingsOpen()"
+        (toggleCamera)="toggleCamera()"
+        (toggleMicrophone)="toggleMicrophone()"
+        (openSettings)="toggleSettings()"
+        (leave)="leave()"
+      />
+
+      @if (settingsOpen()) {
+        <div
+          id="in-call-device-settings"
+          class="fixed inset-0 z-40 flex items-end justify-center bg-black/70 p-4 md:items-center"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="in-call-settings-title"
+        >
+          <div
+            class="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-slate-800 bg-slate-950 p-4 shadow-2xl sm:p-5"
+          >
+            <div class="mb-4 flex items-start justify-between gap-4">
+              <div>
+                <h2
+                  id="in-call-settings-title"
+                  class="text-lg font-semibold text-white"
+                >
+                  Audio y video
+                </h2>
+                <p class="mt-1 text-sm text-slate-400">
+                  Cambia tus dispositivos sin salir de la llamada.
+                </p>
+              </div>
+              <button
+                type="button"
+                autofocus
+                class="min-h-11 rounded-xl border border-slate-700 px-3 py-2 text-sm text-slate-200 transition hover:bg-slate-800 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-white"
+                (click)="toggleSettings()"
+              >
+                Cerrar
+              </button>
+            </div>
+
+            <app-video-session-device-settings
+              [disabled]="controlsDisabled()"
+              (cameraChange)="switchCamera($event)"
+              (microphoneChange)="switchMicrophone($event)"
+              (retryPermissions)="retryPermissions()"
+            />
+          </div>
+        </div>
       }
     }
-  }
-} @else if (videoSession(); as currentVideoSession) {
-  <main class="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 lg:px-8">
-    <app-video-join-panel [videoSession]="currentVideoSession" (joined)="onJoined($event)" />
-  </main>
-}
+  </div>
+</section>

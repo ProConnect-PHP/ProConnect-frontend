@@ -1,149 +1,289 @@
-import { isPlatformBrowser } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { finalize } from 'rxjs/operators';
+import {
+  AfterViewChecked,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 
-import { AppAlertComponent } from '../../../../shared/ui/alert/alert.component';
-import { AppLoadingSpinnerComponent } from '../../../../shared/ui/loading-spinner/loading-spinner.component';
-import { SimulatorRoomComponent } from '../../components/simulator-room/simulator-room.component';
-import { VideoJoinPanelComponent } from '../../components/video-join-panel/video-join-panel.component';
-import { VideoSessionsApi } from '../../data-access/video-sessions.api';
+import { AuthStore } from '../../../../core/auth/services/auth.store';
+import { VideoSessionControlBarComponent } from '../../components/video-session-control-bar/video-session-control-bar.component';
+import { VideoSessionDeviceSettingsComponent } from '../../components/video-session-device-settings/video-session-device-settings.component';
+import { VideoSessionParticipantTileComponent } from '../../components/video-session-participant-tile/video-session-participant-tile.component';
+import { VideoSessionWaitingStateComponent } from '../../components/video-session-waiting-state/video-session-waiting-state.component';
 import { mapVideoSessionApiError } from '../../data-access/video-sessions-error.mapper';
-import { createSessionFromJoin } from '../../data-access/video-sessions.mapper';
-import { VideoSession, VideoSessionJoin } from '../../data-access/video-sessions.models';
-
-type RoomNavigationState = {
-  videoSession?: VideoSession;
-  join?: VideoSessionJoin;
-};
-
-type UnknownRecord = Record<string, unknown>;
+import { LiveKitRoomService } from '../../services/livekit-room.service';
+import { MediaDeviceService } from '../../services/media-device.service';
+import { VideoSessionApiService } from '../../services/video-session-api.service';
 
 @Component({
   selector: 'app-video-session-room-page',
+  host: {
+    '(document:keydown.escape)': 'closeSettings()',
+  },
   imports: [
-    RouterLink,
-    AppAlertComponent,
-    AppLoadingSpinnerComponent,
-    SimulatorRoomComponent,
-    VideoJoinPanelComponent,
+    VideoSessionControlBarComponent,
+    VideoSessionDeviceSettingsComponent,
+    VideoSessionParticipantTileComponent,
+    VideoSessionWaitingStateComponent,
   ],
   templateUrl: './video-session-room-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class VideoSessionRoomPageComponent implements OnInit {
-  private readonly api = inject(VideoSessionsApi);
+export class VideoSessionRoomPageComponent
+  implements OnInit, AfterViewChecked, OnDestroy
+{
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly destroyRef = inject(DestroyRef);
-  private readonly platformId = inject(PLATFORM_ID);
+  private readonly api = inject(VideoSessionApiService);
+  private readonly authStore = inject(AuthStore);
 
-  readonly videoSession = signal<VideoSession | null>(null);
-  readonly join = signal<VideoSessionJoin | null>(null);
-  readonly joining = signal(false);
-  readonly errorMessage = signal<string | null>(null);
+  readonly liveKit = inject(LiveKitRoomService);
+  readonly mediaDevices = inject(MediaDeviceService);
 
-  ngOnInit(): void {
-    const videoSessionId = this.route.snapshot.paramMap.get('videoSessionId');
-    if (!videoSessionId) {
-      this.errorMessage.set('Sesion virtual no encontrada.');
-      return;
+  @ViewChild('localVideo')
+  private readonly localVideo?: ElementRef<HTMLVideoElement>;
+
+  @ViewChild(VideoSessionControlBarComponent)
+  private readonly controlBar?: VideoSessionControlBarComponent;
+
+  readonly loading = signal(false);
+  readonly error = signal<string | null>(null);
+  readonly participantName = signal<string | null>(null);
+  readonly settingsOpen = signal(false);
+
+  readonly state = this.liveKit.connectionState;
+  readonly connected = computed(() => this.state().connected);
+  readonly connecting = computed(() => this.state().connecting || this.loading());
+  readonly controlsDisabled = computed(
+    () => this.connecting() || this.state().controlsBusy,
+  );
+  readonly displayedError = computed(() => this.error() ?? this.state().error);
+  readonly remoteParticipants = this.liveKit.remoteParticipants;
+  readonly localVideoRevision = this.liveKit.localVideoRevision;
+
+  private readonly bookingId = this.route.snapshot.paramMap.get('bookingId');
+  private localVideoAttached = false;
+  private readonly handleDeviceChange = async (): Promise<void> => {
+    const previousCameraId = this.mediaDevices.selectedCameraId();
+    const previousMicrophoneId = this.mediaDevices.selectedMicrophoneId();
+
+    await this.mediaDevices.enumerateDevices();
+
+    if (
+      this.connected() &&
+      previousCameraId &&
+      !this.mediaDevices.selectedCameraId()
+    ) {
+      await this.trySwitchCamera(null);
     }
 
-    const state = this.readNavigationState();
-    if (state.videoSession?.id === videoSessionId) {
-      this.videoSession.set(state.videoSession);
+    if (
+      this.connected() &&
+      previousMicrophoneId &&
+      !this.mediaDevices.selectedMicrophoneId()
+    ) {
+      await this.trySwitchMicrophone(null);
     }
+  };
 
-    if (state.join?.video_session_id === videoSessionId) {
-      this.join.set(state.join);
-      if (!this.videoSession()) {
-        this.videoSession.set(createSessionFromJoin(state.join));
+  constructor() {
+    effect(() => {
+      const connected = this.connected();
+      this.localVideoRevision();
+
+      if (!connected) {
+        this.localVideoAttached = false;
+        return;
       }
+
+      this.scheduleLocalVideoAttach();
+    });
+  }
+
+  async ngOnInit(): Promise<void> {
+    if (!this.bookingId) {
+      this.error.set('No se encontro la reserva asociada a esta videollamada.');
+    }
+
+    await this.mediaDevices.initialize();
+    if (typeof navigator !== 'undefined') {
+      navigator.mediaDevices?.addEventListener?.(
+        'devicechange',
+        this.handleDeviceChange,
+      );
+    }
+  }
+
+  async join(): Promise<void> {
+    if (!this.bookingId || this.connecting() || this.connected()) return;
+
+    this.loading.set(true);
+    this.error.set(null);
+    this.localVideoAttached = false;
+
+    try {
+      const permissionResult =
+        await this.mediaDevices.requestAudioVideoPermissions();
+      this.error.set(permissionResult.error);
+
+      const response = await firstValueFrom(
+        this.api.joinBookingVideoSession(this.bookingId),
+      );
+      this.participantName.set(response.data.participantName);
+      await this.liveKit.connect(response.data.url, response.data.token);
+      this.error.set(this.state().error);
+      this.scheduleLocalVideoAttach();
+    } catch (error: unknown) {
+      this.error.set(
+        this.state().error ??
+          mapVideoSessionApiError(
+            error,
+            'No se pudo ingresar a la videollamada. Verifica tus permisos o intenta nuevamente.',
+          ),
+      );
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  async toggleCamera(): Promise<void> {
+    try {
+      await this.liveKit.toggleCamera();
+      this.scheduleLocalVideoAttach();
+    } catch {
+      this.error.set(this.state().error);
+    }
+  }
+
+  async toggleMicrophone(): Promise<void> {
+    try {
+      await this.liveKit.toggleMicrophone();
+    } catch {
+      this.error.set(this.state().error);
+    }
+  }
+
+  toggleSettings(): void {
+    if (this.settingsOpen()) {
+      this.closeSettings();
+    } else {
+      this.settingsOpen.set(true);
+    }
+  }
+
+  closeSettings(): void {
+    if (!this.settingsOpen()) return;
+
+    this.settingsOpen.set(false);
+    queueMicrotask(() => this.controlBar?.focusSettingsButton());
+  }
+
+  async switchCamera(deviceId: string | null): Promise<void> {
+    await this.trySwitchCamera(deviceId);
+  }
+
+  async switchMicrophone(deviceId: string | null): Promise<void> {
+    await this.trySwitchMicrophone(deviceId);
+  }
+
+  async retryPermissions(): Promise<void> {
+    this.error.set(null);
+    await this.liveKit.retryPermissions();
+    this.scheduleLocalVideoAttach();
+  }
+
+  async leave(): Promise<void> {
+    this.settingsOpen.set(false);
+    await this.liveKit.disconnect();
+
+    if (!this.bookingId) {
+      await this.router.navigate(['/video-sessions/my']);
       return;
     }
 
-    this.joinById(videoSessionId);
+    const bookingRoute =
+      this.authStore.currentUser()?.role === 'professional'
+        ? '/professional/bookings'
+        : '/my-bookings';
+    await this.router.navigate([bookingRoute, this.bookingId]);
   }
 
-  onJoined(join: VideoSessionJoin): void {
-    this.join.set(join);
-    if (!this.videoSession()) {
-      this.videoSession.set(createSessionFromJoin(join));
-    }
+  ngAfterViewChecked(): void {
+    this.tryAttachLocalVideo();
   }
 
-  leaveRoom(): void {
-    const videoSession = this.videoSession();
-    const bookingId = videoSession?.booking_id;
-
-    if (bookingId) {
-      const role = this.join()?.participant.role;
-      const route = role === 'professional' ? '/professional/bookings' : '/my-bookings';
-      void this.router.navigate([route, bookingId]);
+  private tryAttachLocalVideo(): void {
+    if (
+      !this.connected() ||
+      !this.state().cameraEnabled ||
+      this.localVideoAttached
+    ) {
       return;
     }
 
-    void this.router.navigate(['/video-sessions/my']);
+    const element = this.localVideo?.nativeElement;
+    if (!element) return;
+
+    const attached = this.liveKit.attachLocalVideo(element);
+    if (attached) {
+      this.localVideoAttached = true;
+    }
   }
 
-  retryJoin(): void {
-    const videoSessionId = this.route.snapshot.paramMap.get('videoSessionId');
-    if (!videoSessionId) return;
-    this.joinById(videoSessionId);
+  ngOnDestroy(): void {
+    if (typeof navigator !== 'undefined') {
+      navigator.mediaDevices?.removeEventListener?.(
+        'devicechange',
+        this.handleDeviceChange,
+      );
+    }
+    void this.liveKit.disconnect();
   }
 
-  private joinById(videoSessionId: string): void {
-    if (this.joining()) return;
-
-    this.errorMessage.set(null);
-    this.joining.set(true);
-
-    this.api
-      .joinVideoSession(videoSessionId)
-      .pipe(
-        finalize(() => this.joining.set(false)),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: (join) => {
-          this.join.set(join);
-          if (!this.videoSession()) {
-            this.videoSession.set(createSessionFromJoin(join));
-          }
-        },
-        error: (error: unknown) =>
-          this.errorMessage.set(mapVideoSessionApiError(error, 'No pudimos entrar a la sala.')),
-      });
+  localParticipantName(): string {
+    return (
+      this.state().localParticipantName ??
+      this.participantName() ??
+      'Vos'
+    );
   }
 
-  private readNavigationState(): RoomNavigationState {
-    const currentState = this.router.getCurrentNavigation()?.extras.state;
-    const browserState = isPlatformBrowser(this.platformId) ? window.history.state : null;
-    const state = this.coerceNavigationState(currentState ?? browserState);
-
-    return state;
+  localInitial(): string {
+    return this.localParticipantName().slice(0, 1).toUpperCase() || 'V';
   }
 
-  private coerceNavigationState(value: unknown): RoomNavigationState {
-    if (!isRecord(value)) return {};
+  private async trySwitchCamera(deviceId: string | null): Promise<void> {
+    this.error.set(null);
 
-    return {
-      videoSession: isVideoSession(value['videoSession']) ? value['videoSession'] : undefined,
-      join: isVideoSessionJoin(value['join']) ? value['join'] : undefined,
-    };
+    try {
+      await this.liveKit.switchCamera(deviceId);
+      this.scheduleLocalVideoAttach();
+    } catch {
+      this.error.set(this.state().error);
+    }
   }
-}
 
-function isVideoSession(value: unknown): value is VideoSession {
-  return isRecord(value) && typeof value['id'] === 'string';
-}
+  private async trySwitchMicrophone(deviceId: string | null): Promise<void> {
+    this.error.set(null);
 
-function isVideoSessionJoin(value: unknown): value is VideoSessionJoin {
-  return isRecord(value) && typeof value['video_session_id'] === 'string';
-}
+    try {
+      await this.liveKit.switchMicrophone(deviceId);
+    } catch {
+      this.error.set(this.state().error);
+    }
+  }
 
-function isRecord(value: unknown): value is UnknownRecord {
-  return !!value && typeof value === 'object' && !Array.isArray(value);
+  private scheduleLocalVideoAttach(): void {
+    this.localVideoAttached = false;
+    queueMicrotask(() => this.tryAttachLocalVideo());
+  }
 }

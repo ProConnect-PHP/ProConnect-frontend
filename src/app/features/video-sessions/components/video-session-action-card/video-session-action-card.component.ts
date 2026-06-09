@@ -22,7 +22,6 @@ import {
 import {
   VideoProvider,
   VideoSession,
-  VideoSessionJoin,
   VideoSessionStatus,
 } from '../../data-access/video-sessions.models';
 import { VideoSessionStatusBadgeComponent } from '../video-session-status-badge/video-session-status-badge.component';
@@ -42,14 +41,12 @@ export class VideoSessionActionCardComponent implements OnInit, OnChanges {
   readonly videoSession = input<VideoSession | null | undefined>(undefined);
 
   readonly videoSessionEnsured = output<VideoSession>();
-  readonly joined = output<VideoSessionJoin>();
   readonly bookingShouldRefresh = output<void>();
 
   readonly localVideoSession = signal<VideoSession | null>(null);
   readonly loadedBookingId = signal<string | null>(null);
   readonly loadingSession = signal(false);
   readonly ensuring = signal(false);
-  readonly joining = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
 
@@ -103,31 +100,20 @@ export class VideoSessionActionCardComponent implements OnInit, OnChanges {
   }
 
   joinSession(videoSession: VideoSession): void {
-    if (this.joining() || !this.canJoin(videoSession)) {
+    if (!this.canJoin(videoSession)) {
       this.errorMessage.set(this.joinUnavailableMessage(videoSession));
       return;
     }
 
     this.errorMessage.set(null);
     this.successMessage.set(null);
-    this.joining.set(true);
 
-    this.api
-      .joinVideoSession(videoSession.id)
-      .pipe(
-        finalize(() => this.joining.set(false)),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: (join) => {
-          this.joined.emit(join);
-          void this.router.navigate(['/video-sessions', videoSession.id, 'room'], {
-            state: { videoSession, join },
-          });
-        },
-        error: (error: unknown) =>
-          this.errorMessage.set(mapVideoSessionApiError(error, 'No pudimos entrar a la sala.')),
-      });
+    void this.router.navigate(
+      ['/video-sessions', this.booking().id, 'join'],
+      {
+        state: { videoSession },
+      },
+    );
   }
 
   canJoin(videoSession: VideoSession): boolean {

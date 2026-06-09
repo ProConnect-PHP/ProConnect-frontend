@@ -6,7 +6,7 @@
         Sala de la reserva
       </h2>
       <p class="mt-2 text-sm leading-6 text-slate-600">
-        La videollamada esta preparada como simulador. LiveKit/WebRTC se puede conectar en una fase futura.
+        La videollamada usa una sala segura de LiveKit asociada a esta reserva.
       </p>
     </div>
 
@@ -47,10 +47,10 @@
       <button
         type="button"
         class="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-md bg-emerald-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 focus:outline focus:outline-2 focus:outline-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
-        [disabled]="joining() || !canJoin(session)"
+        [disabled]="!canJoin(session)"
         (click)="joinSession(session)"
       >
-        {{ joining() ? 'Entrando...' : 'Unirse a la sesion' }}
+        Unirse a la sesion
       </button>
 
       <p class="mt-3 text-xs font-semibold uppercase tracking-wide text-slate-500">

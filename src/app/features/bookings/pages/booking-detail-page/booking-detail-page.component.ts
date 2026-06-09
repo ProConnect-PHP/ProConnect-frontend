@@ -15,10 +15,7 @@ import { BookingPackageSummaryComponent } from '../../../packages/components/boo
 import { PaymentActionCardComponent } from '../../../payments/components/payment-action-card/payment-action-card.component';
 import { Payment } from '../../../payments/data-access/payments.models';
 import { VideoSessionActionCardComponent } from '../../../video-sessions/components/video-session-action-card/video-session-action-card.component';
-import type {
-  VideoSession,
-  VideoSessionJoin,
-} from '../../../video-sessions/data-access/video-sessions.models';
+import type { VideoSession } from '../../../video-sessions/data-access/video-sessions.models';
 import { BookingsApi } from '../../data-access/bookings.api';
 import { Booking, BookingResponse } from '../../models/booking.models';
 import { bookingErrorMessage } from '../../utils/booking-error-message.util';
@@ -102,10 +99,6 @@ export class BookingDetailPageComponent implements OnInit {
   onVideoSessionEnsured(videoSession: VideoSession): void {
     this.mergeBookingVideoSession(videoSession);
     this.successMessage.set('Sala virtual preparada correctamente.');
-  }
-
-  onVideoSessionJoined(_join: VideoSessionJoin): void {
-    this.successMessage.set('Acceso a sesion virtual generado correctamente.');
   }
 
   reloadBooking(): void {
