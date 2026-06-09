@@ -2,3 +2,8 @@ export * from './data-access/video-sessions.api';
 export * from './data-access/video-sessions-error.mapper';
 export * from './data-access/video-sessions.mapper';
 export * from './data-access/video-sessions.models';
+export * from './models/join-video-session-response.model';
+export * from './models/media-device-option.model';
+export * from './services/livekit-room.service';
+export * from './services/media-device.service';
+export * from './services/video-session-api.service';

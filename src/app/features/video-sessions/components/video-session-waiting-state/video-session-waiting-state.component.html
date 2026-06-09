@@ -1,0 +1,54 @@
+<section
+  class="rounded-3xl border border-slate-800 bg-slate-900 p-5 text-white sm:p-6"
+  aria-labelledby="video-waiting-title"
+>
+  <div class="mx-auto max-w-2xl text-center">
+    <div
+      class="mx-auto mb-6 flex size-20 items-center justify-center rounded-3xl bg-blue-600/20 text-lg font-black tracking-wider text-blue-200"
+      aria-hidden="true"
+    >
+      VIDEO
+    </div>
+
+    <h2 id="video-waiting-title" class="text-2xl font-semibold">
+      Listo para entrar a la sesion
+    </h2>
+
+    <p class="mt-3 text-sm leading-6 text-slate-400">
+      Al ingresar, el navegador puede pedir permisos para usar tu camara y microfono.
+    </p>
+
+    <div class="mt-6">
+      <app-video-session-device-settings
+        [disabled]="loading()"
+        permissionActionLabel="Probar permisos / activar camara y microfono"
+        (cameraChange)="cameraChange.emit($event)"
+        (microphoneChange)="microphoneChange.emit($event)"
+        (retryPermissions)="retryPermissions.emit()"
+      />
+    </div>
+
+    @if (error()) {
+      <div
+        class="mt-5 rounded-2xl border border-rose-500/40 bg-rose-500/10 p-4 text-sm text-rose-200"
+        role="alert"
+      >
+        {{ error() }}
+      </div>
+    }
+
+    <button
+      type="button"
+      class="mt-6 min-h-12 rounded-2xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-white disabled:cursor-not-allowed disabled:opacity-60"
+      [disabled]="loading()"
+      (click)="join.emit()"
+    >
+      {{ loading() ? 'Preparando conexion...' : 'Entrar a la videollamada' }}
+    </button>
+
+    <p class="mt-3 text-xs leading-5 text-slate-500">
+      Podes entrar aunque la camara o el microfono no esten disponibles y
+      reintentar desde la configuracion de la llamada.
+    </p>
+  </div>
+</section>

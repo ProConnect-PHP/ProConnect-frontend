@@ -98,8 +98,8 @@ export const routes: Routes = [
           ).then((m) => m.MyVideoSessionsPageComponent),
       },
       {
-        path: 'video-sessions/:videoSessionId/room',
-        title: 'Sala virtual | ProConnect',
+        path: 'video-sessions/:bookingId/join',
+        title: 'Videollamada | ProConnect',
         canActivate: [authGuard],
         loadComponent: () =>
           import(

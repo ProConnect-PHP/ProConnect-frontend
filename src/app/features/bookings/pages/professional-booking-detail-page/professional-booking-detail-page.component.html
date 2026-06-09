@@ -45,7 +45,6 @@
           [booking]="currentBooking"
           [videoSession]="currentBooking.video_session ?? null"
           (videoSessionEnsured)="onVideoSessionEnsured($event)"
-          (joined)="onVideoSessionJoined($event)"
           (bookingShouldRefresh)="reloadBooking()"
         />
 

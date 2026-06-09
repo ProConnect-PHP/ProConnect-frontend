@@ -1,0 +1,94 @@
+<section
+  class="rounded-3xl border border-slate-800 bg-slate-900 p-5 text-left text-white shadow-xl"
+  aria-labelledby="device-settings-title"
+>
+  <div class="mb-5">
+    <h2 id="device-settings-title" class="text-lg font-semibold">
+      Configuracion de audio y video
+    </h2>
+    <p class="mt-1 text-sm text-slate-400">
+      Elegi que camara y microfono queres usar para esta sesion.
+    </p>
+  </div>
+
+  @if (permissionError()) {
+    <div
+      class="mb-5 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm leading-6 text-amber-100"
+      role="alert"
+    >
+      {{ permissionError() }}
+    </div>
+  }
+
+  <div class="grid gap-4 md:grid-cols-2">
+    <label class="block">
+      <span class="mb-2 block text-sm font-medium text-slate-300">Camara</span>
+      <select
+        class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white outline-none transition focus:border-blue-500 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-blue-400 disabled:cursor-not-allowed disabled:opacity-60"
+        [disabled]="disabled() || loadingDevices() || !hasCameras()"
+        [value]="selectedCameraId() || ''"
+        (change)="onCameraChange($event)"
+      >
+        <option value="">
+          {{
+            hasCameras()
+              ? 'Camara predeterminada'
+              : 'No se encontraron camaras'
+          }}
+        </option>
+        @for (camera of cameras(); track camera.deviceId) {
+          <option [value]="camera.deviceId">{{ camera.label }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="block">
+      <span class="mb-2 block text-sm font-medium text-slate-300">
+        Microfono
+      </span>
+      <select
+        class="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white outline-none transition focus:border-blue-500 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-blue-400 disabled:cursor-not-allowed disabled:opacity-60"
+        [disabled]="disabled() || loadingDevices() || !hasMicrophones()"
+        [value]="selectedMicrophoneId() || ''"
+        (change)="onMicrophoneChange($event)"
+      >
+        <option value="">
+          {{
+            hasMicrophones()
+              ? 'Microfono predeterminado'
+              : 'No se encontraron microfonos'
+          }}
+        </option>
+        @for (microphone of microphones(); track microphone.deviceId) {
+          <option [value]="microphone.deviceId">{{ microphone.label }}</option>
+        }
+      </select>
+    </label>
+  </div>
+
+  @if (showPermissionActions()) {
+    <div class="mt-5 flex flex-wrap gap-3">
+      <button
+        type="button"
+        class="min-h-11 rounded-2xl border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-800 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-white disabled:cursor-not-allowed disabled:opacity-60"
+        [disabled]="disabled() || loadingDevices()"
+        (click)="retryPermissions.emit()"
+      >
+        {{ permissionActionLabel() }}
+      </button>
+      <button
+        type="button"
+        class="min-h-11 rounded-2xl border border-slate-700 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-800 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-white disabled:cursor-not-allowed disabled:opacity-60"
+        [disabled]="disabled() || loadingDevices()"
+        (click)="mediaDevices.enumerateDevices()"
+      >
+        Actualizar dispositivos
+      </button>
+    </div>
+  }
+
+  <p class="mt-4 text-xs leading-5 text-slate-500">
+    Si bloqueaste los permisos, hace click en el candado de la barra de
+    direcciones, permiti camara y microfono, y volve a intentar.
+  </p>
+</section>
