@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 
 import { authGuard } from './core/auth/guards/auth.guard';
 import { guestGuard } from './core/auth/guards/guest.guard';
+import { professionalGuard } from './core/auth/guards/professional.guard';
 
 export const routes: Routes = [
   {
@@ -88,6 +89,24 @@ export const routes: Routes = [
           ).then((m) => m.MyPackagesPageComponent),
       },
       {
+        path: 'video-sessions/my',
+        title: 'Mis sesiones virtuales | ProConnect',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import(
+            './features/video-sessions/pages/my-video-sessions-page/my-video-sessions-page.component'
+          ).then((m) => m.MyVideoSessionsPageComponent),
+      },
+      {
+        path: 'video-sessions/:videoSessionId/room',
+        title: 'Sala virtual | ProConnect',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import(
+            './features/video-sessions/pages/video-session-room-page/video-session-room-page.component'
+          ).then((m) => m.VideoSessionRoomPageComponent),
+      },
+      {
         path: 'client-packages/:clientPackageId',
         title: 'Detalle de paquete | ProConnect',
         canActivate: [authGuard],
@@ -113,6 +132,15 @@ export const routes: Routes = [
           import(
             './features/bookings/pages/professional-booking-detail-page/professional-booking-detail-page.component'
           ).then((m) => m.ProfessionalBookingDetailPageComponent),
+      },
+      {
+        path: 'professional/video-sessions',
+        title: 'Sesiones virtuales profesionales | ProConnect',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import(
+            './features/video-sessions/pages/professional-video-sessions-page/professional-video-sessions-page.component'
+          ).then((m) => m.ProfessionalVideoSessionsPageComponent),
       },
       {
         path: 'professional/payments',
@@ -238,6 +266,15 @@ export const routes: Routes = [
           import(
             './features/reviews/pages/professional-reviews-page/professional-reviews-page.component'
           ).then((m) => m.ProfessionalReviewsPageComponent),
+      },
+      {
+        path: 'settings/booking-policy',
+        title: 'Reservas y recordatorios | ProConnect',
+        canActivate: [professionalGuard],
+        loadComponent: () =>
+          import(
+            './features/professional-settings/booking-policies/pages/booking-policy-settings-page/booking-policy-settings-page.component'
+          ).then((m) => m.BookingPolicySettingsPageComponent),
       },
     ],
   },

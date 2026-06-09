@@ -1,0 +1,136 @@
+<main class="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
+  <header class="rounded-2xl bg-slate-950 px-5 py-6 text-white shadow-lg sm:px-8 sm:py-8">
+    <p class="text-xs font-bold uppercase tracking-[0.2em] text-indigo-300">Configuracion</p>
+    <h1 class="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
+      Reservas y recordatorios
+    </h1>
+    <p class="mt-3 max-w-3xl text-sm leading-6 text-slate-300 sm:text-base">
+      Configura como tus clientes pueden cancelar, reprogramar y recibir recordatorios.
+    </p>
+  </header>
+
+  <div class="mt-5 grid gap-3" aria-live="polite">
+    <app-alert [message]="store.successMessage()" variant="success" />
+    <app-alert [message]="store.error()" variant="danger" />
+  </div>
+
+  @if (store.loading()) {
+    <section class="mt-6 grid gap-6" aria-label="Cargando configuracion">
+      <p class="sr-only" role="status">Cargando configuracion...</p>
+      @for (item of [1, 2, 3]; track item) {
+        <div class="animate-pulse rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div class="h-4 w-28 rounded bg-slate-200"></div>
+          <div class="mt-3 h-7 w-56 rounded bg-slate-200"></div>
+          <div class="mt-3 h-4 max-w-xl rounded bg-slate-100"></div>
+          <div class="mt-6 h-20 rounded-xl bg-slate-100"></div>
+          <div class="mt-5 h-24 rounded-xl bg-slate-100"></div>
+        </div>
+      }
+    </section>
+  } @else if (!store.policy()) {
+    <section
+      class="mt-6 rounded-2xl border border-rose-200 bg-white p-6 text-center shadow-sm"
+      role="alert"
+    >
+      <h2 class="text-xl font-bold text-slate-950">
+        No pudimos cargar tu configuracion de reservas.
+      </h2>
+      <p class="mt-2 text-sm leading-6 text-slate-600">
+        Revisa tu conexion o intenta nuevamente en unos segundos.
+      </p>
+      <button
+        type="button"
+        class="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-indigo-600 px-5 py-2 text-sm font-bold text-white transition hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700"
+        (click)="loadPolicy()"
+      >
+        Reintentar
+      </button>
+    </section>
+  } @else {
+    <form [formGroup]="form" class="mt-6 grid gap-6" (ngSubmit)="savePolicy()">
+      <app-cancellation-policy-card
+        [allowControl]="form.controls.allowClientCancellation"
+        [cutoffControl]="form.controls.cancellationCutoffMinutes"
+        [policyTextControl]="form.controls.cancellationPolicyText"
+        [cutoffServerError]="policyFieldErrors()['cancellationCutoffMinutes'] ?? null"
+        [textServerError]="policyFieldErrors()['cancellationPolicyText'] ?? null"
+      />
+
+      <app-rescheduling-policy-card
+        [allowControl]="form.controls.allowClientRescheduling"
+        [cutoffControl]="form.controls.reschedulingCutoffMinutes"
+        [policyTextControl]="form.controls.reschedulingPolicyText"
+        [lateToleranceControl]="form.controls.lateToleranceMinutes"
+        [cutoffServerError]="policyFieldErrors()['reschedulingCutoffMinutes'] ?? null"
+        [textServerError]="policyFieldErrors()['reschedulingPolicyText'] ?? null"
+        [lateToleranceServerError]="policyFieldErrors()['lateToleranceMinutes'] ?? null"
+      />
+
+      <app-reminder-rules-card
+        [enabledControl]="form.controls.remindersEnabled"
+        [rules]="store.reminderRules()"
+        [saving]="store.ruleSaving()"
+        [activeRuleId]="store.activeRuleId()"
+        (addClicked)="openCreateRule()"
+        (editClicked)="openEditRule($event)"
+        (toggleClicked)="toggleReminderRule($event)"
+        (deleteClicked)="requestRuleDeletion($event)"
+      />
+
+      <div
+        class="sticky bottom-20 z-10 rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-xl backdrop-blur lg:bottom-4"
+      >
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p class="text-sm leading-5 text-slate-600">
+            Las politicas generales se aplican al presionar guardar.
+          </p>
+          <button
+            type="submit"
+            class="inline-flex min-h-12 items-center justify-center rounded-xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+            [disabled]="store.saving() || form.invalid"
+          >
+            {{ store.saving() ? 'Guardando...' : 'Guardar configuracion' }}
+          </button>
+        </div>
+      </div>
+    </form>
+  }
+</main>
+
+<app-reminder-rule-form-modal
+  [open]="reminderModalOpen()"
+  [editingRule]="editingRule()"
+  [existingRules]="store.reminderRules()"
+  [saving]="store.ruleSaving()"
+  [generalError]="reminderModalOpen() ? store.error() : null"
+  [serverErrors]="store.ruleFieldErrors()"
+  (closed)="closeRuleModal()"
+  (saved)="saveReminderRule($event)"
+/>
+
+<app-modal
+  [open]="!!rulePendingDeletion()"
+  title="Eliminar este recordatorio?"
+  description="Esta accion no afectara reservas pasadas, pero el recordatorio ya no se usara para proximas sesiones."
+  titleId="delete-reminder-title"
+  (close)="closeDeleteConfirmation()"
+>
+  <div class="grid gap-3 sm:grid-cols-2">
+    <button
+      type="button"
+      class="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600"
+      [disabled]="store.ruleSaving()"
+      (click)="closeDeleteConfirmation()"
+    >
+      Cancelar
+    </button>
+    <button
+      type="button"
+      class="inline-flex min-h-11 items-center justify-center rounded-xl bg-rose-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-rose-700 focus:outline focus:outline-2 focus:outline-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
+      [disabled]="store.ruleSaving()"
+      (click)="confirmRuleDeletion()"
+    >
+      {{ store.ruleSaving() ? 'Eliminando...' : 'Eliminar' }}
+    </button>
+  </div>
+</app-modal>

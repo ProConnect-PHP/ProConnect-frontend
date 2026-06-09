@@ -1,0 +1,103 @@
+<section class="min-h-screen bg-slate-950 px-4 py-5 text-white sm:px-6 lg:px-8" aria-labelledby="simulator-room-title">
+  <div class="mx-auto grid w-full max-w-7xl gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+    <div class="grid min-h-[calc(100vh-2.5rem)] grid-rows-[auto_minmax(0,1fr)_auto] gap-5">
+      <header class="flex flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-900 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="min-w-0">
+          <p class="text-xs font-bold uppercase tracking-wide text-emerald-300">Modo simulador</p>
+          <h1 id="simulator-room-title" class="mt-1 truncate text-2xl font-black tracking-tight text-white">
+            {{ videoSession().room_name || join().room_name }}
+          </h1>
+          <p class="mt-1 text-sm leading-6 text-slate-300">
+            Integracion LiveKit preparada para una fase futura.
+          </p>
+        </div>
+        <span class="w-fit rounded-full border border-emerald-400 bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-200">
+          Simulador
+        </span>
+      </header>
+
+      <div class="grid min-h-0 gap-5 lg:grid-cols-[minmax(0,1fr)_220px]">
+        <div class="grid min-h-[360px] place-items-center rounded-2xl border border-slate-800 bg-slate-900 p-5">
+          <div class="grid max-w-md place-items-center text-center">
+            <div class="grid size-24 place-items-center rounded-full bg-slate-800 text-3xl font-black text-white">
+              {{ cameraEnabled() ? 'ON' : 'OFF' }}
+            </div>
+            <h2 class="mt-5 text-2xl font-black tracking-tight text-white">
+              {{ participantName(join().participant) }}
+            </h2>
+            <p class="mt-2 text-sm font-semibold uppercase tracking-wide text-slate-400">
+              {{ roleLabel(join().participant.role) }}
+            </p>
+            <p class="mt-4 max-w-sm text-sm leading-6 text-slate-300">
+              Esta experiencia es una simulacion para desarrollo/demo. La integracion real con LiveKit/WebRTC puede incorporarse en una fase posterior.
+            </p>
+          </div>
+        </div>
+
+        <aside class="rounded-2xl border border-slate-800 bg-slate-900 p-4">
+          <h2 class="text-sm font-black uppercase tracking-wide text-slate-300">Detalle</h2>
+          <dl class="mt-4 grid gap-3 text-sm">
+            <div>
+              <dt class="text-xs font-bold uppercase tracking-wide text-slate-500">Proveedor</dt>
+              <dd class="mt-1 font-bold text-white">{{ join().provider }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs font-bold uppercase tracking-wide text-slate-500">Acceso</dt>
+              <dd class="mt-1 font-bold text-white">{{ tokenStatus(join()) }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs font-bold uppercase tracking-wide text-slate-500">Reserva</dt>
+              <dd class="mt-1 break-all font-bold text-white">
+                {{ videoSession().booking_id || 'No disponible' }}
+              </dd>
+            </div>
+          </dl>
+        </aside>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-center gap-3 rounded-2xl border border-slate-800 bg-slate-900 p-4" aria-label="Controles simulados">
+        <button
+          type="button"
+          class="min-h-11 rounded-full bg-slate-800 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-700 focus:outline focus:outline-2 focus:outline-emerald-400"
+          [attr.aria-pressed]="microphoneEnabled()"
+          (click)="toggleMicrophone()"
+        >
+          Microfono {{ microphoneEnabled() ? 'activo' : 'muted' }}
+        </button>
+        <button
+          type="button"
+          class="min-h-11 rounded-full bg-slate-800 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-700 focus:outline focus:outline-2 focus:outline-emerald-400"
+          [attr.aria-pressed]="cameraEnabled()"
+          (click)="toggleCamera()"
+        >
+          Camara {{ cameraEnabled() ? 'activa' : 'apagada' }}
+        </button>
+        <button
+          type="button"
+          class="min-h-11 rounded-full bg-slate-800 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-700 focus:outline focus:outline-2 focus:outline-emerald-400"
+          [attr.aria-pressed]="screenSharing()"
+          (click)="toggleScreenSharing()"
+        >
+          Compartir pantalla {{ screenSharing() ? 'activo' : 'inactivo' }}
+        </button>
+        <button
+          type="button"
+          class="min-h-11 rounded-full bg-rose-600 px-5 py-2 text-sm font-bold text-white transition hover:bg-rose-700 focus:outline focus:outline-2 focus:outline-rose-400"
+          (click)="leave()"
+        >
+          Salir
+        </button>
+      </div>
+    </div>
+
+    <aside class="rounded-2xl border border-slate-800 bg-slate-950 p-4 xl:min-h-[calc(100vh-2.5rem)]">
+      <h2 class="text-sm font-black uppercase tracking-wide text-slate-300">Participantes</h2>
+      <div class="mt-4">
+        <app-video-participant-list
+          [participants]="participants()"
+          [currentParticipantId]="join().participant.id"
+        />
+      </div>
+    </aside>
+  </div>
+</section>

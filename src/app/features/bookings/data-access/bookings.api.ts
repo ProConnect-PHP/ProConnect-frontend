@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 
 import { ApiClient } from '../../../core/http/api.client';
+import { BookingAvailableActions } from '../models/booking-available-actions.model';
 import {
   BookingResponse,
   BookingsResponse,
@@ -9,6 +10,8 @@ import {
   CreateBookingRequest,
   RescheduleBookingRequest,
 } from '../models/booking.models';
+import { BookingAvailableActionsResponse } from './booking-available-actions.dto';
+import { mapBookingAvailableActionsResponse } from './booking-available-actions.mapper';
 
 @Injectable({ providedIn: 'root' })
 export class BookingsApi {
@@ -34,6 +37,12 @@ export class BookingsApi {
 
   showBooking(bookingId: string): Observable<BookingResponse> {
     return this.api.get<BookingResponse>(`bookings/${bookingId}`);
+  }
+
+  getAvailableActions(bookingId: string): Observable<BookingAvailableActions> {
+    return this.api
+      .get<BookingAvailableActionsResponse>(`bookings/${bookingId}/available-actions`)
+      .pipe(map(mapBookingAvailableActionsResponse));
   }
 
   confirmBooking(bookingId: string): Observable<BookingResponse> {

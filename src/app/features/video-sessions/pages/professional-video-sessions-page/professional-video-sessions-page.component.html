@@ -1,0 +1,87 @@
+<main class="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+  <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wide text-indigo-600">Sesiones profesionales</p>
+      <h1 class="mt-2 text-3xl font-black tracking-tight text-slate-950">Sesiones virtuales</h1>
+      <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+        Consulta las salas simuladas para tus reservas remotas o hibridas.
+      </p>
+    </div>
+    <a
+      routerLink="/professional/bookings"
+      class="inline-flex min-h-11 items-center justify-center rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600"
+    >
+      Ver reservas
+    </a>
+  </header>
+
+  <div class="mt-6 grid gap-3">
+    <app-alert [message]="errorMessage()" variant="danger" />
+  </div>
+
+  @if (profileRequired()) {
+    <section class="mt-6 rounded-[2rem] border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-950">
+      <h2 class="text-base font-black">Necesitas completar tu perfil profesional para ver sesiones virtuales.</h2>
+      <p class="mt-1">Cuando tu perfil este listo, vas a poder revisar tus salas programadas.</p>
+      <a
+        routerLink="/dashboard/profile"
+        class="mt-4 inline-flex min-h-10 items-center justify-center rounded-md bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 focus:outline focus:outline-2 focus:outline-slate-700"
+      >
+        Completar perfil
+      </a>
+    </section>
+  } @else {
+    <div class="mt-6 flex flex-wrap gap-2" aria-label="Filtros de sesiones virtuales profesionales">
+      @for (filter of filters; track filter.value) {
+        <button type="button" [class]="filterClasses(filter.value)" (click)="setFilter(filter.value)">
+          {{ filter.label }}
+        </button>
+      }
+    </div>
+
+    <section class="mt-6">
+      @if (loading()) {
+        <app-loading-spinner label="Cargando sesiones virtuales..." />
+      } @else if (filteredVideoSessions().length === 0) {
+        <app-video-session-empty-state context="professional" />
+      } @else {
+        <div class="grid gap-4">
+          @for (videoSession of filteredVideoSessions(); track videoSession.id) {
+            <app-video-session-card
+              [videoSession]="videoSession"
+              variant="professional"
+              (joinClicked)="joinSession($event)"
+              (detailClicked)="viewBooking($event)"
+            />
+          }
+        </div>
+      }
+    </section>
+
+    @if (!loading() && meta().last_page > 1) {
+      <nav class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" aria-label="Paginacion de sesiones virtuales profesionales">
+        <p class="text-sm font-semibold text-slate-600">
+          Pagina {{ meta().current_page }} de {{ meta().last_page }} - {{ meta().total }} sesiones
+        </p>
+        <div class="flex gap-2">
+          <button
+            type="button"
+            class="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60"
+            [disabled]="!canGoPrevious()"
+            (click)="previousPage()"
+          >
+            Anterior
+          </button>
+          <button
+            type="button"
+            class="inline-flex min-h-10 items-center justify-center rounded-md bg-slate-950 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800 focus:outline focus:outline-2 focus:outline-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+            [disabled]="!canGoNext()"
+            (click)="nextPage()"
+          >
+            Siguiente
+          </button>
+        </div>
+      </nav>
+    }
+  }
+</main>

@@ -2,6 +2,7 @@ import { PublicService } from '../../public-discovery/models/public-discovery.mo
 import { Review } from '../../reviews/data-access/reviews.models';
 import type { Payment } from '../../payments/data-access/payments.models';
 import type { ClientPackage, PackageSession } from '../../packages/data-access/packages.models';
+import type { VideoSession } from '../../video-sessions/data-access/video-sessions.models';
 
 export type BookingStatus =
   | 'pending'
@@ -52,6 +53,7 @@ export type Booking = {
   // TODO backend: BookingResource should include client_package/package_session for package-backed bookings.
   client_package?: ClientPackage | null;
   package_session?: PackageSession | null;
+  video_session?: VideoSession | null;
   professional?: BookingProfessionalSummary | null;
   client?: BookingUserSummary | null;
   created_at: string;
