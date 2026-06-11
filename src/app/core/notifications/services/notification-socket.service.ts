@@ -1,18 +1,20 @@
 import { Injectable } from '@angular/core';
-import { EchoService } from './echo.service';
+import { EchoService } from '../websocket/echo.service';
+import { NotificationToastService } from './notification-toast.service';
+import { NotificationStore } from './notification-store';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationSocketService {
 
     private currentUserId: string | null = null;
 
-    constructor(private echoService: EchoService) {}
+    constructor(private echoService: EchoService, private toastService: NotificationToastService, private notificationStore: NotificationStore) {}
 
     subscribe(userId: string): void {
         if (this.currentUserId === userId) return;
 
         if (this.currentUserId) {
-            this.unsubscribe(this.currentUserId);
+            this.unsubscribe();
         }
 
         this.currentUserId = userId;
@@ -20,9 +22,9 @@ export class NotificationSocketService {
         this.echoService.instance
             .private(`notifications.${userId}`)
             .listen('.notification.created', (event: any) => {
-                console.log('Notificación recibida:', event);
-
-                alert(`Nueva notificación: ${event.message}`);
+                console.log('[WS] Notificación recibida:', event);
+                this.toastService.show('Has recibido una notificación');
+                this.notificationStore.increment();
             });
         
         // Debuggin
@@ -45,12 +47,9 @@ export class NotificationSocketService {
         // });
     }
 
-    unsubscribe(userId: string): void {
-        this.echoService.instance
-            .leave(`notifications.${userId}`);
-
-        if (this.currentUserId === userId) {
-            this.currentUserId = null;
-        }
+    unsubscribe(): void {
+        if (!this.currentUserId) return;
+        this.echoService.instance.leave(`notifications.${this.currentUserId}`);
+        this.currentUserId = null;
     }
 }

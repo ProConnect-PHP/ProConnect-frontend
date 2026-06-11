@@ -1,6 +1,6 @@
 import { Injectable, effect, inject } from '@angular/core';
 import { AuthStore } from '../auth/services/auth.store';
-import { NotificationSocketService } from '../websocket/notification-socket.service';
+import { NotificationSocketService } from '../notifications/services/notification-socket.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthWebsocketBridge {

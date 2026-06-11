@@ -8,9 +8,10 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-
+import { NotificationStore } from '../../notifications/services/notification-store';
 import { AuthStore } from '../../auth/services/auth.store';
 import { hasProfessionalAccess } from '../../auth/utils/auth-capabilities';
+import { ToastComponent } from '../../../shared/components/notification-toast/notification-toast';
 
 type NavigationItem = {
   label: string;
@@ -25,7 +26,7 @@ type NavigationGroup = {
 
 @Component({
   selector: 'app-dashboard-layout',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, ToastComponent],
   templateUrl: './dashboard-layout.component.html',
   styleUrl: './dashboard-layout.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,6 +35,7 @@ export class DashboardLayoutComponent implements OnInit {
   private readonly authStore = inject(AuthStore);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  protected readonly notificationStore = inject(NotificationStore);
 
   readonly currentUser = computed(() => this.authStore.currentUser());
   readonly userName = computed(() => this.currentUser()?.name ?? 'Tu cuenta');
@@ -143,5 +145,10 @@ export class DashboardLayoutComponent implements OnInit {
         next: () => void this.router.navigateByUrl('/login'),
         error: () => void this.router.navigateByUrl('/login'),
       });
+  }
+
+  onNotificationsClick(): void {
+    this.notificationStore.markAllRead();
+    // próximamente: abrir panel/dropdown
   }
 }

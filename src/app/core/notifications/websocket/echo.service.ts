@@ -2,7 +2,7 @@ import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
-import { TokenStorageService } from '../auth/services/token-storage.service';
+import { TokenStorageService } from '../../auth/services/token-storage.service';
 
 @Injectable({ providedIn: 'root' })
 export class EchoService {
