@@ -16,7 +16,7 @@ import { NotificationSocketService } from '../../notifications/services/notifica
 export class PublicLayoutComponent {
 
   private readonly authStore = inject(AuthStore);
-  private readonly notificationStore = inject(NotificationStore);
+  protected readonly notificationStore = inject(NotificationStore);
   protected readonly notificationSocket = inject(NotificationSocketService);
 
   readonly isAuthenticated = this.authStore.isAuthenticated;
