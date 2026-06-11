@@ -6,6 +6,8 @@ import {
   AuthResponse,
   LoginRequest,
   MeResponse,
+  OAuthExchangeRequest,
+  OAuthProvider,
   RefreshTokenRequest,
   RefreshTokenResponse,
   RegisterRequest,
@@ -41,5 +43,15 @@ export class AuthApi {
 
   updateMe(payload: UpdateMeRequest): Observable<MeResponse | User> {
     return this.api.put<MeResponse | User, UpdateMeRequest>('me', payload);
+  }
+
+  redirectToOAuthProvider(provider: OAuthProvider): void {
+    this.api.redirect(`auth/oauth/${provider}/redirect`);
+  }
+
+  exchangeOAuthCode(code: string): Observable<AuthResponse> {
+    const payload: OAuthExchangeRequest = { code };
+
+    return this.api.post<AuthResponse, OAuthExchangeRequest>('auth/oauth/exchange', payload);
   }
 }

@@ -15,6 +15,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
 import { AuthStore } from '../../../../core/auth/services/auth.store';
+import { hasProfessionalAccess } from '../../../../core/auth/utils/auth-capabilities';
 import { VideoSessionControlBarComponent } from '../../components/video-session-control-bar/video-session-control-bar.component';
 import { VideoSessionDeviceSettingsComponent } from '../../components/video-session-device-settings/video-session-device-settings.component';
 import { VideoSessionParticipantTileComponent } from '../../components/video-session-participant-tile/video-session-participant-tile.component';
@@ -210,10 +211,9 @@ export class VideoSessionRoomPageComponent
       return;
     }
 
-    const bookingRoute =
-      this.authStore.currentUser()?.role === 'professional'
-        ? '/professional/bookings'
-        : '/my-bookings';
+    const bookingRoute = hasProfessionalAccess(this.authStore.currentUser())
+      ? '/professional/bookings'
+      : '/my-bookings';
     await this.router.navigate([bookingRoute, this.bookingId]);
   }
 

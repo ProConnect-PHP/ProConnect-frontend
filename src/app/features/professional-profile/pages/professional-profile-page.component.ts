@@ -1,8 +1,11 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 
+import { User } from '../../../core/auth/models/auth.models';
+import { AuthStore } from '../../../core/auth/services/auth.store';
 import { ApiClientError } from '../../../core/http/models/api-error.model';
 import { AppAlertComponent } from '../../../shared/ui/alert/alert.component';
 import { AppBadgeComponent } from '../../../shared/ui/badge/badge.component';
@@ -37,6 +40,8 @@ import { ProfessionalProfile } from '../models/professional-profile.models';
 export class ProfessionalProfilePageComponent implements OnInit {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly profileApi = inject(ProfessionalProfileApi);
+  private readonly authStore = inject(AuthStore);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly profile = signal<ProfessionalProfile | null>(null);
@@ -57,14 +62,13 @@ export class ProfessionalProfilePageComponent implements OnInit {
     this.errorMessage.set(null);
     this.successMessage.set(null);
     this.isSaving.set(true);
+    const isCreating = !this.profile();
 
     const payload = {
       bio: this.form.getRawValue().bio.trim() || null,
     };
 
-    const request = this.profile()
-      ? this.profileApi.update(payload)
-      : this.profileApi.create(payload);
+    const request = isCreating ? this.profileApi.create(payload) : this.profileApi.update(payload);
 
     request
       .pipe(
@@ -75,9 +79,31 @@ export class ProfessionalProfilePageComponent implements OnInit {
         next: (response) => {
           this.profile.set(response.professional_profile);
           this.form.patchValue({ bio: response.professional_profile.bio ?? '' });
+
+          if (isCreating) {
+            this.completeActivation(response.user);
+            return;
+          }
+
           this.successMessage.set('Perfil guardado correctamente.');
         },
         error: (error: unknown) => this.errorMessage.set(this.errorFrom(error)),
+      });
+  }
+
+  private completeActivation(user?: User): void {
+    if (user) {
+      this.authStore.setCurrentUser(user);
+      void this.router.navigateByUrl('/dashboard');
+      return;
+    }
+
+    this.authStore
+      .loadCurrentUser()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => void this.router.navigateByUrl('/dashboard'),
+        error: () => void this.router.navigateByUrl('/dashboard'),
       });
   }
 
@@ -105,6 +131,10 @@ export class ProfessionalProfilePageComponent implements OnInit {
   }
 
   private errorFrom(error: unknown): string {
+    if (error instanceof ApiClientError && error.status === 403) {
+      return 'Tu cuenta no tiene permisos para activar un perfil profesional.';
+    }
+
     if (error instanceof ApiClientError) return error.message;
     return 'No pudimos guardar el perfil. Intenta nuevamente.';
   }

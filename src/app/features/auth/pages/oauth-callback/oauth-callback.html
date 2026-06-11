@@ -1,0 +1,39 @@
+<section class="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+  <div class="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-sm">
+    @if (!errorMessage()) {
+      <div
+        class="mx-auto mb-5 h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-slate-900"
+        aria-hidden="true"
+      ></div>
+
+      <div role="status" aria-live="polite">
+        <h1 class="text-lg font-semibold text-slate-900">Iniciando sesion</h1>
+
+        <p class="mt-2 text-sm text-slate-600">
+          Estamos validando tu cuenta. Esto puede tardar unos segundos.
+        </p>
+      </div>
+    } @else {
+      <div role="alert">
+        <div
+          class="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-red-700"
+          aria-hidden="true"
+        >
+          !
+        </div>
+
+        <h1 class="text-lg font-semibold text-slate-900">No pudimos iniciar sesion</h1>
+
+        <p class="mt-2 text-sm text-slate-600">{{ errorMessage() }}</p>
+      </div>
+
+      <button
+        type="button"
+        class="mt-6 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+        (click)="goToLogin()"
+      >
+        Volver al login
+      </button>
+    }
+  </div>
+</section>

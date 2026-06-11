@@ -81,7 +81,10 @@ function refreshAndRetry(
 
 function canRefresh(url: string, tokenStorage: TokenStorageService): boolean {
   const isAuthEndpoint =
-    url.includes('/auth/login') || url.includes('/auth/register') || url.includes('/auth/refresh');
+    url.includes('/auth/login') ||
+    url.includes('/auth/register') ||
+    url.includes('/auth/refresh') ||
+    url.includes('/auth/oauth/exchange');
   return !isAuthEndpoint && !!tokenStorage.getRefreshToken();
 }
 

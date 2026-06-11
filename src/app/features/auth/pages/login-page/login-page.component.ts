@@ -8,8 +8,10 @@ import { AppAlertComponent } from '../../../../shared/ui/alert/alert.component';
 import { AppButtonComponent } from '../../../../shared/ui/button/button.component';
 import { AppFormFieldComponent } from '../../../../shared/ui/form-field/form-field.component';
 import { AppInputComponent } from '../../../../shared/ui/input/input.component';
+import { AuthRedirectService } from '../../../../core/auth/services/auth-redirect.service';
 import { AuthStore } from '../../../../core/auth/services/auth.store';
 import { AuthCardComponent } from '../../components/auth-card/auth-card.component';
+import { SocialLoginButtonsComponent } from '../../components/social-login-buttons/social-login-buttons';
 
 @Component({
   selector: 'app-login-page',
@@ -21,6 +23,7 @@ import { AuthCardComponent } from '../../components/auth-card/auth-card.componen
     AppButtonComponent,
     AppFormFieldComponent,
     AppInputComponent,
+    SocialLoginButtonsComponent,
   ],
   templateUrl: './login-page.component.html',
   styleUrl: './login-page.component.css',
@@ -31,6 +34,7 @@ export class LoginPageComponent {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly authRedirect = inject(AuthRedirectService);
   readonly authStore = inject(AuthStore);
 
   readonly errorMessage = signal<string | null>(null);
@@ -58,12 +62,16 @@ export class LoginPageComponent {
       .login(this.form.getRawValue())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => {
-          const redirectTo =
+        next: (response) => {
+          const requestedUrl =
             this.route.snapshot.queryParamMap.get('returnUrl') ??
-            this.route.snapshot.queryParamMap.get('redirectTo') ??
-            '/dashboard';
-          void this.router.navigateByUrl(redirectTo);
+            this.route.snapshot.queryParamMap.get('redirectTo');
+          const destination = this.authRedirect.getPostLoginRedirect(
+            response.user,
+            requestedUrl,
+          );
+
+          void this.router.navigateByUrl(destination);
         },
         error: (error: unknown) => this.errorMessage.set(this.errorFrom(error)),
       });

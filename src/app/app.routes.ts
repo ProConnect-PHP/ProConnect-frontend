@@ -21,6 +21,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'auth/oauth/callback',
+        title: 'Completando inicio de sesion | ProConnect',
+        loadComponent: () =>
+          import('./features/auth/pages/oauth-callback/oauth-callback').then(
+            (m) => m.OAuthCallbackPage,
+          ),
+      },
+      {
         path: 'services',
         title: 'Servicios | ProConnect',
         loadComponent: () =>
@@ -53,132 +61,6 @@ export const routes: Routes = [
           ).then((m) => m.PublicProfessionalProfilePageComponent),
       },
       {
-        path: 'my-bookings',
-        title: 'Mis reservas | ProConnect',
-        canActivate: [authGuard],
-        loadComponent: () =>
-          import(
-            './features/bookings/pages/my-bookings-page/my-bookings-page.component'
-          ).then((m) => m.MyBookingsPageComponent),
-      },
-      {
-        path: 'my-bookings/:bookingId',
-        title: 'Detalle de reserva | ProConnect',
-        canActivate: [authGuard],
-        loadComponent: () =>
-          import(
-            './features/bookings/pages/booking-detail-page/booking-detail-page.component'
-          ).then((m) => m.BookingDetailPageComponent),
-      },
-      {
-        path: 'my-payments',
-        title: 'Mis pagos | ProConnect',
-        canActivate: [authGuard],
-        loadComponent: () =>
-          import(
-            './features/payments/pages/my-payments-page/my-payments-page.component'
-          ).then((m) => m.MyPaymentsPageComponent),
-      },
-      {
-        path: 'my-packages',
-        title: 'Mis paquetes | ProConnect',
-        canActivate: [authGuard],
-        loadComponent: () =>
-          import(
-            './features/packages/pages/my-packages-page/my-packages-page.component'
-          ).then((m) => m.MyPackagesPageComponent),
-      },
-      {
-        path: 'video-sessions/my',
-        title: 'Mis sesiones virtuales | ProConnect',
-        canActivate: [authGuard],
-        loadComponent: () =>
-          import(
-            './features/video-sessions/pages/my-video-sessions-page/my-video-sessions-page.component'
-          ).then((m) => m.MyVideoSessionsPageComponent),
-      },
-      {
-        path: 'video-sessions/:bookingId/join',
-        title: 'Videollamada | ProConnect',
-        canActivate: [authGuard],
-        loadComponent: () =>
-          import(
-            './features/video-sessions/pages/video-session-room-page/video-session-room-page.component'
-          ).then((m) => m.VideoSessionRoomPageComponent),
-      },
-      {
-        path: 'client-packages/:clientPackageId',
-        title: 'Detalle de paquete | ProConnect',
-        canActivate: [authGuard],
-        loadComponent: () =>
-          import(
-            './features/packages/pages/client-package-detail-page/client-package-detail-page.component'
-          ).then((m) => m.ClientPackageDetailPageComponent),
-      },
-      {
-        path: 'professional/bookings',
-        title: 'Reservas profesionales | ProConnect',
-        canActivate: [authGuard],
-        loadComponent: () =>
-          import(
-            './features/bookings/pages/professional-bookings-page/professional-bookings-page.component'
-          ).then((m) => m.ProfessionalBookingsPageComponent),
-      },
-      {
-        path: 'professional/bookings/:bookingId',
-        title: 'Detalle de reserva profesional | ProConnect',
-        canActivate: [authGuard],
-        loadComponent: () =>
-          import(
-            './features/bookings/pages/professional-booking-detail-page/professional-booking-detail-page.component'
-          ).then((m) => m.ProfessionalBookingDetailPageComponent),
-      },
-      {
-        path: 'professional/video-sessions',
-        title: 'Sesiones virtuales profesionales | ProConnect',
-        canActivate: [authGuard],
-        loadComponent: () =>
-          import(
-            './features/video-sessions/pages/professional-video-sessions-page/professional-video-sessions-page.component'
-          ).then((m) => m.ProfessionalVideoSessionsPageComponent),
-      },
-      {
-        path: 'professional/payments',
-        title: 'Pagos recibidos | ProConnect',
-        canActivate: [authGuard],
-        loadComponent: () =>
-          import(
-            './features/payments/pages/professional-payments-page/professional-payments-page.component'
-          ).then((m) => m.ProfessionalPaymentsPageComponent),
-      },
-      {
-        path: 'professional/package-products',
-        title: 'Paquetes profesionales | ProConnect',
-        canActivate: [authGuard],
-        loadComponent: () =>
-          import(
-            './features/packages/pages/professional-package-products-page/professional-package-products-page.component'
-          ).then((m) => m.ProfessionalPackageProductsPageComponent),
-      },
-      {
-        path: 'professional/package-products/:packageProductId',
-        title: 'Detalle de paquete profesional | ProConnect',
-        canActivate: [authGuard],
-        loadComponent: () =>
-          import(
-            './features/packages/pages/professional-package-product-detail-page/professional-package-product-detail-page.component'
-          ).then((m) => m.ProfessionalPackageProductDetailPageComponent),
-      },
-      {
-        path: 'professional/client-packages',
-        title: 'Paquetes vendidos | ProConnect',
-        canActivate: [authGuard],
-        loadComponent: () =>
-          import(
-            './features/packages/pages/professional-sold-packages-page/professional-sold-packages-page.component'
-          ).then((m) => m.ProfessionalSoldPackagesPageComponent),
-      },
-      {
         path: 'login',
         title: 'Iniciar sesion | ProConnect',
         canActivate: [guestGuard],
@@ -199,7 +81,7 @@ export const routes: Routes = [
     ],
   },
   {
-    path: 'dashboard',
+    path: '',
     canActivate: [authGuard],
     loadComponent: () =>
       import('./core/layout/dashboard-layout/dashboard-layout.component').then(
@@ -207,74 +89,214 @@ export const routes: Routes = [
       ),
     children: [
       {
-        path: '',
-        title: 'Dashboard | ProConnect',
+        path: 'my-bookings',
+        title: 'Mis reservas como cliente | ProConnect',
         loadComponent: () =>
-          import('./features/dashboard/pages/dashboard-page.component').then(
-            (m) => m.DashboardPageComponent,
-          ),
+          import(
+            './features/bookings/pages/my-bookings-page/my-bookings-page.component'
+          ).then((m) => m.MyBookingsPageComponent),
       },
       {
-        path: 'profile',
-        title: 'Perfil profesional | ProConnect',
+        path: 'my-bookings/:bookingId',
+        title: 'Detalle de reserva | ProConnect',
+        loadComponent: () =>
+          import(
+            './features/bookings/pages/booking-detail-page/booking-detail-page.component'
+          ).then((m) => m.BookingDetailPageComponent),
+      },
+      {
+        path: 'my-payments',
+        title: 'Mis pagos | ProConnect',
+        loadComponent: () =>
+          import(
+            './features/payments/pages/my-payments-page/my-payments-page.component'
+          ).then((m) => m.MyPaymentsPageComponent),
+      },
+      {
+        path: 'my-packages',
+        title: 'Mis paquetes | ProConnect',
+        loadComponent: () =>
+          import(
+            './features/packages/pages/my-packages-page/my-packages-page.component'
+          ).then((m) => m.MyPackagesPageComponent),
+      },
+      {
+        path: 'video-sessions/my',
+        title: 'Mis sesiones | ProConnect',
+        loadComponent: () =>
+          import(
+            './features/video-sessions/pages/my-video-sessions-page/my-video-sessions-page.component'
+          ).then((m) => m.MyVideoSessionsPageComponent),
+      },
+      {
+        path: 'video-sessions/:bookingId/join',
+        title: 'Videollamada | ProConnect',
+        loadComponent: () =>
+          import(
+            './features/video-sessions/pages/video-session-room-page/video-session-room-page.component'
+          ).then((m) => m.VideoSessionRoomPageComponent),
+      },
+      {
+        path: 'client-packages/:clientPackageId',
+        title: 'Detalle de paquete | ProConnect',
+        loadComponent: () =>
+          import(
+            './features/packages/pages/client-package-detail-page/client-package-detail-page.component'
+          ).then((m) => m.ClientPackageDetailPageComponent),
+      },
+      {
+        path: 'professional/onboarding/profile',
+        title: 'Configurar perfil profesional | ProConnect',
         loadComponent: () =>
           import(
             './features/professional-profile/pages/professional-profile-page.component'
           ).then((m) => m.ProfessionalProfilePageComponent),
       },
       {
-        path: 'services',
-        children: [
-          {
-            path: '',
-            title: 'Servicios | ProConnect',
-            loadComponent: () =>
-              import('./features/services/pages/services-list-page.component').then(
-                (m) => m.ServicesListPageComponent,
-              ),
-          },
-          {
-            path: 'new',
-            title: 'Nuevo servicio | ProConnect',
-            loadComponent: () =>
-              import('./features/services/pages/service-create-page.component').then(
-                (m) => m.ServiceCreatePageComponent,
-              ),
-          },
-          {
-            path: ':id',
-            title: 'Editar servicio | ProConnect',
-            loadComponent: () =>
-              import('./features/services/pages/service-edit-page.component').then(
-                (m) => m.ServiceEditPageComponent,
-              ),
-          },
-        ],
-      },
-      {
-        path: 'availability',
-        title: 'Disponibilidad | ProConnect',
+        path: 'professional/onboarding',
+        title: 'Activar perfil profesional | ProConnect',
         loadComponent: () =>
           import(
-            './features/availability/pages/availability-manager-page/availability-manager-page.component'
-          ).then((m) => m.AvailabilityManagerPageComponent),
+            './features/professional-onboarding/pages/professional-onboarding-page.component'
+          ).then((m) => m.ProfessionalOnboardingPageComponent),
       },
       {
-        path: 'reviews',
-        title: 'Reseñas | ProConnect',
-        loadComponent: () =>
-          import(
-            './features/reviews/pages/professional-reviews-page/professional-reviews-page.component'
-          ).then((m) => m.ProfessionalReviewsPageComponent),
-      },
-      {
-        path: 'settings/booking-policy',
-        title: 'Reservas y recordatorios | ProConnect',
+        path: 'professional/bookings',
+        title: 'Reservas recibidas | ProConnect',
         canActivate: [professionalGuard],
         loadComponent: () =>
           import(
-            './features/professional-settings/booking-policies/pages/booking-policy-settings-page/booking-policy-settings-page.component'
-          ).then((m) => m.BookingPolicySettingsPageComponent),
+            './features/bookings/pages/professional-bookings-page/professional-bookings-page.component'
+          ).then((m) => m.ProfessionalBookingsPageComponent),
+      },
+      {
+        path: 'professional/bookings/:bookingId',
+        title: 'Detalle de reserva profesional | ProConnect',
+        canActivate: [professionalGuard],
+        loadComponent: () =>
+          import(
+            './features/bookings/pages/professional-booking-detail-page/professional-booking-detail-page.component'
+          ).then((m) => m.ProfessionalBookingDetailPageComponent),
+      },
+      {
+        path: 'professional/video-sessions',
+        title: 'Salas profesionales | ProConnect',
+        canActivate: [professionalGuard],
+        loadComponent: () =>
+          import(
+            './features/video-sessions/pages/professional-video-sessions-page/professional-video-sessions-page.component'
+          ).then((m) => m.ProfessionalVideoSessionsPageComponent),
+      },
+      {
+        path: 'professional/payments',
+        title: 'Pagos recibidos | ProConnect',
+        canActivate: [professionalGuard],
+        loadComponent: () =>
+          import(
+            './features/payments/pages/professional-payments-page/professional-payments-page.component'
+          ).then((m) => m.ProfessionalPaymentsPageComponent),
+      },
+      {
+        path: 'professional/package-products',
+        title: 'Paquetes profesionales | ProConnect',
+        canActivate: [professionalGuard],
+        loadComponent: () =>
+          import(
+            './features/packages/pages/professional-package-products-page/professional-package-products-page.component'
+          ).then((m) => m.ProfessionalPackageProductsPageComponent),
+      },
+      {
+        path: 'professional/package-products/:packageProductId',
+        title: 'Detalle de paquete profesional | ProConnect',
+        canActivate: [professionalGuard],
+        loadComponent: () =>
+          import(
+            './features/packages/pages/professional-package-product-detail-page/professional-package-product-detail-page.component'
+          ).then((m) => m.ProfessionalPackageProductDetailPageComponent),
+      },
+      {
+        path: 'professional/client-packages',
+        title: 'Paquetes vendidos | ProConnect',
+        canActivate: [professionalGuard],
+        loadComponent: () =>
+          import(
+            './features/packages/pages/professional-sold-packages-page/professional-sold-packages-page.component'
+          ).then((m) => m.ProfessionalSoldPackagesPageComponent),
+      },
+      {
+        path: 'dashboard',
+        canActivate: [professionalGuard],
+        children: [
+          {
+            path: '',
+            title: 'Panel profesional | ProConnect',
+            loadComponent: () =>
+              import('./features/dashboard/pages/dashboard-page.component').then(
+                (m) => m.DashboardPageComponent,
+              ),
+          },
+          {
+            path: 'profile',
+            title: 'Perfil profesional | ProConnect',
+            loadComponent: () =>
+              import(
+                './features/professional-profile/pages/professional-profile-page.component'
+              ).then((m) => m.ProfessionalProfilePageComponent),
+          },
+          {
+            path: 'services',
+            children: [
+              {
+                path: '',
+                title: 'Servicios profesionales | ProConnect',
+                loadComponent: () =>
+                  import('./features/services/pages/services-list-page.component').then(
+                    (m) => m.ServicesListPageComponent,
+                  ),
+              },
+              {
+                path: 'new',
+                title: 'Nuevo servicio | ProConnect',
+                loadComponent: () =>
+                  import('./features/services/pages/service-create-page.component').then(
+                    (m) => m.ServiceCreatePageComponent,
+                  ),
+              },
+              {
+                path: ':id',
+                title: 'Editar servicio | ProConnect',
+                loadComponent: () =>
+                  import('./features/services/pages/service-edit-page.component').then(
+                    (m) => m.ServiceEditPageComponent,
+                  ),
+              },
+            ],
+          },
+          {
+            path: 'availability',
+            title: 'Disponibilidad profesional | ProConnect',
+            loadComponent: () =>
+              import(
+                './features/availability/pages/availability-manager-page/availability-manager-page.component'
+              ).then((m) => m.AvailabilityManagerPageComponent),
+          },
+          {
+            path: 'reviews',
+            title: 'Resenas profesionales | ProConnect',
+            loadComponent: () =>
+              import(
+                './features/reviews/pages/professional-reviews-page/professional-reviews-page.component'
+              ).then((m) => m.ProfessionalReviewsPageComponent),
+          },
+          {
+            path: 'settings/booking-policy',
+            title: 'Politica de reservas | ProConnect',
+            loadComponent: () =>
+              import(
+                './features/professional-settings/booking-policies/pages/booking-policy-settings-page/booking-policy-settings-page.component'
+              ).then((m) => m.BookingPolicySettingsPageComponent),
+          },
+        ],
       },
     ],
   },
