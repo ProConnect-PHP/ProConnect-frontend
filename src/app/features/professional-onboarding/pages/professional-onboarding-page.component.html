@@ -1,0 +1,90 @@
+<section class="px-4 py-8 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-5xl">
+    <app-page-header
+      eyebrow="Cuenta profesional"
+      title="Comenza a ofrecer tus servicios"
+      description="Activa tu espacio profesional sin perder las funciones que ya usas como cliente."
+    />
+
+    @if (isProfessional()) {
+      <div class="mt-6">
+        <app-alert
+          message="Tu cuenta ya tiene acceso profesional. Podes continuar configurando el perfil o entrar al panel."
+          variant="success"
+        />
+      </div>
+
+      <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+        <a
+          routerLink="/dashboard/profile"
+          class="inline-flex min-h-11 items-center justify-center rounded-md bg-blue-600 px-5 py-3 text-sm font-bold text-white hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+        >
+          Configurar perfil profesional
+        </a>
+        <a
+          routerLink="/dashboard"
+          class="inline-flex min-h-11 items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-800 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-700"
+        >
+          Ir al panel profesional
+        </a>
+      </div>
+    } @else {
+      <div class="mt-6">
+        <app-alert
+          message="Tu cuenta cliente seguira activa. Completa tu perfil para habilitar tambien las herramientas profesionales."
+          variant="info"
+        />
+      </div>
+    }
+
+    <div class="mt-8 grid gap-4 md:grid-cols-2">
+      @for (step of steps; track step.title; let index = $index) {
+        <app-card bodyClass="p-5">
+          <div class="flex items-start gap-4">
+            <span
+              class="grid size-10 shrink-0 place-items-center rounded-full bg-indigo-100 text-sm font-black text-indigo-900"
+              aria-hidden="true"
+            >
+              {{ index + 1 }}
+            </span>
+            <div>
+              <h2 class="font-bold text-slate-950">{{ step.title }}</h2>
+              <p class="mt-1 text-sm leading-6 text-slate-600">{{ step.description }}</p>
+            </div>
+          </div>
+        </app-card>
+      }
+    </div>
+
+    @if (!isProfessional()) {
+      <section
+        class="mt-8 rounded-2xl border border-dashed border-slate-300 bg-white p-6"
+        aria-labelledby="activation-title"
+      >
+        <h2 id="activation-title" class="text-lg font-bold text-slate-950">
+          Todo listo para activar tu perfil
+        </h2>
+        <p id="activation-help" class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+          Agrega una presentacion profesional. Al crear el perfil, vas a acceder al panel sin
+          perder tus reservas, pagos ni funciones de cliente.
+        </p>
+
+        <div class="mt-5 flex flex-col gap-3 sm:flex-row">
+          <a
+            routerLink="/professional/onboarding/profile"
+            class="inline-flex min-h-11 items-center justify-center rounded-md bg-blue-600 px-5 py-3 text-sm font-bold text-white hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+            aria-describedby="activation-help"
+          >
+            Configurar perfil profesional
+          </a>
+          <a
+            routerLink="/services"
+            class="inline-flex min-h-11 items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-800 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-700"
+          >
+            Seguir explorando servicios
+          </a>
+        </div>
+      </section>
+    }
+  </div>
+</section>

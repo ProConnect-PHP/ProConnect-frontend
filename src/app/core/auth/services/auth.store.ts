@@ -5,6 +5,7 @@ import {
   AuthResponse,
   LoginRequest,
   MeResponse,
+  OAuthProvider,
   RefreshTokenResponse,
   RegisterRequest,
   RegisterResponse,
@@ -13,6 +14,7 @@ import {
 } from '../models/auth.models';
 import { AuthApi } from './auth.api';
 import { TokenStorageService } from './token-storage.service';
+import { ApiClientError } from '../../http/models/api-error.model';
 
 @Injectable({ providedIn: 'root' })
 export class AuthStore {
@@ -64,7 +66,9 @@ export class AuthStore {
       map((response) => this.normalizeUser(response)),
       tap((user) => this.currentUser.set(user)),
       catchError((error: unknown) => {
-        this.clearSession();
+        if (error instanceof ApiClientError && error.status === 401) {
+          this.clearSession();
+        }
         return throwError(() => error);
       }),
       finalize(() => this.isLoading.set(false)),
@@ -93,6 +97,23 @@ export class AuthStore {
         this.tokenStorage.setTokens(response.access_token, response.refresh_token);
       }),
     );
+  }
+
+  redirectToOAuthProvider(provider: OAuthProvider): void {
+    this.authApi.redirectToOAuthProvider(provider);
+  }
+
+  exchangeOAuthCode(code: string): Observable<AuthResponse> {
+    this.isLoading.set(true);
+
+    return this.authApi.exchangeOAuthCode(code).pipe(
+      tap((response) => this.setAuthenticatedSession(response)),
+      finalize(() => this.isLoading.set(false)),
+    );
+  }
+
+  setCurrentUser(user: User): void {
+    this.currentUser.set(user);
   }
 
   clearSession(): void {

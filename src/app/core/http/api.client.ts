@@ -85,6 +85,28 @@ export class ApiClient {
     return `${base}/${cleanPath}`;
   }
 
+  redirect(path: string, options: Pick<ApiOptions, 'baseUrl' | 'params'> = {}): void {
+    const targetUrl = this.url(path, options.baseUrl);
+    const queryString = this.buildQueryString(options.params);
+
+    window.location.href = queryString ? `${targetUrl}?${queryString}` : targetUrl;
+  }
+
+  private buildQueryString(
+    params?: Record<string, string | number | boolean | null | undefined>,
+  ): string {
+    if (!params) return '';
+
+    const searchParams = new URLSearchParams();
+
+    for (const [key, value] of Object.entries(params)) {
+      if (value === null || value === undefined) continue;
+      searchParams.set(key, String(value));
+    }
+
+    return searchParams.toString();
+  }
+
   private buildHeaders(extra?: Record<string, string>): HttpHeaders {
     let headers = this.defaultHeaders;
     if (!extra) return headers;

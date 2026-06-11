@@ -1,3 +1,5 @@
+import { User } from '../../../core/auth/models/auth.models';
+
 export type ProfessionalProfile = {
   id: string;
   bio: string | null;
@@ -8,7 +10,9 @@ export type ProfessionalProfile = {
 };
 
 export type ProfessionalProfileResponse = {
+  message?: string;
   professional_profile: ProfessionalProfile;
+  user?: User;
 };
 
 export type StoreProfessionalProfileRequest = {

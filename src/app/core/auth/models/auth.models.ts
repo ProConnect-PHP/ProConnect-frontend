@@ -2,8 +2,10 @@ export type User = {
   id: string;
   name: string;
   email: string;
-  role: 'client' | 'professional';
+  role: 'client' | 'professional' | 'admin';
   avatar_url: string | null;
+  has_professional_profile?: boolean;
+  professional_profile_status?: 'missing' | 'draft' | 'active' | 'suspended';
 };
 
 export type RegisterRequest = {
@@ -21,6 +23,12 @@ export type RegisterResponse = {
 export type LoginRequest = {
   email: string;
   password: string;
+};
+
+export type OAuthProvider = 'google' | 'github';
+
+export type OAuthExchangeRequest = {
+  code: string;
 };
 
 export type AuthResponse = {
