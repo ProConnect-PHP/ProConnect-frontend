@@ -13,13 +13,20 @@ export class NotificationStore {
 
   // Llamar al iniciar la app (cuando el usuario está autenticado)
   loadUnreadCount(): void {
-    this.http
-      .get<{ count: number }>(`${this.baseUrl}/notifications/unread-count`)
-      .subscribe({
-        next: ({ count }) => this.unreadCount.set(count),
-        error: () => this.unreadCount.set(0), // falla silenciosa hasta que el endpoint exista
-      });
-  }
+  console.log('[NotificationStore] loadUnreadCount llamado');
+  this.http
+    .get<{ count: number }>(`${this.baseUrl}/notifications/unread-count`)
+    .subscribe({
+      next: ({ count }) => {
+        console.log('[NotificationStore] respuesta:', count);
+        this.unreadCount.set(count);
+      },
+      error: (err) => {
+        console.error('[NotificationStore] error:', err);
+        this.unreadCount.set(0);
+      },
+    });
+}
 
   // Llamar desde NotificationSocketService al recibir una notificación
   increment(): void {
