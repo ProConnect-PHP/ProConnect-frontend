@@ -1,0 +1,31 @@
+<app-page-header title="Ajustes de Cuenta"></app-page-header>
+
+<div class="mt-6 max-w-2xl">
+  <app-loading-spinner *ngIf="loading()"></app-loading-spinner>
+
+  <div *ngIf="!loading()">
+    <app-alert *ngIf="successMessage()" type="success" [message]="successMessage()"></app-alert>
+    <app-alert *ngIf="errorMessage()" type="error" [message]="errorMessage()"></app-alert>
+
+    <app-profile-form
+      *ngIf="userProfile()"
+      [userInitialData]="userProfile()"
+      (save)="onSaveProfile($event)">
+    </app-profile-form>
+
+    <div class="mt-8 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <h3 class="text-lg font-bold text-gray-900 mb-2">Seguridad y Contraseña</h3>
+      <p class="text-sm text-gray-500 mb-4">
+        Si querés cambiar tu contraseña, podés solicitar un enlace seguro. Te enviaremos las instrucciones de restablecimiento directamente a tu email.
+      </p>
+
+      <button type="button"
+              (click)="onResetPasswordRequest()"
+              [disabled]="sendingEmail()"
+              class="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 disabled:opacity-50 transition">
+        <span *ngIf="sendingEmail()" class="animate-spin inline-block w-4 h-4 border-2 border-gray-500 border-t-transparent rounded-full"></span>
+        {{ sendingEmail() ? 'Enviando correo...' : 'Cambiar Contraseña' }}
+      </button>
+    </div>
+  </div>
+</div>

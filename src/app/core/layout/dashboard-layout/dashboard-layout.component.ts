@@ -61,6 +61,7 @@ export class DashboardLayoutComponent implements OnInit {
     { label: 'Mis pagos', shortLabel: 'Pagos', path: '/my-payments' },
     { label: 'Mis paquetes', shortLabel: 'Paquetes', path: '/my-packages' },
     { label: 'Mis sesiones', shortLabel: 'Sesiones', path: '/video-sessions/my' },
+    {label: 'Ajustes de cuenta', shortLabel: 'Ajustes', path: '/account-settings'},
   ];
 
   readonly professionalNavigation: NavigationItem[] = [
