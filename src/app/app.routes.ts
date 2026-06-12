@@ -89,6 +89,13 @@ export const routes: Routes = [
       ),
     children: [
       {
+        path: 'notifications',
+        loadComponent: () =>
+          import(
+            './features/notifications/pages/notifications-page.components'
+          ).then(m => m.NotificationsPageComponent),
+      },
+      {
         path: 'my-bookings',
         title: 'Mis reservas como cliente | ProConnect',
         loadComponent: () =>

@@ -1,0 +1,94 @@
+<div class="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+
+  <div class="flex items-center justify-between gap-3">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-950">Notificaciones</h1>
+      <p class="mt-1 text-sm text-slate-500">
+        {{ store.total() }} en total
+      </p>
+    </div>
+
+    @if (store.notifications().length > 0) {
+      <button
+        type="button"
+        class="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 shadow-sm hover:bg-red-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700"
+        (click)="confirmDeleteAll()"
+      >
+        Eliminar todas
+      </button>
+    }
+  </div>
+
+  <div class="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    @if (store.isLoading()) {
+      <div class="px-6 py-12 text-center text-sm text-slate-500">
+        Cargando notificaciones...
+      </div>
+    } @else if (store.notifications().length === 0) {
+      <div class="px-6 py-12 text-center">
+        <p class="text-sm font-semibold text-slate-700">No tenés notificaciones</p>
+        <p class="mt-1 text-xs text-slate-500">Cuando recibas novedades, van a aparecer aca.</p>
+      </div>
+    } @else {
+      @for (n of store.notifications(); track n.id) {
+        <div
+          class="flex items-start gap-3 border-b border-slate-100 px-4 py-4 last:border-b-0 sm:px-6"
+          [class.bg-sky-50]="!n.read_at"
+        >
+          <div class="flex-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <p class="text-sm font-semibold text-slate-950">{{ n.title }}</p>
+              @if (!n.read_at) {
+                <span class="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-sky-700">
+                  <span class="size-1.5 rounded-full bg-sky-500"></span>
+                  Nueva
+                </span>
+              }
+            </div>
+            <p class="mt-1 text-sm text-slate-600">{{ n.message }}</p>
+            <p class="mt-2 text-xs text-slate-400">{{ n.created_at | date:'medium' }}</p>
+          </div>
+
+          <button
+            type="button"
+            class="shrink-0 rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-700"
+            aria-label="Eliminar notificación"
+            (click)="store.deleteNotification(n.id)"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="size-4" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 6 6 18"/>
+              <path d="m6 6 12 12"/>
+            </svg>
+          </button>
+        </div>
+      }
+    }
+  </div>
+
+  @if (store.lastPage() > 1) {
+    <div class="mt-4 flex items-center justify-between">
+      <button
+        type="button"
+        class="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white"
+        [disabled]="store.currentPage() === 1"
+        (click)="goToPage(store.currentPage() - 1)"
+      >
+        Anterior
+      </button>
+
+      <p class="text-sm text-slate-500">
+        Página {{ store.currentPage() }} de {{ store.lastPage() }}
+      </p>
+
+      <button
+        type="button"
+        class="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white"
+        [disabled]="store.currentPage() === store.lastPage()"
+        (click)="goToPage(store.currentPage() + 1)"
+      >
+        Siguiente
+      </button>
+    </div>
+  }
+</div>

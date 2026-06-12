@@ -18,6 +18,10 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Client,
   },
   {
+    path: 'notifications',
+    renderMode: RenderMode.Client,
+  },
+  {
     path: 'dashboard/**',
     renderMode: RenderMode.Client,
   },

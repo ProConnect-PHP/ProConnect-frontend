@@ -17,6 +17,8 @@ import { authInterceptor } from './core/auth/interceptors/auth.interceptor';
 import { apiErrorInterceptor } from './core/http/interceptors/api-error.interceptor';
 
 import { AuthWebsocketBridge } from './core/bootstrap/auth-websocket.bridge';
+import { catchError, of } from 'rxjs';
+import { AuthStore } from './core/auth/services/auth.store';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -29,7 +31,12 @@ export const appConfig: ApplicationConfig = {
     provideClientHydration(withEventReplay()),
 
     provideAppInitializer(() => {
+      const authStore = inject(AuthStore);
       inject(AuthWebsocketBridge);
+
+      return authStore.loadCurrentUser().pipe(
+        catchError(() => of(null)),
+      );
     }),
   ],
 };
