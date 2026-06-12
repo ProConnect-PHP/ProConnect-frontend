@@ -81,7 +81,7 @@ export class DashboardLayoutComponent implements OnInit {
       shortLabel: 'Config.',
       path: '/dashboard/settings/booking-policy',
     },
-    { label: 'Resenas', shortLabel: 'Resenas', path: '/dashboard/reviews' },
+    { label: 'Reseñas', shortLabel: 'Reseñas', path: '/dashboard/reviews' },
     {
       label: 'Reservas recibidas',
       shortLabel: 'Recibidas',
