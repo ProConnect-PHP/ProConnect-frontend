@@ -12,6 +12,8 @@ import { NotificationStore } from '../../notifications/services/notification-sto
 import { AuthStore } from '../../auth/services/auth.store';
 import { hasProfessionalAccess } from '../../auth/utils/auth-capabilities';
 import { ToastComponent } from '../../../shared/components/notification-toast/notification-toast';
+import { NotificationBellComponent } from '../../../shared/components/notification-bell/notification-bell.component';
+
 
 type NavigationItem = {
   label: string;
@@ -26,7 +28,7 @@ type NavigationGroup = {
 
 @Component({
   selector: 'app-dashboard-layout',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, ToastComponent],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, ToastComponent, NotificationBellComponent],
   templateUrl: './dashboard-layout.component.html',
   styleUrl: './dashboard-layout.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -50,6 +52,7 @@ export class DashboardLayoutComponent implements OnInit {
 
   readonly commonNavigation: NavigationItem[] = [
     { label: 'Marketplace', shortLabel: 'Market', path: '/services' },
+    { label: 'Notificaciones', shortLabel: 'Notis', path: '/notifications' },
   ];
 
   readonly clientNavigation: NavigationItem[] = [
@@ -82,7 +85,7 @@ export class DashboardLayoutComponent implements OnInit {
       shortLabel: 'Config.',
       path: '/dashboard/settings/booking-policy',
     },
-    { label: 'Resenas', shortLabel: 'Resenas', path: '/dashboard/reviews' },
+    { label: 'Reseñas', shortLabel: 'Reseñas', path: '/dashboard/reviews' },
     {
       label: 'Reservas recibidas',
       shortLabel: 'Recibidas',
@@ -128,14 +131,17 @@ export class DashboardLayoutComponent implements OnInit {
   );
 
   ngOnInit(): void {
-    if (this.authStore.currentUser()) return;
+    // console.log('[Dashboard] ngOnInit, currentUser:', this.authStore.currentUser());
+    // if (this.authStore.currentUser()) {
+    //   console.log('[Dashboard] ya hay user, no llamo loadCurrentUser');
+    //   return;
+    // }
 
-    this.authStore
-      .loadCurrentUser()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        error: () => undefined,
-      });
+    // this.authStore.loadCurrentUser()
+    //   .pipe(takeUntilDestroyed(this.destroyRef))
+    //   .subscribe({
+    //     error: () => undefined,
+    // });
   }
 
   logout(): void {
@@ -146,10 +152,5 @@ export class DashboardLayoutComponent implements OnInit {
         next: () => void this.router.navigateByUrl('/login'),
         error: () => void this.router.navigateByUrl('/login'),
       });
-  }
-
-  onNotificationsClick(): void {
-    this.notificationStore.markAllRead();
-    // próximamente: abrir panel/dropdown
   }
 }

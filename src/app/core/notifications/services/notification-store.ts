@@ -1,45 +1,113 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../../environments/environment.development';
+import { ApiClient } from '../../http/api.client';
+
+export interface NotificationItem {
+  id: string;
+  recipient_id: string;
+  type: string;
+  title: string;
+  message: string;
+  read_at: string | null;
+  created_at: string;
+}
+
+interface PaginatedResponse<T> {
+  data: T[];
+  current_page: number;
+  last_page: number;
+  total: number;
+}
 
 @Injectable({ providedIn: 'root' })
 export class NotificationStore {
 
-  private readonly http = inject(HttpClient);
-  private readonly baseUrl = environment.apiBaseUrl;
+  private hasLoadedUnreadCount = false;
+  private readonly api = inject(ApiClient);
+  readonly currentPage = signal<number>(1);
+  readonly lastPage = signal<number>(1);
+  readonly total = signal<number>(0);
 
-  // Estado
   readonly unreadCount = signal<number>(0);
+  readonly notifications = signal<NotificationItem[]>([]);
+  readonly isPanelOpen = signal<boolean>(false);
+  readonly isLoading = signal<boolean>(false);
 
-  // Llamar al iniciar la app (cuando el usuario está autenticado)
   loadUnreadCount(): void {
-  console.log('[NotificationStore] loadUnreadCount llamado');
-  this.http
-    .get<{ count: number }>(`${this.baseUrl}/notifications/unread-count`)
-    .subscribe({
-      next: ({ count }) => {
-        console.log('[NotificationStore] respuesta:', count);
-        this.unreadCount.set(count);
-      },
-      error: (err) => {
-        console.error('[NotificationStore] error:', err);
-        this.unreadCount.set(0);
-      },
-    });
-}
+    if (this.hasLoadedUnreadCount) return;
 
-  // Llamar desde NotificationSocketService al recibir una notificación
+    this.api.get<{ count: number }>(`notifications/unread-count`)
+      .subscribe({
+        next: ({ count }) => {
+          this.unreadCount.set(count);
+          this.hasLoadedUnreadCount = true;
+        },
+        error: () => this.unreadCount.set(0),
+      });
+  }
+
   increment(): void {
     this.unreadCount.update(n => n + 1);
   }
 
-  // Llamar cuando el usuario abre el panel
+  togglePanel(): void {
+    this.isPanelOpen.update(open => !open);
+    if (this.isPanelOpen()) {
+      this.loadNotifications();
+      this.markAllRead(); // Dejarlo aquí permite el usuario sepa cuales fueron las nuevas notis
+    }
+  }
+
+  loadNotifications(page: number = 1): void {
+    this.isLoading.set(true);
+    this.api
+      .get<PaginatedResponse<NotificationItem>>(`notifications?page=${page}`)
+      .subscribe({
+        next: (res) => {
+          this.notifications.set(res.data);
+          this.currentPage.set(res.current_page);
+          this.lastPage.set(res.last_page);
+          this.total.set(res.total);
+          this.isLoading.set(false);
+        },
+        error: () => {
+          this.notifications.set([]);
+          this.isLoading.set(false);
+        },
+      });
+  }
+
+  closePanel(): void {
+    this.isPanelOpen.set(false);
+  }
+
   markAllRead(): void {
-    this.http
-      .post(`${this.baseUrl}/notifications/mark-all-read`, {})
+    this.api
+      .post(`notifications/mark-all-read`, {})
       .subscribe({
         next: () => this.unreadCount.set(0),
-        error: () => {} // silencioso por ahora
+        error: () => {},
+      });
+  }
+
+  deleteNotification(id: string): void {
+    this.notifications.update(list => list.filter(n => n.id !== id));
+
+    this.api
+      .delete(`notifications/${id}`)
+      .subscribe({
+        error: () => this.loadNotifications(), // si falla, recargamos para revertir
+      });
+  }
+
+  deleteAll(): void {
+    const previous = this.notifications();
+    this.notifications.set([]);
+    this.unreadCount.set(0);
+
+    this.api
+      .delete(`notifications/delete-all`)
+      .subscribe({
+        error: () => this.notifications.set(previous),
       });
   }
 }
