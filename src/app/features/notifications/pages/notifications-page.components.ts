@@ -7,7 +7,7 @@ import { NotificationStore } from '../../../core/notifications/services/notifica
   standalone: true,
   imports: [DatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './notifications-page.component.html',
+  templateUrl: './notifications-page.components.html',
 })
 export class NotificationsPageComponent implements OnInit {
   protected readonly store = inject(NotificationStore);
