@@ -13,18 +13,18 @@ export class AuthWebsocketBridge {
   }
 
   private init(): void {
-    let lastUserId: string | null = null;
+  let lastUserId: string | null = null;
 
-    effect(() => {
-      const user = this.authStore.currentUser();
+  effect(() => {
+    const user = this.authStore.currentUser();
+    console.log('[AuthWebsocketBridge] effect disparado, user:', user);
 
-      if (!user) return;
+    if (!user) return;
+    if (lastUserId === user.id) return;
 
-      if (lastUserId === user.id) return;
-
-      lastUserId = user.id;
-
-      this.notifications.subscribe(user.id);
-    });
-  }
+    lastUserId = user.id;
+    console.log('[AuthWebsocketBridge] subscribe a:', user.id);
+    this.notifications.subscribe(user.id);
+  });
+}
 }

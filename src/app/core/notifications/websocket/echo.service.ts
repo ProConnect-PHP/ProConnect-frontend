@@ -35,11 +35,27 @@ export class EchoService {
 
       authEndpoint: 'http://localhost/api/broadcasting/auth',
 
-      auth: {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }
+      authorizer: (channel: any) => {
+        return {
+          authorize: (socketId: string, callback: Function) => {
+            const token = this.tokenStorage.getAccessToken(); 
+            fetch('http://localhost/api/broadcasting/auth', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                socket_id: socketId,
+                channel_name: channel.name,
+              }),
+            })
+              .then((res) => res.json())
+              .then((data) => callback(false, data))
+              .catch((err) => callback(true, err));
+          },
+        };
+      },
     });
   }
 

@@ -26,25 +26,6 @@ export class NotificationSocketService {
                 this.toastService.show('Has recibido una notificación');
                 this.notificationStore.increment();
             });
-        
-        // Debuggin
-        // const channelName = `notifications.${userId}`;
-
-        // console.log('[WS] intentando suscribirse a:', channelName);
-
-        // const channel = this.echoService.instance.private(channelName);
-    
-        // channel.subscribed(() => {
-        //     console.log('[WS] SUSCRITO OK a:', channelName);
-        // });
-
-        // channel.error((error: any) => {
-        //     console.error('[WS] ERROR en canal:', error);
-        // });
-
-        // channel.listen('.notification.created', (event: any) => {
-        //     console.log('[WS] EVENTO RECIBIDO:', event);
-        // });
     }
 
     unsubscribe(): void {
