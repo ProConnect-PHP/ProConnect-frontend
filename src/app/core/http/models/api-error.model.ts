@@ -43,6 +43,10 @@ export function isApiErrorResponse(value: unknown): value is ApiErrorResponse {
 }
 
 export function getFriendlyApiMessage(type: ApiErrorType, fallback: string): string {
+  if (fallback && fallback.trim() !== '') {
+    return fallback;
+  }
+
   switch (type) {
     case 'Unauthorized':
       return 'Tu sesion expiro. Inicia sesion nuevamente.';
@@ -51,7 +55,7 @@ export function getFriendlyApiMessage(type: ApiErrorType, fallback: string): str
     case 'NotFound':
       return 'No encontramos el recurso solicitado.';
     case 'ValidationError':
-      return fallback || 'Revisa los campos marcados e intenta nuevamente.';
+      return 'Revisa los campos marcados e intenta nuevamente.';
     case 'ProfessionalProfileAlreadyExists':
       return 'Ya tenes un perfil profesional creado.';
     case 'TooManyRequests':
@@ -59,6 +63,6 @@ export function getFriendlyApiMessage(type: ApiErrorType, fallback: string): str
     case 'InternalServerError':
       return 'Ocurrio un error del servidor. Intenta nuevamente en unos minutos.';
     default:
-      return fallback || 'No pudimos completar la accion. Intenta nuevamente.';
+      return 'No pudimos completar la accion. Intenta nuevamente.';
   }
 }

@@ -42,7 +42,7 @@ export const apiErrorInterceptor: HttpInterceptorFn = (request, next) => {
 
       const clientError = toClientError(error);
 
-      if (clientError.status === 401) {
+      if (shouldRedirectToLogin(request.url, clientError.status)) {
         tokenStorage.clear();
         void router.navigateByUrl('/login');
       }
@@ -60,7 +60,10 @@ function refreshAndRetry(
   next: HttpHandlerFn,
 ): Observable<HttpEvent<unknown>> {
   const refreshToken = tokenStorage.getRefreshToken();
-  if (!refreshToken) return throwError(() => new Error('Missing refresh token.'));
+
+  if (!refreshToken) {
+    return throwError(() => new Error('Missing refresh token.'));
+  }
 
   const payload: RefreshTokenRequest = { refresh_token: refreshToken };
   const url = `${baseUrl.replace(/\/+$/, '')}/auth/refresh`;
@@ -80,12 +83,21 @@ function refreshAndRetry(
 }
 
 function canRefresh(url: string, tokenStorage: TokenStorageService): boolean {
-  const isAuthEndpoint =
+  return !isAuthEndpoint(url) && !!tokenStorage.getRefreshToken();
+}
+
+function isAuthEndpoint(url: string): boolean {
+  return (
     url.includes('/auth/login') ||
     url.includes('/auth/register') ||
     url.includes('/auth/refresh') ||
-    url.includes('/auth/oauth/exchange');
-  return !isAuthEndpoint && !!tokenStorage.getRefreshToken();
+    url.includes('/auth/oauth/exchange') ||
+    url.includes('/auth/oauth/')
+  );
+}
+
+function shouldRedirectToLogin(url: string, status: number): boolean {
+  return status === 401 && !isAuthEndpoint(url);
 }
 
 function isUnauthorized(error: unknown): boolean {
@@ -93,12 +105,16 @@ function isUnauthorized(error: unknown): boolean {
 }
 
 function toClientError(error: unknown): ApiClientError {
-  if (error instanceof ApiClientError) return error;
+  if (error instanceof ApiClientError) {
+    return error;
+  }
 
   if (error instanceof HttpErrorResponse) {
     const payload = extractPayload(error);
     const type = payload?.type ?? httpStatusToType(error.status);
-    const message = getFriendlyApiMessage(type, payload?.message ?? error.message);
+    const message =
+      payload?.message?.trim() ||
+      getFriendlyApiMessage(type, error.message);
 
     return new ApiClientError(message, error.status, type, payload?.details ?? null);
   }
@@ -111,7 +127,10 @@ function toClientError(error: unknown): ApiClientError {
 }
 
 function extractPayload(error: HttpErrorResponse): ApiErrorPayload | null {
-  if (isApiErrorResponse(error.error)) return error.error.error;
+  if (isApiErrorResponse(error.error)) {
+    return error.error.error;
+  }
+
   if (isLaravelValidationResponse(error.error)) {
     return {
       type: 'ValidationError',
@@ -119,21 +138,29 @@ function extractPayload(error: HttpErrorResponse): ApiErrorPayload | null {
       details: error.error.errors,
     };
   }
+
   return null;
 }
 
 function isLaravelValidationResponse(
   value: unknown,
 ): value is { message: string; errors: Record<string, string[]> } {
-  if (!value || typeof value !== 'object') return false;
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
 
   const candidate = value as {
     message?: unknown;
     errors?: unknown;
   };
 
-  if (typeof candidate.message !== 'string' || !candidate.errors) return false;
-  if (typeof candidate.errors !== 'object' || Array.isArray(candidate.errors)) return false;
+  if (typeof candidate.message !== 'string' || !candidate.errors) {
+    return false;
+  }
+
+  if (typeof candidate.errors !== 'object' || Array.isArray(candidate.errors)) {
+    return false;
+  }
 
   return Object.values(candidate.errors).every(
     (messages) =>

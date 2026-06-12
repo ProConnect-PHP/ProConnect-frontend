@@ -282,7 +282,7 @@ export const routes: Routes = [
           },
           {
             path: 'reviews',
-            title: 'Resenas profesionales | ProConnect',
+            title: 'Reseñas profesionales | ProConnect',
             loadComponent: () =>
               import(
                 './features/reviews/pages/professional-reviews-page/professional-reviews-page.component'
