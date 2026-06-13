@@ -6,7 +6,7 @@
         Paquetes disponibles
       </h2>
       <p class="mt-2 text-sm leading-6 text-slate-600">
-        Compra varias sesiones simuladas y reserva usando tu saldo disponible.
+        Compra varias sesiones y reserva usando tu saldo disponible.
       </p>
     </div>
   </div>
@@ -53,7 +53,7 @@
     <div class="mt-5">
       <app-package-purchase-panel
         [packageProduct]="packageProduct"
-        (purchased)="onPurchased($event)"
+        (paymentCompleted)="onPaymentCompleted($event)"
         (closed)="closePurchase()"
       />
     </div>

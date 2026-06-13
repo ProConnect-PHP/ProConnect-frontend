@@ -134,6 +134,46 @@ export const routes: Routes = [
           ).then((m) => m.MyPaymentsPageComponent),
       },
       {
+        path: 'payments/result',
+        title: 'Resultado del pago | ProConnect',
+        loadComponent: () =>
+          import(
+            './features/payments/pages/payment-result-page/payment-result-page.component'
+          ).then((m) => m.PaymentResultPageComponent),
+      },
+      {
+        path: 'payments/success',
+        title: 'Resultado del pago | ProConnect',
+        loadComponent: () =>
+          import(
+            './features/payments/pages/payment-result-page/payment-result-page.component'
+          ).then((m) => m.PaymentResultPageComponent),
+      },
+      {
+        path: 'payments/failure',
+        title: 'Resultado del pago | ProConnect',
+        loadComponent: () =>
+          import(
+            './features/payments/pages/payment-result-page/payment-result-page.component'
+          ).then((m) => m.PaymentResultPageComponent),
+      },
+      {
+        path: 'payments/pending',
+        title: 'Resultado del pago | ProConnect',
+        loadComponent: () =>
+          import(
+            './features/payments/pages/payment-result-page/payment-result-page.component'
+          ).then((m) => m.PaymentResultPageComponent),
+      },
+      {
+        path: 'payments/cancel',
+        title: 'Resultado del pago | ProConnect',
+        loadComponent: () =>
+          import(
+            './features/payments/pages/payment-result-page/payment-result-page.component'
+          ).then((m) => m.PaymentResultPageComponent),
+      },
+      {
         path: 'my-packages',
         title: 'Mis paquetes | ProConnect',
         loadComponent: () =>

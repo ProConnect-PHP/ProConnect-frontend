@@ -1,12 +1,16 @@
 import {
   PaginatedPayments,
+  PayableType,
   Payment,
   PaymentBookingSummary,
   PaymentIntent,
   PaymentIntentStatus,
+  PaymentPackageSummary,
+  PaymentPartySummary,
   PaymentProvider,
   PaymentsPaginationMeta,
   PaymentStatus,
+  PaymentStatusResult,
 } from './payments.models';
 
 type UnknownRecord = Record<string, unknown>;
@@ -20,6 +24,7 @@ const emptyMeta: PaymentsPaginationMeta = {
 
 const intentStatuses: PaymentIntentStatus[] = [
   'pending',
+  'checkout_created',
   'processing',
   'succeeded',
   'failed',
@@ -28,18 +33,26 @@ const intentStatuses: PaymentIntentStatus[] = [
 ];
 
 const paymentStatuses: PaymentStatus[] = [
+  'pending',
+  'approved',
+  'rejected',
+  'cancelled',
   'succeeded',
   'failed',
   'refunded',
   'partially_refunded',
 ];
 
-const providers: PaymentProvider[] = ['simulator', 'mercadopago', 'paypal', 'stripe'];
+const providers: PaymentProvider[] = ['simulator', 'mercadopago', 'paypal'];
 
 export function unwrapPaymentIntentResponse(response: unknown): PaymentIntent {
   const body = unwrapApiData(response);
   const paymentIntent =
-    isRecord(body) && 'payment_intent' in body ? body['payment_intent'] : body;
+    isRecord(body) && 'payment_intent' in body
+      ? body['payment_intent']
+      : isRecord(body) && 'paymentIntent' in body
+        ? body['paymentIntent']
+        : body;
 
   return mapPaymentIntent(paymentIntent);
 }
@@ -51,8 +64,33 @@ export function unwrapPaymentResponse(response: unknown): Payment {
   return mapPayment(payment);
 }
 
+export function unwrapPaymentStatusResponse(response: unknown): PaymentStatusResult {
+  const body = unwrapApiData(response);
+  const record = recordOrEmpty(body);
+  const paymentIntentValue =
+    record['payment_intent'] ?? record['paymentIntent'] ?? record['intent'] ?? body;
+  const paymentValue = record['payment'];
+  const paymentIntent = mapPaymentIntent(paymentIntentValue);
+  const payment =
+    paymentValue === null || paymentValue === undefined
+      ? paymentIntent.payment ?? null
+      : mapPayment(paymentValue);
+
+  return {
+    payment_intent: paymentIntent,
+    payment,
+  };
+}
+
 export function unwrapPaginatedPaymentsResponse(response: unknown): PaginatedPayments {
   const body = unwrapApiData(response);
+
+  if (Array.isArray(body)) {
+    return {
+      payments: body.map((payment) => mapPayment(payment)),
+      meta: mapPaginationMeta({}, body.length),
+    };
+  }
 
   if (!isRecord(body)) {
     return { payments: [], meta: emptyMeta };
@@ -69,16 +107,25 @@ export function unwrapPaginatedPaymentsResponse(response: unknown): PaginatedPay
 
 export function mapPaymentIntent(value: unknown): PaymentIntent {
   const record = recordOrEmpty(value);
+  const payableType = readPayableType(record);
+  const payableId = readPayableId(record, payableType);
 
   return {
     id: readString(record['id']),
-    booking_id: readString(record['booking_id']),
-    client_id: readString(record['client_id']),
-    professional_id: readString(record['professional_id']),
+    payable_type: payableType,
+    payable_id: payableId,
+    booking_id:
+      readNullableString(record['booking_id']) ?? (payableType === 'booking' ? payableId : null),
+    package_product_id:
+      readNullableString(record['package_product_id']) ??
+      (payableType === 'package' ? payableId : null),
+    client_id: readNullableString(record['client_id']),
+    professional_id: readNullableString(record['professional_id']),
     provider: readProvider(record['provider']),
     status: readIntentStatus(record['status']),
     amount: readNumber(record['amount']),
     currency: readString(record['currency']) || 'UYU',
+    checkout_url: readNullableString(record['checkout_url']),
     provider_reference: readNullableString(record['provider_reference']),
     metadata: readNullableRecord(record['metadata']),
     expires_at: readNullableString(record['expires_at']),
@@ -89,7 +136,9 @@ export function mapPaymentIntent(value: unknown): PaymentIntent {
     failure_reason: readNullableString(record['failure_reason']),
     payment: mapOptionalPayment(record['payment']),
     booking: mapOptionalBookingSummary(record['booking']),
+    package_product: mapOptionalPackageSummary(record['package_product']),
     created_at: readNullableString(record['created_at']),
+    updated_at: readNullableString(record['updated_at']),
   };
 }
 
@@ -99,9 +148,11 @@ export function mapPayment(value: unknown): Payment {
   return {
     id: readString(record['id']),
     payment_intent_id: readString(record['payment_intent_id']),
-    booking_id: readString(record['booking_id']),
-    client_id: readString(record['client_id']),
-    professional_id: readString(record['professional_id']),
+    booking_id: readNullableString(record['booking_id']),
+    package_product_id: readNullableString(record['package_product_id']),
+    client_package_id: readNullableString(record['client_package_id']),
+    client_id: readNullableString(record['client_id']),
+    professional_id: readNullableString(record['professional_id']),
     provider: readProvider(record['provider']),
     status: readPaymentStatus(record['status']),
     amount: readNumber(record['amount']),
@@ -113,17 +164,17 @@ export function mapPayment(value: unknown): Payment {
     refunded_at: readNullableString(record['refunded_at']),
     failure_reason: readNullableString(record['failure_reason']),
     booking: mapOptionalBookingSummary(record['booking']),
+    package_product: mapOptionalPackageSummary(record['package_product']),
+    client_package: mapOptionalPackageSummary(record['client_package']),
+    client: mapOptionalPartySummary(record['client']),
     created_at: readNullableString(record['created_at']),
+    updated_at: readNullableString(record['updated_at']),
   };
 }
 
 function unwrapApiData(response: unknown): unknown {
   if (!isRecord(response)) return response;
-
-  const data = response['data'];
-  if ('success' in response && data !== undefined) return data;
-
-  return response;
+  return response['data'] ?? response;
 }
 
 function mapOptionalPayment(value: unknown): Payment | null | undefined {
@@ -142,6 +193,39 @@ function mapOptionalBookingSummary(value: unknown): PaymentBookingSummary | null
     starts_at: readNullableString(value['starts_at']),
     ends_at: readNullableString(value['ends_at']),
     service_id: readServiceId(value['service_id']),
+    service: mapOptionalService(value['service']),
+  };
+}
+
+function mapOptionalService(
+  value: unknown,
+): { id: string | number; name: string } | null | undefined {
+  if (value === null) return null;
+  if (!isRecord(value)) return undefined;
+
+  return {
+    id: readServiceId(value['id']) ?? '',
+    name: readString(value['name']) || 'Servicio',
+  };
+}
+
+function mapOptionalPackageSummary(value: unknown): PaymentPackageSummary | null | undefined {
+  if (value === null) return null;
+  if (!isRecord(value)) return undefined;
+
+  return {
+    id: readString(value['id']),
+    name: readString(value['name']) || 'Paquete',
+  };
+}
+
+function mapOptionalPartySummary(value: unknown): PaymentPartySummary | null | undefined {
+  if (value === null) return null;
+  if (!isRecord(value)) return undefined;
+
+  return {
+    id: readString(value['id']),
+    name: readString(value['name']) || 'Cliente',
   };
 }
 
@@ -149,9 +233,25 @@ function mapPaginationMeta(value: UnknownRecord, fallbackTotal: number): Payment
   return {
     current_page: positiveInteger(value['current_page'], 1),
     per_page: positiveInteger(value['per_page'], Math.max(fallbackTotal, 10)),
-    total: positiveInteger(value['total'], fallbackTotal),
+    total: nonNegativeInteger(value['total'], fallbackTotal),
     last_page: positiveInteger(value['last_page'], 1),
   };
+}
+
+function readPayableType(record: UnknownRecord): PayableType {
+  const value = readString(record['payable_type']);
+  if (value === 'package') return 'package';
+  if (value === 'booking') return 'booking';
+  return readString(record['package_product_id']) ? 'package' : 'booking';
+}
+
+function readPayableId(record: UnknownRecord, payableType: PayableType): string {
+  return (
+    readString(record['payable_id']) ||
+    (payableType === 'package'
+      ? readString(record['package_product_id'])
+      : readString(record['booking_id']))
+  );
 }
 
 function readProvider(value: unknown): PaymentProvider {
@@ -168,7 +268,7 @@ function readIntentStatus(value: unknown): PaymentIntentStatus {
 
 function readPaymentStatus(value: unknown): PaymentStatus {
   const text = readString(value);
-  return paymentStatuses.includes(text as PaymentStatus) ? (text as PaymentStatus) : 'failed';
+  return paymentStatuses.includes(text as PaymentStatus) ? (text as PaymentStatus) : 'pending';
 }
 
 function readServiceId(value: unknown): string | number | null {
@@ -206,6 +306,11 @@ function readNullableRecord(value: unknown): Record<string, unknown> | null {
 function positiveInteger(value: unknown, fallback: number): number {
   const parsed = Math.trunc(readNumber(value));
   return parsed > 0 ? parsed : fallback;
+}
+
+function nonNegativeInteger(value: unknown, fallback: number): number {
+  const parsed = Math.trunc(readNumber(value));
+  return parsed >= 0 ? parsed : fallback;
 }
 
 function recordOrEmpty(value: unknown): UnknownRecord {

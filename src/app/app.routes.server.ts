@@ -46,6 +46,10 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Client,
   },
   {
+    path: 'payments/**',
+    renderMode: RenderMode.Client,
+  },
+  {
     path: 'my-packages',
     renderMode: RenderMode.Client,
   },

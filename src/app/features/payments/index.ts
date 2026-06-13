@@ -2,3 +2,8 @@ export * from './data-access/payments.api';
 export * from './data-access/payments-error.mapper';
 export * from './data-access/payments.mapper';
 export * from './data-access/payments.models';
+export * from './payment.config';
+export * from './services/payment-redirect.service';
+export * from './services/payment-status-poller.service';
+export * from './state/payment-checkout.store';
+export * from './utils/payment-labels.util';

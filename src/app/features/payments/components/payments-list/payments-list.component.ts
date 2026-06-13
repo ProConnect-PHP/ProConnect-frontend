@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { AppEmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
 import { formatMoney } from '../../../../shared/utils/money.util';
 import { Payment } from '../../data-access/payments.models';
+import { paymentProviderLabel } from '../../utils/payment-labels.util';
 import { PaymentStatusBadgeComponent } from '../payment-status-badge/payment-status-badge.component';
 
 type PaymentsListContext = 'client' | 'professional';
@@ -30,7 +31,9 @@ export class PaymentsListComponent {
       : 'Cuando pagues una reserva, aparecera en esta seccion.';
   }
 
-  bookingLink(payment: Payment): string {
+  bookingLink(payment: Payment): string | null {
+    if (!payment.booking_id) return null;
+
     return this.context() === 'professional'
       ? `/professional/bookings/${payment.booking_id}`
       : `/my-bookings/${payment.booking_id}`;
@@ -41,7 +44,26 @@ export class PaymentsListComponent {
   }
 
   providerLabel(payment: Payment): string {
-    return payment.provider === 'simulator' ? 'Simulador' : payment.provider;
+    return paymentProviderLabel(payment.provider);
+  }
+
+  associationLabel(payment: Payment): string {
+    if (payment.booking_id) {
+      return payment.booking?.service?.name
+        ? `Reserva de ${payment.booking.service.name}`
+        : 'Reserva';
+    }
+
+    return payment.package_product?.name ?? payment.client_package?.name ?? 'Paquete';
+  }
+
+  associationId(payment: Payment): string {
+    return (
+      payment.booking_id ??
+      payment.client_package_id ??
+      payment.package_product_id ??
+      'No disponible'
+    );
   }
 
   formatDateTime(value: string | null): string {

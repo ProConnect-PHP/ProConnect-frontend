@@ -1,0 +1,105 @@
+<main class="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+  <section
+    class="rounded-[2rem] border p-6 shadow-sm sm:p-8"
+    [class]="statusClasses()"
+    aria-labelledby="payment-result-title"
+    aria-live="polite"
+  >
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wide">Estado del pago</p>
+        <h1 id="payment-result-title" class="mt-2 text-3xl font-black tracking-tight">
+          {{ title() }}
+        </h1>
+        <p class="mt-3 max-w-xl text-sm leading-6">{{ message() }}</p>
+      </div>
+
+      @if (status(); as currentStatus) {
+        <app-payment-status-badge [status]="currentStatus" kind="intent" />
+      }
+    </div>
+
+    @if (polling()) {
+      <div class="mt-5 flex items-center gap-3 text-sm font-bold">
+        <span
+          class="size-5 animate-spin rounded-full border-2 border-current border-r-transparent"
+          aria-hidden="true"
+        ></span>
+        Esperando la confirmacion automatica...
+      </div>
+      <p class="mt-2 text-xs font-semibold opacity-70">
+        Intento {{ attempts() }} de {{ maxPollingAttempts }}
+      </p>
+    }
+  </section>
+
+  @if (noticeMessage()) {
+    <div
+      class="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-950"
+      role="status"
+    >
+      {{ noticeMessage() }}
+      @if (providerReference() && !result()) {
+        <p class="mt-2 break-all text-xs font-normal">
+          Referencia recibida: {{ providerReference() }}
+        </p>
+      }
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div
+      class="mt-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-950"
+      role="alert"
+    >
+      {{ errorMessage() }}
+      @if (providerReference() && !result()) {
+        <p class="mt-2 break-all text-xs font-normal">
+          Referencia recibida: {{ providerReference() }}
+        </p>
+      }
+    </div>
+  }
+
+  @if (result(); as paymentResult) {
+    <div class="mt-5">
+      <app-payment-summary-card
+        [paymentIntent]="paymentResult.payment_intent"
+        [payment]="paymentResult.payment"
+      />
+    </div>
+  }
+
+  <div class="mt-6 grid gap-3 sm:grid-cols-2">
+    <a
+      routerLink="/my-bookings"
+      class="inline-flex min-h-11 items-center justify-center rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-slate-700"
+    >
+      Volver a mis reservas
+    </a>
+    <a
+      routerLink="/my-packages"
+      class="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-indigo-600"
+    >
+      Ver mis paquetes
+    </a>
+  </div>
+
+  @if (canRetry()) {
+    <a
+      class="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-indigo-300 bg-indigo-50 px-4 py-2 text-sm font-bold text-indigo-800 transition hover:bg-indigo-100 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-indigo-600"
+      [routerLink]="retryLink()"
+    >
+      Intentar nuevamente
+    </a>
+  } @else if (paymentIntentId()) {
+    <button
+      type="button"
+      class="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-indigo-600"
+      [disabled]="loading() || polling()"
+      (click)="refresh()"
+    >
+      {{ loading() || polling() ? 'Actualizando...' : 'Actualizar estado' }}
+    </button>
+  }
+</main>

@@ -2,13 +2,13 @@ import { ChangeDetectionStrategy, Component, computed, input, output, signal } f
 
 import { formatMoney } from '../../../../shared/utils/money.util';
 import { Booking } from '../../../bookings/models/booking.models';
-import { Payment, PaymentIntent } from '../../data-access/payments.models';
+import { Payment } from '../../data-access/payments.models';
+import { PaymentCheckoutPanelComponent } from '../payment-checkout-panel/payment-checkout-panel.component';
 import { PaymentStatusBadgeComponent } from '../payment-status-badge/payment-status-badge.component';
-import { SimulatedCheckoutPanelComponent } from '../simulated-checkout-panel/simulated-checkout-panel.component';
 
 @Component({
   selector: 'app-payment-action-card',
-  imports: [PaymentStatusBadgeComponent, SimulatedCheckoutPanelComponent],
+  imports: [PaymentCheckoutPanelComponent, PaymentStatusBadgeComponent],
   templateUrl: './payment-action-card.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -21,7 +21,6 @@ export class PaymentActionCardComponent {
 
   readonly checkoutOpen = signal(false);
   readonly completedPayment = signal<Payment | null>(null);
-  readonly lastFailedIntent = signal<PaymentIntent | null>(null);
 
   readonly displayedPayment = computed(() => this.completedPayment() ?? this.payment());
   readonly coveredByPackage = computed(
@@ -31,7 +30,9 @@ export class PaymentActionCardComponent {
     () =>
       this.coveredByPackage() ||
       this.booking().status === 'paid' ||
-      this.displayedPayment()?.status === 'succeeded',
+      this.booking().paid_at !== null ||
+      this.displayedPayment()?.status === 'succeeded' ||
+      this.displayedPayment()?.status === 'approved',
   );
   readonly canPay = computed(
     () =>
@@ -40,6 +41,9 @@ export class PaymentActionCardComponent {
       !this.coveredByPackage(),
   );
   readonly statusMessage = computed(() => this.messageForStatus(this.booking().status));
+  readonly amountLabel = computed(() =>
+    formatMoney(Number(this.booking().price_snapshot), 'UYU'),
+  );
 
   openCheckout(): void {
     if (!this.canPay()) return;
@@ -52,14 +56,9 @@ export class PaymentActionCardComponent {
 
   onPaymentSucceeded(payment: Payment): void {
     this.completedPayment.set(payment);
-    this.lastFailedIntent.set(null);
     this.checkoutOpen.set(false);
     this.paymentCompleted.emit(payment);
     this.bookingShouldRefresh.emit();
-  }
-
-  onPaymentFailed(paymentIntent: PaymentIntent): void {
-    this.lastFailedIntent.set(paymentIntent);
   }
 
   money(payment: Payment): string {

@@ -13,7 +13,6 @@ import {
   ProfessionalPackageProductListParams,
   ProfessionalSoldPackageListParams,
   PublicPackageProductListParams,
-  PurchasePackagePayload,
   ServiceId,
   StorePackageProductPayload,
   UpdatePackageProductPayload,
@@ -55,18 +54,6 @@ export class PackagesApi {
     return this.api
       .get<unknown>(`services/${serviceId}/package-products`)
       .pipe(map((response) => unwrapServicePackageProductsResponse(response)));
-  }
-
-  purchasePackage(
-    packageProductId: PackageProductId,
-    payload: PurchasePackagePayload = {},
-  ): Observable<ClientPackage> {
-    return this.api
-      .post<unknown, PurchasePackagePayload>(
-        `package-products/${packageProductId}/purchase`,
-        payload,
-      )
-      .pipe(map((response) => unwrapClientPackageResponse(response)));
   }
 
   listMyClientPackages(

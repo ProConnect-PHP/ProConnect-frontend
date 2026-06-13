@@ -72,7 +72,7 @@
           "builder": "@angular/build:dev-server",
           "options": {
             "allowedHosts": [
-              "localhost:4200"
+              "localhost:4200","a246-2800-a4-2a2b-3a00-fc0f-cc5-a08-be47.ngrok-free.app"
             ]
           },
           "configurations": {

@@ -1,11 +1,9 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, output, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { finalize } from 'rxjs/operators';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
 import { formatMoney } from '../../../../shared/utils/money.util';
-import { PackagesApi } from '../../data-access/packages.api';
-import { mapPackageApiError } from '../../data-access/packages-error.mapper';
-import { ClientPackage, PackageProduct } from '../../data-access/packages.models';
+import { PaymentCheckoutPanelComponent } from '../../../payments/components/payment-checkout-panel/payment-checkout-panel.component';
+import { Payment } from '../../../payments/data-access/payments.models';
+import { PackageProduct } from '../../data-access/packages.models';
 import {
   formatPackagePricePerSession,
   formatPackageValidity,
@@ -13,38 +11,15 @@ import {
 
 @Component({
   selector: 'app-package-purchase-panel',
+  imports: [PaymentCheckoutPanelComponent],
   templateUrl: './package-purchase-panel.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PackagePurchasePanelComponent {
-  private readonly api = inject(PackagesApi);
-  private readonly destroyRef = inject(DestroyRef);
-
   readonly packageProduct = input.required<PackageProduct>();
 
-  readonly purchased = output<ClientPackage>();
+  readonly paymentCompleted = output<Payment>();
   readonly closed = output<void>();
-
-  readonly submitting = signal(false);
-  readonly errorMessage = signal<string | null>(null);
-
-  confirmPurchase(): void {
-    if (this.submitting()) return;
-
-    this.submitting.set(true);
-    this.errorMessage.set(null);
-
-    this.api
-      .purchasePackage(this.packageProduct().id)
-      .pipe(
-        finalize(() => this.submitting.set(false)),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: (clientPackage) => this.purchased.emit(clientPackage),
-        error: (error: unknown) => this.errorMessage.set(mapPackageApiError(error)),
-      });
-  }
 
   price(packageProduct: PackageProduct): string {
     return formatMoney(packageProduct.price, packageProduct.currency);

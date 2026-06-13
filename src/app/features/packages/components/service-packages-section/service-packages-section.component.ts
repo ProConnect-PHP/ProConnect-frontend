@@ -6,7 +6,8 @@ import { finalize } from 'rxjs/operators';
 import { AuthStore } from '../../../../core/auth/services/auth.store';
 import { PackagesApi } from '../../data-access/packages.api';
 import { mapPackageApiError } from '../../data-access/packages-error.mapper';
-import { ClientPackage, PackageProduct, ServiceId } from '../../data-access/packages.models';
+import { PackageProduct, ServiceId } from '../../data-access/packages.models';
+import { Payment } from '../../../payments/data-access/payments.models';
 import { PackageProductCardComponent } from '../package-product-card/package-product-card.component';
 import { PackagePurchasePanelComponent } from '../package-purchase-panel/package-purchase-panel.component';
 
@@ -29,7 +30,6 @@ export class ServicePackagesSectionComponent implements OnInit {
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
   readonly selectedPackageProduct = signal<PackageProduct | null>(null);
-  readonly purchasedPackage = signal<ClientPackage | null>(null);
 
   ngOnInit(): void {
     this.loadPackageProducts();
@@ -54,7 +54,6 @@ export class ServicePackagesSectionComponent implements OnInit {
 
   startPurchase(packageProduct: PackageProduct): void {
     this.successMessage.set(null);
-    this.purchasedPackage.set(null);
 
     if (!this.authStore.isAuthenticated()) {
       void this.router.navigate(['/login'], {
@@ -73,9 +72,10 @@ export class ServicePackagesSectionComponent implements OnInit {
     this.selectedPackageProduct.set(null);
   }
 
-  onPurchased(clientPackage: ClientPackage): void {
+  onPaymentCompleted(_payment: Payment): void {
     this.selectedPackageProduct.set(null);
-    this.purchasedPackage.set(clientPackage);
-    this.successMessage.set('Paquete adquirido correctamente.');
+    this.successMessage.set(
+      'Pago confirmado. Tu paquete aparecera cuando ProConnect termine de activarlo.',
+    );
   }
 }
