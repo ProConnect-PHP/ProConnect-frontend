@@ -24,6 +24,18 @@ export function mapPaymentError(errorCode?: string, fallback?: string): string {
 
 export function mapPaymentApiError(error: unknown, fallback?: string): string {
   if (error instanceof ApiClientError) {
+    if (error.status === 409) {
+      return 'El pago o el recurso asociado cambio de estado. Actualiza la pagina e intenta nuevamente.';
+    }
+
+    if (error.status === 422) {
+      return 'La reserva o el paquete ya no puede ser pagado con estos datos.';
+    }
+
+    if (error.status === 502) {
+      return 'El proveedor de pagos no respondio correctamente. Proba nuevamente.';
+    }
+
     return mapPaymentError(error.type, error.message || fallback);
   }
 
