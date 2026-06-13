@@ -4,6 +4,15 @@ import { inject, isDevMode } from '@angular/core';
 import { TokenStorageService } from '../services/token-storage.service';
 
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
+  if (
+    request.url.includes('auth/login') ||
+    request.url.includes('auth/logout') ||
+    request.url.includes('password-update') ||
+    request.url.includes('password/reset')
+  ) {
+    return next(request);
+  }
+
   const token = inject(TokenStorageService).getAccessToken();
 
   if (isDevMode()) {

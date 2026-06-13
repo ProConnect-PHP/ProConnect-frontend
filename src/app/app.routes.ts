@@ -78,6 +78,14 @@ export const routes: Routes = [
             (m) => m.RegisterPageComponent,
           ),
       },
+      {
+        path: 'reset-password',
+        title: 'Restablecer contraseña | ProConnect',
+        loadComponent: () =>
+          import('./features/auth/reset-password/reset-password.page').then(
+            (m) => m.ResetPasswordPage
+          ),
+      },
     ],
   },
   {
@@ -89,11 +97,17 @@ export const routes: Routes = [
       ),
     children: [
       {
+        path: 'account-settings',
+        loadComponent: () => import('./features/account-settings/pages/account-settings-page/account-settings-page.component')
+          .then(m => m.AccountSettingsPageComponent)
+      },
+      {
         path: 'notifications',
+        title: 'Notificaciones | ProConnect',
         loadComponent: () =>
           import(
             './features/notifications/pages/notifications-page.components'
-          ).then(m => m.NotificationsPageComponent),
+          ).then((m) => m.NotificationsPageComponent),
       },
       {
         path: 'my-bookings',
