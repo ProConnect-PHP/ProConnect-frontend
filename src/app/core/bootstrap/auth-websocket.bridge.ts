@@ -1,30 +1,30 @@
 import { Injectable, effect, inject } from '@angular/core';
+
 import { AuthStore } from '../auth/services/auth.store';
 import { NotificationSocketService } from '../notifications/services/notification-socket.service';
+import { NotificationStore } from '../notifications/services/notification-store';
 
 @Injectable({ providedIn: 'root' })
 export class AuthWebsocketBridge {
-
   private readonly authStore = inject(AuthStore);
-  private readonly notifications = inject(NotificationSocketService);
+  private readonly socket = inject(NotificationSocketService);
+  private readonly store = inject(NotificationStore);
 
   constructor() {
-    this.init();
+    let activeUserId: string | null = null;
+
+    effect(() => {
+      const userId = this.authStore.currentUser()?.id ?? null;
+      if (userId === activeUserId) return;
+
+      this.socket.unsubscribe();
+      this.store.reset();
+      activeUserId = userId;
+
+      if (!userId) return;
+
+      this.store.loadUnreadCount(true);
+      this.socket.subscribe(userId);
+    });
   }
-
-  private init(): void {
-  let lastUserId: string | null = null;
-
-  effect(() => {
-    const user = this.authStore.currentUser();
-    console.log('[AuthWebsocketBridge] effect disparado, user:', user);
-
-    if (!user) return;
-    if (lastUserId === user.id) return;
-
-    lastUserId = user.id;
-    console.log('[AuthWebsocketBridge] subscribe a:', user.id);
-    this.notifications.subscribe(user.id);
-  });
-}
 }

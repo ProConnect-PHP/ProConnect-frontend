@@ -1,94 +1,264 @@
-<div class="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-
-  <div class="flex items-center justify-between gap-3">
+<main class="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
+  <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
     <div>
-      <h1 class="text-2xl font-bold text-slate-950">Notificaciones</h1>
-      <p class="mt-1 text-sm text-slate-500">
-        {{ store.total() }} en total
+      <p class="text-xs font-black uppercase tracking-[0.18em] text-indigo-700">Centro personal</p>
+      <h1 class="mt-2 text-3xl font-black tracking-tight text-slate-950">Notificaciones</h1>
+      <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+        Revisa novedades de reservas, pagos, paquetes y sesiones. Archivar las oculta sin
+        eliminarlas de forma permanente.
       </p>
     </div>
 
-    @if (store.notifications().length > 0) {
+    @if (store.unreadCount() > 0 && store.selectedStatus() !== 'archived') {
       <button
         type="button"
-        class="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 shadow-sm hover:bg-red-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700"
-        (click)="confirmDeleteAll()"
+        class="inline-flex min-h-11 items-center justify-center rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-black text-indigo-800 transition hover:bg-indigo-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60"
+        [disabled]="store.markingAllAsRead()"
+        (click)="store.markAllAsRead()"
       >
-        Eliminar todas
+        {{ store.markingAllAsRead() ? 'Marcando...' : 'Marcar todas como leidas' }}
       </button>
     }
-  </div>
+  </header>
 
-  <div class="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-    @if (store.isLoading()) {
-      <div class="px-6 py-12 text-center text-sm text-slate-500">
-        Cargando notificaciones...
-      </div>
-    } @else if (store.notifications().length === 0) {
-      <div class="px-6 py-12 text-center">
-        <p class="text-sm font-semibold text-slate-700">No tenés notificaciones</p>
-        <p class="mt-1 text-xs text-slate-500">Cuando recibas novedades, van a aparecer aca.</p>
-      </div>
-    } @else {
-      @for (n of store.notifications(); track n.id) {
-        <div
-          class="flex items-start gap-3 border-b border-slate-100 px-4 py-4 last:border-b-0 sm:px-6"
-          [class.bg-sky-50]="!n.read_at"
-        >
-          <div class="flex-1">
-            <div class="flex flex-wrap items-center gap-2">
-              <p class="text-sm font-semibold text-slate-950">{{ n.title }}</p>
-              @if (!n.read_at) {
-                <span class="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-sky-700">
-                  <span class="size-1.5 rounded-full bg-sky-500"></span>
-                  Nueva
-                </span>
-              }
-            </div>
-            <p class="mt-1 text-sm text-slate-600">{{ n.message }}</p>
-            <p class="mt-2 text-xs text-slate-400">{{ n.created_at | date:'medium' }}</p>
-          </div>
-
-          <button
-            type="button"
-            class="shrink-0 rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-700"
-            aria-label="Eliminar notificación"
-            (click)="store.deleteNotification(n.id)"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="size-4" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M18 6 6 18"/>
-              <path d="m6 6 12 12"/>
-            </svg>
-          </button>
-        </div>
-      }
-    }
-  </div>
-
-  @if (store.lastPage() > 1) {
-    <div class="mt-4 flex items-center justify-between">
+  <div class="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div
+      class="inline-flex w-full rounded-2xl bg-slate-200/70 p-1 sm:w-auto"
+      role="tablist"
+      aria-label="Filtrar notificaciones"
+    >
       <button
+        id="notifications-tab-all"
         type="button"
-        class="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white"
-        [disabled]="store.currentPage() === 1"
-        (click)="goToPage(store.currentPage() - 1)"
+        role="tab"
+        class="min-h-10 flex-1 rounded-xl px-4 py-2 text-sm font-black transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:flex-none"
+        [class.bg-white]="store.selectedStatus() === 'all'"
+        [class.text-slate-950]="store.selectedStatus() === 'all'"
+        [class.shadow-sm]="store.selectedStatus() === 'all'"
+        [class.text-slate-600]="store.selectedStatus() !== 'all'"
+        [attr.aria-selected]="store.selectedStatus() === 'all'"
+        [attr.tabindex]="store.selectedStatus() === 'all' ? 0 : -1"
+        (click)="selectStatus('all')"
       >
-        Anterior
+        Todas
       </button>
+      <button
+        id="notifications-tab-active"
+        type="button"
+        role="tab"
+        class="min-h-10 flex-1 rounded-xl px-4 py-2 text-sm font-black transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:flex-none"
+        [class.bg-white]="store.selectedStatus() === 'active'"
+        [class.text-slate-950]="store.selectedStatus() === 'active'"
+        [class.shadow-sm]="store.selectedStatus() === 'active'"
+        [class.text-slate-600]="store.selectedStatus() !== 'active'"
+        [attr.aria-selected]="store.selectedStatus() === 'active'"
+        [attr.tabindex]="store.selectedStatus() === 'active' ? 0 : -1"
+        (click)="selectStatus('active')"
+      >
+        Activas
+      </button>
+      <button
+        id="notifications-tab-archived"
+        type="button"
+        role="tab"
+        class="min-h-10 flex-1 rounded-xl px-4 py-2 text-sm font-black transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:flex-none"
+        [class.bg-white]="store.selectedStatus() === 'archived'"
+        [class.text-slate-950]="store.selectedStatus() === 'archived'"
+        [class.shadow-sm]="store.selectedStatus() === 'archived'"
+        [class.text-slate-600]="store.selectedStatus() !== 'archived'"
+        [attr.aria-selected]="store.selectedStatus() === 'archived'"
+        [attr.tabindex]="store.selectedStatus() === 'archived' ? 0 : -1"
+        (click)="selectStatus('archived')"
+      >
+        Archivadas
+      </button>
+    </div>
 
-      <p class="text-sm text-slate-500">
-        Página {{ store.currentPage() }} de {{ store.lastPage() }}
-      </p>
+    <div class="flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-600">
+      <span class="rounded-full bg-white px-3 py-1.5 shadow-sm ring-1 ring-slate-200">
+        {{ store.total() }} en esta vista
+      </span>
+      <span class="rounded-full bg-indigo-50 px-3 py-1.5 text-indigo-800 ring-1 ring-indigo-200">
+        {{ store.unreadCount() }} activas sin leer
+      </span>
+    </div>
+  </div>
 
+  @if (store.error()) {
+    <div
+      class="mt-6 flex flex-col gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-950 sm:flex-row sm:items-center sm:justify-between"
+      role="alert"
+    >
+      <p class="font-semibold">{{ store.error() }}</p>
       <button
         type="button"
-        class="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-50 disabled:hover:bg-white"
-        [disabled]="store.currentPage() === store.lastPage()"
-        (click)="goToPage(store.currentPage() + 1)"
+        class="inline-flex min-h-10 items-center justify-center rounded-lg border border-rose-300 bg-white px-3 py-2 text-sm font-black text-rose-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-700"
+        (click)="store.loadFirstPage()"
       >
-        Siguiente
+        Reintentar
       </button>
     </div>
   }
-</div>
+
+  @if (store.loading()) {
+    <section
+      class="mt-6 rounded-3xl border border-slate-200 bg-white px-6 py-16 text-center shadow-sm"
+      role="tabpanel"
+      [attr.aria-labelledby]="'notifications-tab-' + store.selectedStatus()"
+      aria-live="polite"
+    >
+      <div
+        class="mx-auto size-8 animate-spin rounded-full border-4 border-slate-200 border-t-indigo-700"
+        aria-hidden="true"
+      ></div>
+      <p class="mt-4 text-sm font-bold text-slate-600">Cargando notificaciones...</p>
+    </section>
+  } @else if (store.notifications().length === 0) {
+    <section
+      class="mt-6 rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center shadow-sm"
+      role="tabpanel"
+      [attr.aria-labelledby]="'notifications-tab-' + store.selectedStatus()"
+    >
+      <span
+        class="mx-auto inline-flex size-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-700"
+        aria-hidden="true"
+      >
+        <svg
+          class="size-7"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+        </svg>
+      </span>
+      <h2 id="notifications-empty-title" class="mt-4 text-lg font-black text-slate-950">
+        {{ emptyTitle() }}
+      </h2>
+      <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600">
+        {{ emptyDescription() }}
+      </p>
+    </section>
+  } @else {
+    <div
+      class="mt-7 grid gap-8"
+      role="tabpanel"
+      [attr.aria-labelledby]="'notifications-tab-' + store.selectedStatus()"
+    >
+      @for (group of store.groups(); track group.date) {
+        <section [attr.aria-labelledby]="'notification-day-' + $index">
+          <div class="flex items-center gap-3">
+            <h2
+              [id]="'notification-day-' + $index"
+              class="text-sm font-black uppercase tracking-[0.14em] text-slate-700"
+            >
+              {{ group.label }}
+            </h2>
+            <span class="h-px flex-1 bg-slate-200" aria-hidden="true"></span>
+          </div>
+
+          <ul class="mt-3 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+            @for (notification of group.items; track notification.id) {
+              <li
+                class="border-b border-slate-100 last:border-b-0"
+                [class.bg-indigo-50]="!notification.is_read"
+              >
+                <article class="flex items-start gap-3 p-4 sm:p-5">
+                  <button
+                    type="button"
+                    class="min-w-0 flex-1 rounded-xl text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-indigo-600 disabled:cursor-wait"
+                    [class.cursor-pointer]="hasRoute(notification)"
+                    [class.cursor-default]="!hasRoute(notification)"
+                    [disabled]="navigation.isPending(notification.id) || !hasRoute(notification)"
+                    [attr.aria-label]="activationLabel(notification)"
+                    (click)="activate(notification)"
+                  >
+                    <span class="flex flex-wrap items-center gap-2">
+                      @if (!notification.is_read) {
+                        <span class="size-2.5 shrink-0 rounded-full bg-indigo-600" aria-hidden="true"></span>
+                        <span class="sr-only">Sin leer.</span>
+                      }
+                      <span class="text-base font-black text-slate-950">
+                        {{ notification.title }}
+                      </span>
+                      <span
+                        class="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-black uppercase tracking-wide text-slate-700"
+                      >
+                        {{ typeLabel(notification.type) }}
+                      </span>
+                      @if (notification.is_archived) {
+                        <span
+                          class="rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-black uppercase tracking-wide text-amber-900"
+                        >
+                          Archivada
+                        </span>
+                      }
+                    </span>
+
+                    <span class="mt-2 block text-sm leading-6 text-slate-600">
+                      {{ notification.message }}
+                    </span>
+
+                    <time
+                      class="mt-3 block text-xs font-bold text-slate-500"
+                      [attr.datetime]="notification.created_at"
+                    >
+                      {{ timeLabel(notification) }}
+                    </time>
+                  </button>
+
+                  <div class="flex shrink-0 items-center gap-1">
+                    @if (!notification.is_read) {
+                      <button
+                        type="button"
+                        class="inline-flex min-h-10 items-center justify-center rounded-lg px-3 py-2 text-xs font-black text-indigo-800 transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-wait disabled:opacity-60"
+                        [disabled]="store.pendingReadIds().has(notification.id)"
+                        (click)="markAsRead(notification.id)"
+                      >
+                        Leida
+                      </button>
+                    }
+
+                    <button
+                      type="button"
+                      class="inline-flex min-h-10 items-center justify-center rounded-lg px-3 py-2 text-xs font-black text-slate-700 transition hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-wait disabled:opacity-50"
+                      [disabled]="
+                        notification.is_archived
+                          ? store.pendingUnarchiveIds().has(notification.id)
+                          : store.pendingArchiveIds().has(notification.id)
+                      "
+                      [attr.aria-label]="
+                        (notification.is_archived ? 'Desarchivar ' : 'Archivar ') +
+                        notification.title
+                      "
+                      (click)="toggleArchive($event, notification)"
+                    >
+                      {{ notification.is_archived ? 'Desarchivar' : 'Archivar' }}
+                    </button>
+                  </div>
+                </article>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+    </div>
+
+    @if (store.hasMore()) {
+      <div class="mt-7 text-center">
+        <button
+          type="button"
+          class="inline-flex min-h-11 items-center justify-center rounded-xl bg-slate-950 px-5 py-2.5 text-sm font-black text-white transition hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-700 disabled:cursor-wait disabled:opacity-60"
+          [disabled]="store.loadingMore()"
+          (click)="store.loadMore()"
+        >
+          {{ store.loadingMore() ? 'Cargando...' : 'Cargar mas' }}
+        </button>
+      </div>
+    }
+  }
+</main>

@@ -1,36 +1,44 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+
 import { EchoService } from '../websocket/echo.service';
-import { NotificationToastService } from './notification-toast.service';
 import { NotificationStore } from './notification-store';
+import { NotificationToastService } from './notification-toast.service';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationSocketService {
+  private readonly echo = inject(EchoService);
+  private readonly toast = inject(NotificationToastService);
+  private readonly store = inject(NotificationStore);
+  private currentUserId: string | null = null;
 
-    private currentUserId: string | null = null;
+  subscribe(userId: string): void {
+    if (this.currentUserId === userId) return;
+    this.unsubscribe();
 
-    constructor(private echoService: EchoService, private toastService: NotificationToastService, private notificationStore: NotificationStore) {}
+    const channelName = `notifications.${userId}`;
+    this.currentUserId = userId;
 
-    subscribe(userId: string): void {
-        if (this.currentUserId === userId) return;
+    void this.echo
+      .listenPrivate(channelName, '.notification.created', (payload) => {
+        const notification = this.store.receiveRealtime(payload);
+        if (!notification) return;
 
-        if (this.currentUserId) {
-            this.unsubscribe();
+        this.toast.show(notification.title || 'Recibiste una nueva notificacion.');
+      })
+      .then((didSubscribe) => {
+        if (didSubscribe && this.currentUserId !== userId) {
+          this.echo.leave(channelName);
         }
 
-        this.currentUserId = userId;
+        if (!didSubscribe && this.currentUserId === userId) {
+          this.currentUserId = null;
+        }
+      });
+  }
 
-        this.echoService.instance
-            .private(`notifications.${userId}`)
-            .listen('.notification.created', (event: any) => {
-                console.log('[WS] Notificación recibida:', event);
-                this.toastService.show('Has recibido una notificación');
-                this.notificationStore.increment();
-            });
-    }
-
-    unsubscribe(): void {
-        if (!this.currentUserId) return;
-        this.echoService.instance.leave(`notifications.${this.currentUserId}`);
-        this.currentUserId = null;
-    }
+  unsubscribe(): void {
+    if (!this.currentUserId) return;
+    this.echo.leave(`notifications.${this.currentUserId}`);
+    this.currentUserId = null;
+  }
 }

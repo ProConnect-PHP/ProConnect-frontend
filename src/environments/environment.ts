@@ -2,6 +2,15 @@ export const environment = {
   production: true,
   apiBaseUrl: 'https://apitallerphp.gyabisito.dev/api/v1',
   paymentSimulatorEnabled: false,
+  realtime: {
+    enabled: true,
+    key: 'proconnect-key',
+    wsHost: 'apitallerphp.gyabisito.dev',
+    wsPort: 80,
+    wssPort: 443,
+    forceTLS: true,
+    authEndpoint: 'https://apitallerphp.gyabisito.dev/api/broadcasting/auth',
+  },
   mapbox: {
     accessToken: 'pk.eyJ1IjoiZ3lhYmlzaXRvIiwiYSI6ImNtcG91czhlNDA4NWcycnB5cXo5cmZtNzUifQ.Xr-oAMmAwYGU6aO0wBi5Nw',
     defaultCenter: {
