@@ -4,8 +4,8 @@ export const environment = {
   paymentSimulatorEnabled: false,
   realtime: {
     enabled: true,
-    key: 'proconnect-key',
-    wsHost: 'apitallerphp.gyabisito.dev',
+    key: '1f9c284cdeba0e06763163e7ef3120e0',
+    wsHost: 'reverbtallerphp.gyabisito.dev',
     wsPort: 80,
     wssPort: 443,
     forceTLS: true,
