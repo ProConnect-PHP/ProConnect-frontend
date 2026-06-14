@@ -56,6 +56,7 @@ export class DashboardLayoutComponent implements OnInit {
   ];
 
   readonly clientNavigation: NavigationItem[] = [
+    { label: 'Panel cliente', shortLabel: 'Dashboard', path: '/client/dashboard' },
     {
       label: 'Mis reservas como cliente',
       shortLabel: 'Reservas',

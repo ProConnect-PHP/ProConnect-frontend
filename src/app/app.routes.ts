@@ -70,6 +70,15 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'forgot-password',
+        title: 'Olvidé mi contraseña | ProConnect',
+        canActivate: [guestGuard],
+        loadComponent: () =>
+          import('./features/auth/pages/forgot-password/forgot-password.page').then(
+            (m) => m.ForgotPasswordPage,
+          ),
+      },
+      {
         path: 'register',
         title: 'Crear cuenta | ProConnect',
         canActivate: [guestGuard],
@@ -79,11 +88,19 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'reset-password/:token',
+        title: 'Restablecer contraseña | ProConnect',
+        loadComponent: () =>
+          import('./features/auth/reset-password/reset-password.page').then(
+            (m) => m.ResetPasswordPage,
+          ),
+      },
+      {
         path: 'reset-password',
         title: 'Restablecer contraseña | ProConnect',
         loadComponent: () =>
           import('./features/auth/reset-password/reset-password.page').then(
-            (m) => m.ResetPasswordPage
+            (m) => m.ResetPasswordPage,
           ),
       },
     ],
@@ -108,6 +125,14 @@ export const routes: Routes = [
           import(
             './features/notifications/pages/notifications-page.components'
           ).then((m) => m.NotificationsPageComponent),
+      },
+      {
+        path: 'client/dashboard',
+        title: 'Panel cliente | ProConnect',
+        loadComponent: () =>
+          import(
+            './features/client-dashboard/pages/client-dashboard-page.component'
+          ).then((m) => m.ClientDashboardPageComponent),
       },
       {
         path: 'my-bookings',

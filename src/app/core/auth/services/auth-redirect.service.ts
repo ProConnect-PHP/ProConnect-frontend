@@ -7,37 +7,86 @@ import { hasProfessionalAccess } from '../utils/auth-capabilities';
 export class AuthRedirectService {
   getPostLoginRedirect(user: User, requestedUrl: string | null = null): string {
     if (requestedUrl && this.isInternalUrl(requestedUrl)) {
+      if (this.isBlockedGuestUrl(requestedUrl)) {
+        return this.getDefaultRedirect(user);
+      }
+
+      if (this.isAdminPath(requestedUrl) && !this.hasAdminAccess(user)) {
+        return this.getDefaultRedirect(user);
+      }
+
       if (this.isProfessionalPath(requestedUrl) && !hasProfessionalAccess(user)) {
         return `/professional/onboarding?returnUrl=${encodeURIComponent(requestedUrl)}`;
       }
 
-      if (this.isAllowedReturnUrl(requestedUrl)) return requestedUrl;
+      if (this.isAllowedReturnUrl(requestedUrl)) {
+        return requestedUrl;
+      }
     }
 
-    if (user.role === 'admin') return '/admin';
-    if (hasProfessionalAccess(user)) return '/dashboard';
+    return this.getDefaultRedirect(user);
+  }
 
-    return '/my-bookings';
+  private getDefaultRedirect(user: User): string {
+    if (this.hasAdminAccess(user)) {
+      return '/admin';
+    }
+
+    if (hasProfessionalAccess(user)) {
+      return '/dashboard';
+    }
+
+    return '/client/dashboard';
   }
 
   private isAllowedReturnUrl(url: string): boolean {
-    const path = url.split(/[?#]/, 1)[0];
-    return path !== '/login' && path !== '/register' && path !== '/auth/oauth/callback';
+    return (
+      this.isInternalUrl(url) &&
+      !this.isBlockedGuestUrl(url)
+    );
   }
 
   private isInternalUrl(url: string): boolean {
     return url.startsWith('/') && !url.startsWith('//') && !url.includes('\\');
   }
 
-  private isProfessionalPath(path: string): boolean {
-    const normalizedPath = path.split(/[?#]/, 1)[0];
-    if (normalizedPath.startsWith('/professional/onboarding')) return false;
+  private isBlockedGuestUrl(url: string): boolean {
+    const path = this.extractPath(url);
 
     return (
-      normalizedPath === '/dashboard' ||
-      normalizedPath.startsWith('/dashboard/') ||
-      normalizedPath === '/professional' ||
-      normalizedPath.startsWith('/professional/')
+      path === '/login' ||
+      path === '/register' ||
+      path === '/auth/oauth/callback' ||
+      path === '/reset-password'
     );
+  }
+
+  private isProfessionalPath(url: string): boolean {
+    const path = this.extractPath(url);
+
+    if (path.startsWith('/professional/onboarding')) {
+      return false;
+    }
+
+    return (
+      path === '/dashboard' ||
+      path.startsWith('/dashboard/') ||
+      path === '/professional' ||
+      path.startsWith('/professional/')
+    );
+  }
+
+  private isAdminPath(url: string): boolean {
+    const path = this.extractPath(url);
+
+    return path === '/admin' || path.startsWith('/admin/');
+  }
+
+  private hasAdminAccess(user: User): boolean {
+    return user.role === 'admin';
+  }
+
+  private extractPath(url: string): string {
+    return url.split(/[?#]/, 1)[0];
   }
 }

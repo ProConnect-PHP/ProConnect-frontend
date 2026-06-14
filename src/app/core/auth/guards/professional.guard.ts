@@ -15,6 +15,7 @@ export const professionalGuard: CanActivateFn = (_route, state) => {
   }
 
   const currentUser = authStore.currentUser();
+
   if (currentUser) {
     return hasProfessionalAccess(currentUser)
       ? true
@@ -22,16 +23,22 @@ export const professionalGuard: CanActivateFn = (_route, state) => {
   }
 
   return authStore.loadCurrentUser().pipe(
-    map((user) =>
-      hasProfessionalAccess(user) ? true : createOnboardingRedirect(router, state.url),
-    ),
-    catchError((error: unknown) =>
-      of(
-        error instanceof ApiClientError && error.status === 401
-          ? createLoginRedirect(router, state.url)
-          : createOnboardingRedirect(router, state.url),
-      ),
-    ),
+    map((user) => {
+      if (!user) {
+        return createLoginRedirect(router, state.url);
+      }
+
+      return hasProfessionalAccess(user)
+        ? true
+        : createOnboardingRedirect(router, state.url);
+    }),
+    catchError((error: unknown) => {
+      if (error instanceof ApiClientError && error.status === 401) {
+        return of(createLoginRedirect(router, state.url));
+      }
+
+      return of(createOnboardingRedirect(router, state.url));
+    }),
   );
 };
 

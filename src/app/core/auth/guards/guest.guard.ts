@@ -10,19 +10,22 @@ export const guestGuard: CanActivateFn = () => {
   const authRedirect = inject(AuthRedirectService);
   const router = inject(Router);
 
-  if (!authStore.isAuthenticated()) return true;
+  if (!authStore.isAuthenticated()) {
+    return true;
+  }
 
   const currentUser = authStore.currentUser();
+
   if (currentUser) {
     return router.parseUrl(authRedirect.getPostLoginRedirect(currentUser));
   }
 
   return authStore.loadCurrentUser().pipe(
-    map((user) =>
-      user ? router.parseUrl(authRedirect.getPostLoginRedirect(user)) : true,
-    ),
-    catchError(() =>
-      of(authStore.isAuthenticated() ? router.createUrlTree(['/my-bookings']) : true),
-    ),
+    map((user) => {
+      return user ? router.parseUrl(authRedirect.getPostLoginRedirect(user)) : true;
+    }),
+    catchError(() => {
+      return of(true);
+    }),
   );
 };
