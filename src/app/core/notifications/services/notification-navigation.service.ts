@@ -17,7 +17,6 @@ export class NotificationNavigationService {
   isPending(notificationId: string): boolean {
     return this.pendingIds().has(notificationId);
   }
-
   resolveRoute(notification: AppNotification): string | null {
     if (notification.action_route?.startsWith('/')) {
       return notification.action_route;
@@ -35,8 +34,12 @@ export class NotificationNavigationService {
     const currentUser = this.authStore.currentUser();
     const clientId = notification.metadata['client_id'];
 
-    if (currentUser && clientId === currentUser.id) {
-      return `/my-bookings/${bookingId}`;
+    if (currentUser && typeof clientId === 'string') {
+      if (clientId === currentUser.id) {
+        return `/my-bookings/${bookingId}`;
+      }
+
+      return `/professional/bookings/${bookingId}`;
     }
 
     if (this.targetsProfessional(notification.type)) {
