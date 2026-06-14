@@ -31,14 +31,14 @@ describe('OAuthCallbackPage', () => {
 
   afterEach(() => vi.restoreAllMocks());
 
-  it('navigates client users to their bookings after exchanging the code', async () => {
+  it('navigates client users to their dashboard after exchanging the code', async () => {
     const { exchangeOAuthCode, navigateByUrl } = await setup(
       { code: 'oauth-code' },
       of(authResponse),
     );
 
     expect(exchangeOAuthCode).toHaveBeenCalledWith('oauth-code');
-    expect(navigateByUrl).toHaveBeenCalledWith('/my-bookings');
+    expect(navigateByUrl).toHaveBeenCalledWith('/client/dashboard');
   });
 
   it('does not send a client to a professional return URL', async () => {

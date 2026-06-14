@@ -1,36 +1,109 @@
-import { Component, Input, Output, EventEmitter, OnInit, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  input,
+  output,
+} from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+
+export type ProfileFormInitialData = {
+  readonly name?: string | null;
+  readonly email?: string | null;
+  readonly user?: {
+    readonly name?: string | null;
+    readonly email?: string | null;
+  } | null;
+};
+
+export type ProfileFormSubmitPayload = {
+  readonly name: string;
+};
 
 @Component({
   selector: 'app-profile-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './profile-form.component.html'
+  imports: [ReactiveFormsModule],
+  templateUrl: './profile-form.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProfileFormComponent implements OnInit {
+export class ProfileFormComponent {
   private readonly fb = inject(NonNullableFormBuilder);
 
-  @Input() userInitialData: any = null;
-  @Output() readonly save = new EventEmitter<any>();
+  readonly userInitialData = input.required<ProfileFormInitialData>();
+  readonly submitting = input(false);
+
+  readonly save = output<ProfileFormSubmitPayload>();
 
   readonly form = this.fb.group({
-    name: ['', [Validators.required]],
-    email: [{ value: '', disabled: true }, [Validators.required, Validators.email]]
+    name: this.fb.control('', {
+      validators: [
+        Validators.required,
+        Validators.minLength(2),
+        Validators.maxLength(120),
+      ],
+    }),
+    email: this.fb.control(
+      { value: '', disabled: true },
+      {
+        validators: [
+          Validators.required,
+          Validators.email,
+        ],
+      },
+    ),
   });
 
-  ngOnInit(): void {
-    if (this.userInitialData) {
-      this.form.patchValue({
-        name: this.userInitialData?.name || this.userInitialData?.user?.name || '',
-        email: this.userInitialData?.email || this.userInitialData?.user?.email || ''
-      });
-    }
+  constructor() {
+    effect(() => {
+      const data = this.userInitialData();
+
+      this.form.patchValue(
+        {
+          name: data.name || data.user?.name || '',
+          email: data.email || data.user?.email || '',
+        },
+        {
+          emitEvent: false,
+        },
+      );
+
+      this.form.markAsPristine();
+      this.form.markAsUntouched();
+    });
+  }
+
+  get nameInvalid(): boolean {
+    const control = this.form.controls.name;
+
+    return control.invalid && (control.dirty || control.touched);
+  }
+
+  get nameRequired(): boolean {
+    return this.form.controls.name.hasError('required');
+  }
+
+  get nameTooShort(): boolean {
+    return this.form.controls.name.hasError('minlength');
+  }
+
+  get nameTooLong(): boolean {
+    return this.form.controls.name.hasError('maxlength');
   }
 
   onSubmit(): void {
-    if (this.form.valid) {
-      this.save.emit(this.form.getRawValue());
+    if (this.submitting()) return;
+
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
     }
+
+    const value = this.form.getRawValue();
+
+    this.save.emit({
+      name: value.name.trim(),
+    });
   }
 }

@@ -9,6 +9,7 @@ export const authGuard: CanActivateFn = (_route, state) => {
   const authStore = inject(AuthStore);
   const tokenStorage = inject(TokenStorageService);
   const router = inject(Router);
+
   const hasSession = tokenStorage.hasSession();
   const isAuthenticated = authStore.isAuthenticated();
   const hasCurrentUser = !!authStore.currentUser();
@@ -28,14 +29,21 @@ export const authGuard: CanActivateFn = (_route, state) => {
     });
   }
 
-  if (!isAuthenticated) return createLoginRedirect(router, state.url);
-  if (hasCurrentUser) return true;
+  if (!isAuthenticated) {
+    return createLoginRedirect(router, state.url);
+  }
+
+  if (hasCurrentUser) {
+    return true;
+  }
 
   return authStore.loadCurrentUser().pipe(
-    map((user) => (user ? true : createLoginRedirect(router, state.url))),
-    catchError(() =>
-      of(authStore.isAuthenticated() ? true : createLoginRedirect(router, state.url)),
-    ),
+    map((user) => {
+      return user ? true : createLoginRedirect(router, state.url);
+    }),
+    catchError(() => {
+      return of(createLoginRedirect(router, state.url));
+    }),
   );
 };
 

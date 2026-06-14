@@ -126,7 +126,7 @@ describe('auth guards', () => {
     const result = runGuard(guestGuard, '/login');
 
     expect(result).toBe(clientTree);
-    expect(parseUrl).toHaveBeenCalledWith('/my-bookings');
+    expect(parseUrl).toHaveBeenCalledWith('/client/dashboard');
   });
 
   it('redirects authenticated professional users to the professional dashboard', () => {

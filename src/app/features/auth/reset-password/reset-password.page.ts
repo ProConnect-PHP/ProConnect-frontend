@@ -1,88 +1,251 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import {
+  AbstractControl,
+  NonNullableFormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { combineLatest, finalize, timer } from 'rxjs';
+
+import { ApiClient } from '../../../core/http/api.client';
+import { ApiClientError } from '../../../core/http/models/api-error.model';
+
+type PasswordUpdateResponse = {
+  readonly status: 'success' | 'error';
+  readonly message?: string;
+};
+
+type PasswordUpdatePayload = {
+  readonly token: string;
+  readonly email: string;
+  readonly password: string;
+  readonly password_confirmation: string;
+};
 
 @Component({
   selector: 'app-reset-password',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+  ],
   templateUrl: './reset-password.page.html',
-  styleUrls: ['./reset-password.page.css']
+  styleUrl: './reset-password.page.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ResetPasswordPage implements OnInit {
-  password = '';
-  confirmPassword = '';
-  token = '';
-  email = '';
+  private readonly fb = inject(NonNullableFormBuilder);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly apiClient = inject(ApiClient);
+  private readonly destroyRef = inject(DestroyRef);
 
-  errorMensaje = '';
-  exitoMensaje = '';
-  cargando = false; // Estado para controlar el spinner/botón
+  readonly token = signal('');
+  readonly email = signal('');
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private http: HttpClient
-  ) {}
+  readonly submitting = signal(false);
+  readonly redirecting = signal(false);
+
+  readonly errorMessage = signal<string | null>(null);
+  readonly successMessage = signal<string | null>(null);
+
+  readonly form = this.fb.group(
+    {
+      password: this.fb.control('', {
+        validators: [
+          Validators.required,
+          Validators.minLength(8),
+          Validators.maxLength(128),
+        ],
+      }),
+      password_confirmation: this.fb.control('', {
+        validators: [
+          Validators.required,
+          Validators.minLength(8),
+          Validators.maxLength(128),
+        ],
+      }),
+    },
+    {
+      validators: passwordMatchValidator,
+    },
+  );
+
+  readonly hasRequiredLinkData = computed(() => {
+    return this.token().length > 0 && this.email().length > 0;
+  });
+
+  readonly canSubmit = computed(() => {
+    return this.hasRequiredLinkData() && !this.submitting() && !this.redirecting();
+  });
 
   ngOnInit(): void {
-    // Capturamos los datos que nos mandó el link del mail desde la URL
-    this.route.queryParams.subscribe(params => {
-      this.token = params['token'] || '';
-      // decodeURIComponent transforma el "%40" de vuelta en un "@" limpio
-      const rawEmail = params['email'] || '';
-      this.email = decodeURIComponent(rawEmail);
-    });
-  }
+    combineLatest([
+      this.route.paramMap,
+      this.route.queryParamMap,
+    ])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(([paramMap, queryParamMap]) => {
+        const token = queryParamMap.get('token') || paramMap.get('token') || '';
+        const email = queryParamMap.get('email') || '';
 
-  cambiarPassword(): void {
-    this.errorMensaje = '';
-    this.exitoMensaje = '';
+        this.token.set(token.trim());
+        this.email.set(this.safeDecode(email).trim());
 
-    if (this.password !== this.confirmPassword) {
-      this.errorMensaje = 'Las contraseñas no coinciden. Verificalas.';
-      return;
-    }
-
-    if (this.password.length < 6) {
-      this.errorMensaje = 'La contraseña debe tener al menos 6 caracteres.';
-      return;
-    }
-
-    this.cargando = true; // Deshabilitamos el botón para evitar doble click
-
-    const datos = {
-      token: this.token,
-      email: this.email,
-      password: this.password,
-      password_confirmation: this.confirmPassword
-    };
-
-    this.http.post('http://localhost/api/v1/auth/password-update', datos)
-      .subscribe({
-        next: (response: any) => {
-          this.cargando = false;
-          localStorage.clear();
-          sessionStorage.clear();
-
-          // Usamos el mensaje exacto que viene del backend
-          this.exitoMensaje = response.message || '¡Tu contraseña ha sido actualizada con éxito!';
-          this.password = '';
-          this.confirmPassword = '';
-
-          // Esperamos 3 segundos para que veas el cartel antes de ir al login
-          setTimeout(() => {
-            this.router.navigate(['/login']);
-          }, 3000);
-        },
-        error: (err) => {
-          this.cargando = false;
-          console.error(err);
-          // Captura el mensaje de error estructurado del backend (ej: Token inválido/expirado)
-          this.errorMensaje = err.error?.message || 'Ocurrió un error interno. Intenta nuevamente más tarde.';
+        if (!this.token() || !this.email()) {
+          this.errorMessage.set(
+            'El enlace de restablecimiento no es válido o está incompleto. Solicitá uno nuevo.',
+          );
         }
       });
   }
+
+  get passwordControl(): AbstractControl<string> {
+    return this.form.controls.password;
+  }
+
+  get passwordConfirmationControl(): AbstractControl<string> {
+    return this.form.controls.password_confirmation;
+  }
+
+  get passwordInvalid(): boolean {
+    return this.passwordControl.invalid && (this.passwordControl.dirty || this.passwordControl.touched);
+  }
+
+  get passwordConfirmationInvalid(): boolean {
+    return (
+      this.passwordConfirmationControl.invalid &&
+      (this.passwordConfirmationControl.dirty || this.passwordConfirmationControl.touched)
+    );
+  }
+
+  get passwordMismatch(): boolean {
+    return (
+      this.form.hasError('passwordMismatch') &&
+      (this.passwordConfirmationControl.dirty || this.passwordConfirmationControl.touched)
+    );
+  }
+
+  onSubmit(): void {
+    this.errorMessage.set(null);
+    this.successMessage.set(null);
+
+    if (!this.hasRequiredLinkData()) {
+      this.errorMessage.set(
+        'El enlace de restablecimiento no es válido o está incompleto. Solicitá uno nuevo.',
+      );
+      return;
+    }
+
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    const formValue = this.form.getRawValue();
+
+    const payload: PasswordUpdatePayload = {
+      token: this.token(),
+      email: this.email(),
+      password: formValue.password,
+      password_confirmation: formValue.password_confirmation,
+    };
+
+    this.submitting.set(true);
+
+    this.apiClient
+      .post<PasswordUpdateResponse>('/auth/password-update', payload)
+      .pipe(
+        finalize(() => this.submitting.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (response) => {
+          this.form.reset();
+          this.redirecting.set(true);
+
+          this.successMessage.set(
+            response.message || 'Tu contraseña fue actualizada correctamente. Ya podés iniciar sesión.',
+          );
+
+          timer(1800)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => {
+              void this.router.navigate(['/login'], {
+                queryParams: {
+                  passwordReset: 'success',
+                },
+              });
+            });
+        },
+        error: (error: unknown) => {
+          this.errorMessage.set(
+            this.errorFrom(
+              error,
+              'No pudimos actualizar la contraseña. Verificá el enlace o solicitá uno nuevo.',
+            ),
+          );
+        },
+      });
+  }
+
+  private errorFrom(error: unknown, fallback: string): string {
+    if (error instanceof ApiClientError) {
+      return error.message || fallback;
+    }
+
+    if (this.isRecord(error)) {
+      const directMessage = error['message'];
+
+      if (typeof directMessage === 'string' && !directMessage.includes('Http failure response')) {
+        return directMessage;
+      }
+
+      const body = error['error'];
+
+      if (this.isRecord(body)) {
+        const bodyMessage = body['message'];
+
+        if (typeof bodyMessage === 'string' && !bodyMessage.includes('Http failure response')) {
+          return bodyMessage;
+        }
+      }
+    }
+
+    return fallback;
+  }
+
+  private safeDecode(value: string): string {
+    try {
+      return decodeURIComponent(value);
+    } catch {
+      return value;
+    }
+  }
+
+  private isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null;
+  }
+}
+
+function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
+  const password = control.get('password')?.value;
+  const passwordConfirmation = control.get('password_confirmation')?.value;
+
+  if (!password || !passwordConfirmation) {
+    return null;
+  }
+
+  return password === passwordConfirmation ? null : { passwordMismatch: true };
 }
