@@ -67,7 +67,7 @@ describe('NotificationNavigationService', () => {
       id: 'professional-user-1',
       name: 'Profesional',
       email: 'professional@example.com',
-      role: 'professional',
+      role: 'client',
       avatar_url: null,
     });
     const service = TestBed.inject(NotificationNavigationService);
