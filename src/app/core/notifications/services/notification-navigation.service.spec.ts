@@ -1,82 +1,105 @@
-import { Injectable, inject } from '@angular/core';
+import { signal } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
+import { of } from 'rxjs';
 
 import { AuthStore } from '../../auth/services/auth.store';
 import { AppNotification } from '../models/notification.models';
+import { NotificationNavigationService } from './notification-navigation.service';
 import { NotificationStore } from './notification-store';
 
-@Injectable({
-  providedIn: 'root',
-})
-export class NotificationNavigationService {
-  private readonly router = inject(Router);
-  private readonly notificationStore = inject(NotificationStore);
-  private readonly authStore = inject(AuthStore);
+describe('NotificationNavigationService', () => {
+  const navigateByUrl = vi.fn(async () => true);
+  const markAsRead = vi.fn();
+  const currentUser = signal({
+    id: 'client-1',
+    name: 'Cliente',
+    email: 'client@example.com',
+    role: 'client' as const,
+    avatar_url: null,
+  });
 
-  activate(notification: AppNotification): void {
-    if (!notification.is_read) {
-      this.notificationStore.markAsRead(notification.id).subscribe();
-    }
+  beforeEach(() => {
+    navigateByUrl.mockClear();
+    markAsRead.mockReset();
+    markAsRead.mockReturnValue(of({ ...notification, is_read: true }));
+    currentUser.set({
+      id: 'client-1',
+      name: 'Cliente',
+      email: 'client@example.com',
+      role: 'client',
+      avatar_url: null,
+    });
 
-    const route = this.resolveRoute(notification);
+    TestBed.configureTestingModule({
+      providers: [
+        NotificationNavigationService,
+        { provide: Router, useValue: { navigateByUrl } },
+        { provide: NotificationStore, useValue: { markAsRead } },
+        { provide: AuthStore, useValue: { currentUser } },
+      ],
+    });
+  });
 
-    if (!route) {
-      return;
-    }
+  it('respects an explicit client action route and marks an unread notification as read', () => {
+    const service = TestBed.inject(NotificationNavigationService);
+    const clientRouteNotification = {
+      ...notification,
+      action_route: '/my-bookings/booking-1',
+    };
 
-    void this.router.navigateByUrl(route);
-  }
+    service.activate(clientRouteNotification);
 
-  private resolveRoute(notification: AppNotification): string | null {
-    if (notification.action_route) {
-      return notification.action_route;
-    }
+    expect(markAsRead).toHaveBeenCalledWith(notification.id);
+    expect(navigateByUrl).toHaveBeenCalledWith('/my-bookings/booking-1');
+  });
 
-    if (notification.type.startsWith('booking.')) {
-      return this.resolveBookingRoute(notification);
-    }
+  it('falls back to the client booking detail using metadata', () => {
+    const service = TestBed.inject(NotificationNavigationService);
 
-    return null;
-  }
+    service.activate(notification);
 
-  private resolveBookingRoute(notification: AppNotification): string | null {
-    const bookingId = this.readStringMetadata(notification, 'booking_id');
+    expect(navigateByUrl).toHaveBeenCalledWith('/my-bookings/booking-1');
+  });
 
-    if (!bookingId) {
-      return null;
-    }
+  it('falls back to the professional booking detail in professional context', () => {
+    currentUser.set({
+      id: 'professional-user-1',
+      name: 'Profesional',
+      email: 'professional@example.com',
+      role: 'client',
+      avatar_url: null,
+    });
+    const service = TestBed.inject(NotificationNavigationService);
 
-    const currentUser = this.authStore.currentUser();
+    service.activate({
+      ...notification,
+      type: 'booking.rescheduled',
+      metadata: {
+        booking_id: 'booking-1',
+        client_id: 'client-1',
+      },
+    });
 
-    if (!currentUser) {
-      return `/my-bookings/${bookingId}`;
-    }
+    expect(navigateByUrl).toHaveBeenCalledWith('/professional/bookings/booking-1');
+  });
+});
 
-    const clientId = this.readStringMetadata(notification, 'client_id');
-
-    if (clientId) {
-      if (clientId === currentUser.id) {
-        return `/my-bookings/${bookingId}`;
-      }
-
-      return `/professional/bookings/${bookingId}`;
-    }
-
-    if (currentUser.role === 'professional' || currentUser.role === 'admin') {
-      return `/professional/bookings/${bookingId}`;
-    }
-
-    return `/my-bookings/${bookingId}`;
-  }
-
-  private readStringMetadata(
-    notification: AppNotification,
-    key: string,
-  ): string | null {
-    const value = notification.metadata?.[key];
-
-    return typeof value === 'string' && value.trim().length > 0
-      ? value
-      : null;
-  }
-}
+const notification: AppNotification = {
+  id: 'notification-1',
+  type: 'booking.confirmed',
+  title: 'Reserva confirmada',
+  message: 'Tu reserva fue confirmada.',
+  action_route: null,
+  metadata: {
+    booking_id: 'booking-1',
+    client_id: 'client-1',
+  },
+  is_read: false,
+  is_archived: false,
+  read_at: null,
+  archived_at: null,
+  created_at: '2026-06-14T18:20:00Z',
+  created_date: '2026-06-14',
+  created_time: '18:20',
+};
