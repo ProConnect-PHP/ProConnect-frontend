@@ -1,56 +1,87 @@
-<main class="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-  <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-    <div>
-      <p class="text-xs font-bold uppercase tracking-wide text-indigo-600">Paquetes vendidos</p>
-      <h1 class="mt-2 text-3xl font-black tracking-tight text-slate-950">Paquetes vendidos</h1>
+<main class="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+  <!-- Header -->
+  <header class="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
+    <div class="min-w-0">
+      <p class="text-xs font-bold uppercase tracking-wide text-indigo-600">
+        Paquetes vendidos
+      </p>
+
+      <h1 class="mt-2 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
+        Paquetes vendidos
+      </h1>
+
       <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
         Revisa saldo y uso de los paquetes comprados por tus clientes.
       </p>
     </div>
+
     <a
       routerLink="/professional/package-products"
-      class="inline-flex min-h-11 items-center justify-center rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600"
+      class="inline-flex min-h-12 w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600 sm:w-auto"
     >
       Mis paquetes de venta
     </a>
   </header>
 
-  <div class="mt-6 grid gap-3">
-    <app-alert [message]="errorMessage()" variant="danger" />
-  </div>
+  <!-- Error -->
+  @if (errorMessage()) {
+    <section class="mt-5" aria-live="polite">
+      <app-alert [message]="errorMessage()" variant="danger" />
+    </section>
+  }
 
   @if (profileRequired()) {
-    <section class="mt-6 rounded-[2rem] border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-950">
-      <h2 class="text-base font-black">Necesitas completar tu perfil profesional para ver paquetes vendidos.</h2>
+    <section
+      class="mt-6 rounded-3xl border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-950 sm:p-6"
+      aria-labelledby="profile-required-title"
+    >
+      <h2 id="profile-required-title" class="text-base font-black sm:text-lg">
+        Necesitas completar tu perfil profesional para ver paquetes vendidos.
+      </h2>
+
+      <p class="mt-2 text-sm leading-6 text-amber-900">
+        Antes de consultar ventas, paquetes y clientes asociados, tu cuenta debe tener un
+        perfil profesional activo.
+      </p>
+
       <a
         routerLink="/dashboard/profile"
-        class="mt-4 inline-flex min-h-10 items-center justify-center rounded-md bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 focus:outline focus:outline-2 focus:outline-slate-700"
+        class="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-slate-950 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 focus:outline focus:outline-2 focus:outline-slate-700 sm:w-auto"
       >
         Completar perfil
       </a>
     </section>
   } @else {
-    <section class="mt-6 flex gap-2 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-3 shadow-sm" aria-label="Filtros de paquetes vendidos">
-      @for (filter of filters; track filter.value) {
-        <button
-          type="button"
-          class="shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition focus:outline focus:outline-2 focus:outline-indigo-600"
-          [class.border-slate-950]="activeFilter() === filter.value"
-          [class.bg-slate-950]="activeFilter() === filter.value"
-          [class.text-white]="activeFilter() === filter.value"
-          [class.border-slate-200]="activeFilter() !== filter.value"
-          [class.bg-white]="activeFilter() !== filter.value"
-          [class.text-slate-700]="activeFilter() !== filter.value"
-          (click)="setFilter(filter.value)"
-        >
-          {{ filter.label }}
-        </button>
-      }
+    <!-- Filters -->
+    <section
+      class="mt-5 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:mt-6"
+      aria-label="Filtros de paquetes vendidos"
+    >
+      <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+        @for (filter of filters; track filter.value) {
+          <button
+            type="button"
+            class="inline-flex min-h-10 items-center justify-center rounded-full border px-3 py-2 text-center text-sm font-bold transition focus:outline focus:outline-2 focus:outline-indigo-600 sm:px-4"
+            [class.border-slate-950]="activeFilter() === filter.value"
+            [class.bg-slate-950]="activeFilter() === filter.value"
+            [class.text-white]="activeFilter() === filter.value"
+            [class.border-slate-200]="activeFilter() !== filter.value"
+            [class.bg-white]="activeFilter() !== filter.value"
+            [class.text-slate-700]="activeFilter() !== filter.value"
+            (click)="setFilter(filter.value)"
+          >
+            {{ filter.label }}
+          </button>
+        }
+      </div>
     </section>
 
-    <section class="mt-6 grid gap-4">
+    <!-- Content -->
+    <section class="mt-5 grid gap-4 sm:mt-6">
       @if (loading()) {
-        <app-loading-spinner label="Cargando paquetes vendidos..." />
+        <div class="rounded-2xl border border-slate-200 bg-white px-4 py-10 shadow-sm">
+          <app-loading-spinner label="Cargando paquetes vendidos..." />
+        </div>
       } @else if (clientPackages().length === 0) {
         <app-empty-state
           icon="PK"
@@ -58,9 +89,11 @@
           description="Los paquetes comprados por tus clientes apareceran aca."
         />
       } @else {
-        @for (clientPackage of clientPackages(); track clientPackage.id) {
-          <app-professional-sold-package-card [clientPackage]="clientPackage" />
-        }
+        <div class="grid gap-4">
+          @for (clientPackage of clientPackages(); track clientPackage.id) {
+            <app-professional-sold-package-card [clientPackage]="clientPackage" />
+          }
+        </div>
       }
     </section>
   }

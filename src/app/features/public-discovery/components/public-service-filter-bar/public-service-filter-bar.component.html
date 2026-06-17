@@ -1,7 +1,117 @@
 <section class="border-b border-slate-200 bg-white">
   <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-    <div class="-mx-4 overflow-x-auto px-4">
-      <div class="flex min-w-max items-center gap-2">
+    <!-- Mobile filters -->
+    <div class="grid gap-3 lg:hidden">
+      <div class="grid grid-cols-2 gap-2">
+        <label class="relative">
+          <span class="sr-only">Modalidad</span>
+          <select
+            class="min-h-11 w-full appearance-none rounded-2xl border px-3 py-2.5 pr-8 text-sm font-bold shadow-sm outline-none transition focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+            [class.border-indigo-200]="query().modality"
+            [class.bg-indigo-50]="query().modality"
+            [class.text-indigo-700]="query().modality"
+            [class.border-slate-200]="!query().modality"
+            [class.bg-white]="!query().modality"
+            [class.text-slate-700]="!query().modality"
+            [value]="query().modality ?? ''"
+            (change)="onModalityChange($event)"
+          >
+            <option value="">Modalidad</option>
+            @for (modality of modalities; track modality) {
+              <option [value]="modality">{{ modalityLabel(modality) }}</option>
+            }
+          </select>
+
+          <span
+            class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400"
+            aria-hidden="true"
+          >
+            v
+          </span>
+        </label>
+
+        <label class="relative">
+          <span class="sr-only">Duracion</span>
+          <select
+            class="min-h-11 w-full appearance-none rounded-2xl border px-3 py-2.5 pr-8 text-sm font-bold shadow-sm outline-none transition focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100"
+            [class.border-indigo-200]="query().duration_minutes"
+            [class.bg-indigo-50]="query().duration_minutes"
+            [class.text-indigo-700]="query().duration_minutes"
+            [class.border-slate-200]="!query().duration_minutes"
+            [class.bg-white]="!query().duration_minutes"
+            [class.text-slate-700]="!query().duration_minutes"
+            [value]="query().duration_minutes ?? ''"
+            (change)="onDurationChange($event)"
+          >
+            <option value="">Duracion</option>
+            @for (duration of durations; track duration) {
+              <option [value]="duration">{{ duration }} min</option>
+            }
+          </select>
+
+          <span
+            class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400"
+            aria-hidden="true"
+          >
+            v
+          </span>
+        </label>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          class="inline-flex min-h-11 items-center justify-center rounded-2xl border px-3 py-2 text-sm font-bold shadow-sm transition focus:outline focus:outline-2 focus:outline-indigo-600"
+          [class.border-indigo-200]="hasPriceFilter()"
+          [class.bg-indigo-50]="hasPriceFilter()"
+          [class.text-indigo-700]="hasPriceFilter()"
+          [class.border-slate-200]="!hasPriceFilter()"
+          [class.bg-white]="!hasPriceFilter()"
+          [class.text-slate-700]="!hasPriceFilter()"
+          (click)="openFilters.emit()"
+        >
+          {{ priceLabel() }}
+        </button>
+
+        <button
+          type="button"
+          class="inline-flex min-h-11 items-center justify-center rounded-2xl border px-3 py-2 text-sm font-bold shadow-sm transition focus:outline focus:outline-2 focus:outline-indigo-600"
+          [class.border-indigo-200]="hasLocationFilter()"
+          [class.bg-indigo-50]="hasLocationFilter()"
+          [class.text-indigo-700]="hasLocationFilter()"
+          [class.border-slate-200]="!hasLocationFilter()"
+          [class.bg-white]="!hasLocationFilter()"
+          [class.text-slate-700]="!hasLocationFilter()"
+          (click)="openFilters.emit()"
+        >
+          {{ locationLabel() }}
+        </button>
+      </div>
+
+      <div class="grid gap-2" [class.grid-cols-2]="hasActiveFilters()">
+        <button
+          type="button"
+          class="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600"
+          (click)="openFilters.emit()"
+        >
+          Mas filtros
+        </button>
+
+        @if (hasActiveFilters()) {
+          <button
+            type="button"
+            class="inline-flex min-h-11 items-center justify-center rounded-2xl bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-200 focus:outline focus:outline-2 focus:outline-indigo-600"
+            (click)="clearFilters.emit()"
+          >
+            Limpiar
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Desktop filters -->
+    <div class="hidden lg:block">
+      <div class="flex flex-wrap items-center gap-2">
         <label class="relative inline-flex items-center">
           <span class="sr-only">Modalidad</span>
           <select
@@ -20,7 +130,10 @@
               <option [value]="modality">{{ modalityLabel(modality) }}</option>
             }
           </select>
-          <span class="pointer-events-none absolute right-3 text-xs text-slate-400" aria-hidden="true">v</span>
+
+          <span class="pointer-events-none absolute right-3 text-xs text-slate-400" aria-hidden="true">
+            v
+          </span>
         </label>
 
         <button
@@ -55,7 +168,10 @@
               <option [value]="duration">{{ duration }} min</option>
             }
           </select>
-          <span class="pointer-events-none absolute right-3 text-xs text-slate-400" aria-hidden="true">v</span>
+
+          <span class="pointer-events-none absolute right-3 text-xs text-slate-400" aria-hidden="true">
+            v
+          </span>
         </label>
 
         <label
@@ -68,6 +184,7 @@
           [class.text-slate-700]="!query().available_date"
         >
           <span>Fecha</span>
+
           <input
             type="date"
             class="w-32 bg-transparent text-sm font-semibold outline-none"

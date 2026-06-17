@@ -3,12 +3,12 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 
-import { ApiClientError } from '../../../core/http/models/api-error.model';
-import { AppCardComponent } from '../../../shared/ui/card/card.component';
-import { AppPageHeaderComponent } from '../../../shared/ui/page-header/page-header.component';
-import { ServiceFormComponent } from '../components/service-form/service-form.component';
-import { ServicesApi } from '../data-access/services.api';
-import { StoreServiceRequest } from '../models/service.models';
+import { ApiClientError } from '../../../../core/http/models/api-error.model';
+import { AppCardComponent } from '../../../../shared/ui/card/card.component';
+import { AppPageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
+import { ServiceFormComponent } from '../../components/service-form/service-form.component';
+import { ServicesApi } from '../../data-access/services.api';
+import { StoreServiceRequest } from '../../models/service.models';
 
 @Component({
   selector: 'app-service-create-page',

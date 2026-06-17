@@ -336,7 +336,7 @@ export const routes: Routes = [
                 path: '',
                 title: 'Servicios profesionales | ProConnect',
                 loadComponent: () =>
-                  import('./features/services/pages/services-list-page.component').then(
+                  import('./features/services/pages/list/services-list-page.component').then(
                     (m) => m.ServicesListPageComponent,
                   ),
               },
@@ -344,7 +344,7 @@ export const routes: Routes = [
                 path: 'new',
                 title: 'Nuevo servicio | ProConnect',
                 loadComponent: () =>
-                  import('./features/services/pages/service-create-page.component').then(
+                  import('./features/services/pages/create/service-create-page.component').then(
                     (m) => m.ServiceCreatePageComponent,
                   ),
               },
@@ -352,7 +352,7 @@ export const routes: Routes = [
                 path: ':id',
                 title: 'Editar servicio | ProConnect',
                 loadComponent: () =>
-                  import('./features/services/pages/service-edit-page.component').then(
+                  import('./features/services/pages/edit/service-edit-page.component').then(
                     (m) => m.ServiceEditPageComponent,
                   ),
               },

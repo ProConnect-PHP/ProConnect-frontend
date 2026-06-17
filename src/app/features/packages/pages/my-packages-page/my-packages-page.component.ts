@@ -58,6 +58,10 @@ export class MyPackagesPageComponent implements OnInit {
   }
 
   setFilter(filter: PackageFilter): void {
+    if (this.activeFilter() === filter) {
+      return;
+    }
+
     this.activeFilter.set(filter);
     this.loadPackages(1);
   }

@@ -2,9 +2,9 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
-  OnInit,
   computed,
   inject,
+  signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
@@ -13,7 +13,6 @@ import { AuthStore } from '../../auth/services/auth.store';
 import { hasProfessionalAccess } from '../../auth/utils/auth-capabilities';
 import { ToastComponent } from '../../../shared/components/notification-toast/notification-toast';
 import { NotificationBellComponent } from '../../../shared/components/notification-bell/notification-bell.component';
-
 
 type NavigationItem = {
   label: string;
@@ -28,24 +27,37 @@ type NavigationGroup = {
 
 @Component({
   selector: 'app-dashboard-layout',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, ToastComponent, NotificationBellComponent],
+  standalone: true,
+  imports: [
+    RouterLink,
+    RouterLinkActive,
+    RouterOutlet,
+    ToastComponent,
+    NotificationBellComponent,
+  ],
   templateUrl: './dashboard-layout.component.html',
   styleUrl: './dashboard-layout.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DashboardLayoutComponent implements OnInit {
+export class DashboardLayoutComponent {
   private readonly authStore = inject(AuthStore);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+
   protected readonly notificationStore = inject(NotificationStore);
+
+  readonly isMobileMenuOpen = signal(false);
 
   readonly currentUser = computed(() => this.authStore.currentUser());
   readonly userName = computed(() => this.currentUser()?.name ?? 'Tu cuenta');
   readonly isProfessional = computed(() => hasProfessionalAccess(this.currentUser()));
+
   readonly shouldShowProfessionalCta = computed(
     () => !!this.currentUser() && !this.isProfessional(),
   );
+
   readonly homePath = computed(() => (this.isProfessional() ? '/dashboard' : '/my-bookings'));
+
   readonly accountTypeLabel = computed(() =>
     this.isProfessional() ? 'Cuenta profesional' : 'Cuenta cliente',
   );
@@ -65,7 +77,7 @@ export class DashboardLayoutComponent implements OnInit {
     { label: 'Mis pagos', shortLabel: 'Pagos', path: '/my-payments' },
     { label: 'Mis paquetes', shortLabel: 'Paquetes', path: '/my-packages' },
     { label: 'Mis sesiones', shortLabel: 'Sesiones', path: '/video-sessions/my' },
-    {label: 'Ajustes de cuenta', shortLabel: 'Ajustes', path: '/account-settings'},
+    { label: 'Ajustes de cuenta', shortLabel: 'Ajustes', path: '/account-settings' },
   ];
 
   readonly professionalNavigation: NavigationItem[] = [
@@ -131,21 +143,23 @@ export class DashboardLayoutComponent implements OnInit {
     this.visibleNavigationGroups().flatMap((group) => group.items),
   );
 
-  ngOnInit(): void {
-    // console.log('[Dashboard] ngOnInit, currentUser:', this.authStore.currentUser());
-    // if (this.authStore.currentUser()) {
-    //   console.log('[Dashboard] ya hay user, no llamo loadCurrentUser');
-    //   return;
-    // }
 
-    // this.authStore.loadCurrentUser()
-    //   .pipe(takeUntilDestroyed(this.destroyRef))
-    //   .subscribe({
-    //     error: () => undefined,
-    // });
+
+  openMobileMenu(): void {
+    this.isMobileMenuOpen.set(true);
+  }
+
+  closeMobileMenu(): void {
+    this.isMobileMenuOpen.set(false);
+  }
+
+  toggleMobileMenu(): void {
+    this.isMobileMenuOpen.update((isOpen) => !isOpen);
   }
 
   logout(): void {
+    this.closeMobileMenu();
+
     this.authStore
       .logout()
       .pipe(takeUntilDestroyed(this.destroyRef))
