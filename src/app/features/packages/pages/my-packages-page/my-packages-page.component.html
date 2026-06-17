@@ -1,65 +1,94 @@
-<main class="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-  <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-    <div>
-      <p class="text-xs font-bold uppercase tracking-wide text-indigo-600">Paquetes</p>
-      <h1 class="mt-2 text-3xl font-black tracking-tight text-slate-950">Mis paquetes</h1>
+<main class="mx-auto w-full max-w-7xl px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+  <!-- Header -->
+  <header class="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
+    <div class="min-w-0">
+      <p class="text-xs font-bold uppercase tracking-wide text-indigo-600">
+        Paquetes
+      </p>
+
+      <h1 class="mt-2 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
+        Mis paquetes
+      </h1>
+
       <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
         Revisa tu saldo de sesiones y reserva usando paquetes activos.
       </p>
     </div>
-    <a
-      routerLink="/services"
-      class="inline-flex min-h-11 items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700"
-    >
+
+    <a routerLink="/services"
+      class="inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700 sm:w-auto">
       Explorar servicios
     </a>
   </header>
 
-  <div class="mt-6 grid gap-3">
+  <!-- Error -->
+  @if (errorMessage()) {
+  <section class="mt-5" aria-live="polite">
     <app-alert [message]="errorMessage()" variant="danger" />
-  </div>
+  </section>
+  }
 
-  <section class="mt-6 flex gap-2 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-3 shadow-sm" aria-label="Filtros de paquetes">
-    @for (filter of filters; track filter.value) {
-      <button
-        type="button"
-        class="shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition focus:outline focus:outline-2 focus:outline-indigo-600"
+  <section class="mt-5 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm" aria-label="Filtros de paquetes">
+    <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+      @for (filter of filters; track filter.value) {
+      <button type="button"
+        class="inline-flex min-h-10 items-center justify-center rounded-full border px-3 py-2 text-center text-sm font-bold transition focus:outline focus:outline-2 focus:outline-indigo-600 sm:px-4"
         [class.border-slate-950]="activeFilter() === filter.value"
-        [class.bg-slate-950]="activeFilter() === filter.value"
-        [class.text-white]="activeFilter() === filter.value"
-        [class.border-slate-200]="activeFilter() !== filter.value"
-        [class.bg-white]="activeFilter() !== filter.value"
-        [class.text-slate-700]="activeFilter() !== filter.value"
-        (click)="setFilter(filter.value)"
-      >
+        [class.bg-slate-950]="activeFilter() === filter.value" [class.text-white]="activeFilter() === filter.value"
+        [class.border-slate-200]="activeFilter() !== filter.value" [class.bg-white]="activeFilter() !== filter.value"
+        [class.text-slate-700]="activeFilter() !== filter.value" (click)="setFilter(filter.value)">
         {{ filter.label }}
       </button>
-    }
-  </section>
-
-  <section class="mt-6 grid gap-4">
-    @if (loading()) {
-      <app-loading-spinner label="Cargando paquetes..." />
-    } @else if (clientPackages().length === 0) {
-      <app-empty-state
-        icon="PK"
-        title="Todavia no tenes paquetes."
-        description="Compra un paquete desde el detalle de un servicio para reservar varias sesiones."
-      >
-        <a
-          routerLink="/services"
-          class="inline-flex min-h-10 items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700"
-        >
-          Explorar servicios
-        </a>
-      </app-empty-state>
-    } @else {
-      @for (clientPackage of clientPackages(); track clientPackage.id) {
-        <app-client-package-card
-          [clientPackage]="clientPackage"
-          (bookClicked)="bookPackage($event)"
-        />
       }
+    </div>
+  </section>
+  <!-- Content -->
+  <section class="mt-5 grid gap-4 sm:mt-6">
+    @if (loading()) {
+    <div class="rounded-2xl border border-slate-200 bg-white px-4 py-10 shadow-sm">
+      <app-loading-spinner label="Cargando paquetes..." />
+    </div>
+    } @else if (clientPackages().length === 0) {
+    <app-empty-state icon="PK" title="Todavia no tenes paquetes."
+      description="Compra un paquete desde el detalle de un servicio para reservar varias sesiones.">
+      <a routerLink="/services"
+        class="inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700 sm:w-auto">
+        Explorar servicios
+      </a>
+    </app-empty-state>
+    } @else {
+    <div class="grid gap-4">
+      @for (clientPackage of clientPackages(); track clientPackage.id) {
+      <app-client-package-card [clientPackage]="clientPackage" (bookClicked)="bookPackage($event)" />
+      }
+    </div>
+
+    <!-- Pagination -->
+    @if (meta().last_page > 1) {
+    <nav
+      class="mt-2 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+      aria-label="Paginacion de paquetes">
+      <p class="text-center text-xs font-semibold text-slate-500 sm:text-left">
+        Pagina {{ meta().current_page }} de {{ meta().last_page }}
+        · {{ meta().total }} paquetes
+      </p>
+
+      <div class="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+        <button type="button"
+          class="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          [disabled]="meta().current_page <= 1 || loading()" (click)="loadPackages(meta().current_page - 1)">
+          Anterior
+        </button>
+
+        <button type="button"
+          class="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          [disabled]="meta().current_page >= meta().last_page || loading()"
+          (click)="loadPackages(meta().current_page + 1)">
+          Siguiente
+        </button>
+      </div>
+    </nav>
+    }
     }
   </section>
 </main>

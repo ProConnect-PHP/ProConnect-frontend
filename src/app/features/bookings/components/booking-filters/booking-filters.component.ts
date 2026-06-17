@@ -24,12 +24,15 @@ const professionalFilters: FilterOption[] = [
 @Component({
   selector: 'app-booking-filters',
   template: `
-    <section class="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm md:flex-row md:items-center md:justify-between">
-      <div class="flex gap-2 overflow-x-auto">
+    <section
+      class="grid gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm md:grid-cols-[1fr_auto] md:items-center"
+      aria-label="Filtros de reservas"
+    >
+      <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
         @for (option of options(); track option.value) {
           <button
             type="button"
-            class="shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition focus:outline focus:outline-2 focus:outline-indigo-600"
+            class="inline-flex min-h-10 items-center justify-center rounded-full border px-3 py-2 text-center text-sm font-bold transition focus:outline focus:outline-2 focus:outline-indigo-600 sm:px-4"
             [class.border-slate-950]="activeFilter() === option.value"
             [class.bg-slate-950]="activeFilter() === option.value"
             [class.text-white]="activeFilter() === option.value"
@@ -44,11 +47,12 @@ const professionalFilters: FilterOption[] = [
       </div>
 
       @if (context() === 'professional') {
-        <label class="flex items-center gap-2 text-sm font-semibold text-slate-700">
-          Fecha
+        <label class="grid gap-1 text-sm font-semibold text-slate-700 sm:flex sm:items-center sm:gap-2">
+          <span>Fecha</span>
+
           <input
             type="date"
-            class="min-h-10 rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-800 shadow-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+            class="min-h-11 w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-800 shadow-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 sm:w-auto"
             [value]="dateFilter() ?? ''"
             (change)="onDateChanged($event)"
           />

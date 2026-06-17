@@ -1,106 +1,217 @@
 <div class="flex min-h-screen flex-col bg-slate-50 text-slate-950">
   <header class="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur">
     <nav
-      class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8"
+      class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8"
       aria-label="Navegacion publica"
     >
+      <!-- Brand -->
       <a
         routerLink="/"
-        class="flex items-center gap-2 rounded-2xl text-lg font-bold text-slate-950 focus:outline focus:outline-2"
+        class="flex min-w-0 items-center gap-2 rounded-2xl text-base font-bold text-slate-950 focus:outline focus:outline-2 focus:outline-indigo-700 sm:text-lg"
         aria-label="ProConnect inicio"
       >
         <span
-          class="grid size-9 place-items-center rounded-2xl bg-slate-950 text-sm font-black text-white"
+          class="grid size-9 shrink-0 place-items-center rounded-2xl bg-slate-950 text-sm font-black text-white"
           aria-hidden="true"
         >
           P
         </span>
-        <span>ProConnect</span>
+
+        <span class="truncate">ProConnect</span>
       </a>
 
-      <div class="hidden items-center gap-6 text-sm font-medium text-slate-600 sm:flex">
-        <a routerLink="/" routerLinkActive="text-slate-950" [routerLinkActiveOptions]="{ exact: true }">
+      <!-- Desktop navigation -->
+      <div class="hidden items-center gap-6 text-sm font-medium text-slate-600 lg:flex">
+        <a
+          routerLink="/"
+          routerLinkActive="text-slate-950"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="transition hover:text-slate-950"
+        >
           Inicio
         </a>
-        <a routerLink="/services" routerLinkActive="text-slate-950">
+
+        <a
+          routerLink="/services"
+          routerLinkActive="text-slate-950"
+          class="transition hover:text-slate-950"
+        >
           Servicios
         </a>
+
         @if (isAuthenticated()) {
-          <a routerLink="/my-bookings" routerLinkActive="text-slate-950">
+          <a
+            routerLink="/my-bookings"
+            routerLinkActive="text-slate-950"
+            class="transition hover:text-slate-950"
+          >
             Mis reservas
           </a>
-          <a routerLink="/my-payments" routerLinkActive="text-slate-950">
+
+          <a
+            routerLink="/my-payments"
+            routerLinkActive="text-slate-950"
+            class="transition hover:text-slate-950"
+          >
             Mis pagos
           </a>
-          <a routerLink="/my-packages" routerLinkActive="text-slate-950">
+
+          <a
+            routerLink="/my-packages"
+            routerLinkActive="text-slate-950"
+            class="transition hover:text-slate-950"
+          >
             Mis paquetes
           </a>
-          <a routerLink="/video-sessions/my" routerLinkActive="text-slate-950">
-            Mis sesiones virtuales
+
+          <a
+            routerLink="/video-sessions/my"
+            routerLinkActive="text-slate-950"
+            class="transition hover:text-slate-950"
+          >
+            Sesiones virtuales
           </a>
         }
       </div>
 
-      <div class="flex items-center gap-2">
-        <a
-          routerLink="/services"
-          class="rounded-2xl px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 focus:outline focus:outline-2 sm:hidden"
-        >
-          Servicios
-        </a>
+      <!-- Right actions -->
+      <div class="flex shrink-0 items-center gap-2">
         @if (isAuthenticated()) {
-          <a
-            routerLink="/my-bookings"
-            class="rounded-2xl px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 focus:outline focus:outline-2 sm:hidden"
-          >
-            Mis reservas
-          </a>
-          <a
-            routerLink="/my-payments"
-            class="rounded-2xl px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 focus:outline focus:outline-2 sm:hidden"
-          >
-            Mis pagos
-          </a>
-          <a
-            routerLink="/my-packages"
-            class="rounded-2xl px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 focus:outline focus:outline-2 sm:hidden"
-          >
-            Mis paquetes
-          </a>
-          <a
-            routerLink="/video-sessions/my"
-            class="rounded-2xl px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 focus:outline focus:outline-2 sm:hidden"
-          >
-            Mis sesiones
-          </a>
           <app-notification-bell />
+
           <a
-            routerLink="/my-bookings"
-            class="rounded-2xl bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700"
+            routerLink="/client/dashboard"
+            class="hidden rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700 sm:inline-flex"
           >
             Mi cuenta
           </a>
         } @else {
           <a
             routerLink="/login"
-            class="rounded-2xl px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 focus:outline focus:outline-2"
+            class="hidden rounded-2xl px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 focus:outline focus:outline-2 focus:outline-indigo-700 sm:inline-flex"
           >
             Iniciar sesion
           </a>
+
           <a
             routerLink="/register"
-            class="rounded-2xl bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700"
+            class="rounded-2xl bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700 sm:px-4"
           >
             Crear cuenta
           </a>
         }
+
+        <!-- Mobile menu button -->
+        <button
+          type="button"
+          class="inline-flex size-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-100 focus:outline focus:outline-2 focus:outline-indigo-700 lg:hidden"
+          [attr.aria-expanded]="isMobileMenuOpen()"
+          aria-controls="mobile-public-navigation"
+          aria-label="Abrir menu de navegacion"
+          (click)="toggleMobileMenu()"
+        >
+          @if (isMobileMenuOpen()) {
+            <span class="text-xl leading-none" aria-hidden="true">×</span>
+          } @else {
+            <span class="text-xl leading-none" aria-hidden="true">☰</span>
+          }
+        </button>
       </div>
     </nav>
+
+    <!-- Mobile navigation panel -->
+    @if (isMobileMenuOpen()) {
+      <div
+        id="mobile-public-navigation"
+        class="border-t border-slate-200 bg-white px-4 py-3 shadow-sm lg:hidden"
+      >
+        <div class="mx-auto flex max-w-7xl flex-col gap-1">
+          <a
+            routerLink="/"
+            routerLinkActive="bg-slate-100 text-slate-950"
+            [routerLinkActiveOptions]="{ exact: true }"
+            class="rounded-2xl px-3 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+            (click)="closeMobileMenu()"
+          >
+            Inicio
+          </a>
+
+          <a
+            routerLink="/services"
+            routerLinkActive="bg-slate-100 text-slate-950"
+            class="rounded-2xl px-3 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+            (click)="closeMobileMenu()"
+          >
+            Servicios
+          </a>
+
+          @if (isAuthenticated()) {
+            <div class="my-2 h-px bg-slate-200"></div>
+
+            <a
+              routerLink="/my-bookings"
+              routerLinkActive="bg-slate-100 text-slate-950"
+              class="rounded-2xl px-3 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+              (click)="closeMobileMenu()"
+            >
+              Mis reservas
+            </a>
+
+            <a
+              routerLink="/my-payments"
+              routerLinkActive="bg-slate-100 text-slate-950"
+              class="rounded-2xl px-3 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+              (click)="closeMobileMenu()"
+            >
+              Mis pagos
+            </a>
+
+            <a
+              routerLink="/my-packages"
+              routerLinkActive="bg-slate-100 text-slate-950"
+              class="rounded-2xl px-3 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+              (click)="closeMobileMenu()"
+            >
+              Mis paquetes
+            </a>
+
+            <a
+              routerLink="/video-sessions/my"
+              routerLinkActive="bg-slate-100 text-slate-950"
+              class="rounded-2xl px-3 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+              (click)="closeMobileMenu()"
+            >
+              Mis sesiones virtuales
+            </a>
+
+            <div class="my-2 h-px bg-slate-200"></div>
+
+            <a
+              routerLink="/client/dashboard"
+              class="rounded-2xl bg-indigo-600 px-3 py-3 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
+              (click)="closeMobileMenu()"
+            >
+              Mi cuenta
+            </a>
+          } @else {
+            <div class="my-2 h-px bg-slate-200 sm:hidden"></div>
+
+            <a
+              routerLink="/login"
+              class="rounded-2xl px-3 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 sm:hidden"
+              (click)="closeMobileMenu()"
+            >
+              Iniciar sesion
+            </a>
+          }
+        </div>
+      </div>
+    }
   </header>
-  <div class="flex flex-1 flex-col">
+
+  <main class="flex flex-1 flex-col">
     <router-outlet />
-  </div>
+  </main>
 
   <app-toast />
-
 </div>

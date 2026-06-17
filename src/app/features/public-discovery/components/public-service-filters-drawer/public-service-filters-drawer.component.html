@@ -2,25 +2,32 @@
   <div class="fixed inset-0 z-50">
     <button
       type="button"
-      class="absolute inset-0 bg-slate-950/40"
+      class="absolute inset-0 bg-slate-950/40 backdrop-blur-sm"
       aria-label="Cerrar filtros"
       (click)="closed.emit()"
     ></button>
 
     <section
-      class="absolute inset-x-0 bottom-0 max-h-[92vh] overflow-auto rounded-t-[2rem] bg-white shadow-2xl sm:inset-y-0 sm:left-auto sm:right-0 sm:w-[420px] sm:rounded-l-[2rem] sm:rounded-tr-none"
+      class="absolute inset-x-0 bottom-0 flex max-h-[92dvh] flex-col overflow-hidden rounded-t-[2rem] bg-white shadow-2xl sm:inset-y-0 sm:left-auto sm:right-0 sm:h-dvh sm:max-h-none sm:w-[420px] sm:rounded-l-[2rem] sm:rounded-tr-none"
       role="dialog"
       aria-modal="true"
       aria-labelledby="advanced-filters-title"
     >
-      <form class="grid gap-5 p-5" [formGroup]="form" (ngSubmit)="applyFilters()">
-        <div class="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
-          <div>
-            <p class="text-xs font-bold uppercase tracking-[0.2em] text-indigo-600">Filtros</p>
-            <h2 id="advanced-filters-title" class="mt-1 text-2xl font-black tracking-tight text-slate-950">
+      <form class="flex min-h-0 flex-1 flex-col" [formGroup]="form" (ngSubmit)="applyFilters()">
+        <div class="flex items-start justify-between gap-4 border-b border-slate-100 p-5">
+          <div class="min-w-0">
+            <p class="text-xs font-bold uppercase tracking-[0.2em] text-indigo-600">
+              Filtros
+            </p>
+
+            <h2
+              id="advanced-filters-title"
+              class="mt-1 text-2xl font-black tracking-tight text-slate-950"
+            >
               Mas filtros
             </h2>
           </div>
+
           <button
             type="button"
             class="rounded-2xl px-3 py-2 text-sm font-bold text-slate-600 transition hover:bg-slate-100 focus:outline focus:outline-2 focus:outline-indigo-600"
@@ -30,99 +37,123 @@
           </button>
         </div>
 
-        <section class="grid gap-2">
-          <label for="drawer-modality" class="text-sm font-bold text-slate-800">Modalidad</label>
-          <select
-            id="drawer-modality"
-            class="min-h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
-            formControlName="modality"
-          >
-            <option value="">Todas</option>
-            @for (modality of modalities; track modality) {
-              <option [value]="modality">{{ modality }}</option>
-            }
-          </select>
-        </section>
+        <div class="grid min-h-0 flex-1 gap-5 overflow-y-auto p-5">
+          <section class="grid gap-2">
+            <label for="drawer-modality" class="text-sm font-bold text-slate-800">
+              Modalidad
+            </label>
 
-        <section class="grid gap-3">
-          <div>
-            <p class="text-sm font-bold text-slate-800">Precio</p>
-            <p class="mt-1 text-xs text-slate-500">Rango opcional para ajustar resultados.</p>
-          </div>
-          <div class="grid grid-cols-2 gap-3">
+            <select
+              id="drawer-modality"
+              class="min-h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+              formControlName="modality"
+            >
+              <option value="">Todas</option>
+              @for (modality of modalities; track modality) {
+                <option [value]="modality">{{ modality }}</option>
+              }
+            </select>
+          </section>
+
+          <section class="grid gap-3">
             <div>
-              <label for="drawer-min-price" class="text-sm font-semibold text-slate-700">Minimo</label>
-              <input
-                id="drawer-min-price"
-                type="number"
-                min="0"
-                inputmode="decimal"
-                class="mt-2 min-h-11 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
-                formControlName="min_price"
-              />
+              <p class="text-sm font-bold text-slate-800">Precio</p>
+              <p class="mt-1 text-xs text-slate-500">
+                Rango opcional para ajustar resultados.
+              </p>
             </div>
-            <div>
-              <label for="drawer-max-price" class="text-sm font-semibold text-slate-700">Maximo</label>
-              <input
-                id="drawer-max-price"
-                type="number"
-                min="0"
-                inputmode="decimal"
-                class="mt-2 min-h-11 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
-                formControlName="max_price"
-              />
+
+            <div class="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label for="drawer-min-price" class="text-sm font-semibold text-slate-700">
+                  Minimo
+                </label>
+
+                <input
+                  id="drawer-min-price"
+                  type="number"
+                  min="0"
+                  inputmode="decimal"
+                  class="mt-2 min-h-11 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+                  formControlName="min_price"
+                />
+              </div>
+
+              <div>
+                <label for="drawer-max-price" class="text-sm font-semibold text-slate-700">
+                  Maximo
+                </label>
+
+                <input
+                  id="drawer-max-price"
+                  type="number"
+                  min="0"
+                  inputmode="decimal"
+                  class="mt-2 min-h-11 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+                  formControlName="max_price"
+                />
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        <section class="grid gap-2">
-          <label for="drawer-duration" class="text-sm font-bold text-slate-800">Duracion</label>
-          <select
-            id="drawer-duration"
-            class="min-h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
-            formControlName="duration_minutes"
-          >
-            <option [ngValue]="''">Todas</option>
-            @for (duration of durations; track duration) {
-              <option [ngValue]="duration">{{ duration }} min</option>
-            }
-          </select>
-        </section>
+          <section class="grid gap-2">
+            <label for="drawer-duration" class="text-sm font-bold text-slate-800">
+              Duracion
+            </label>
 
-        <section class="grid gap-2">
-          <label for="drawer-date" class="text-sm font-bold text-slate-800">Fecha disponible</label>
-          <input
-            id="drawer-date"
-            type="date"
-            class="min-h-11 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
-            formControlName="available_date"
+            <select
+              id="drawer-duration"
+              class="min-h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+              formControlName="duration_minutes"
+            >
+              <option [ngValue]="''">Todas</option>
+              @for (duration of durations; track duration) {
+                <option [ngValue]="duration">{{ duration }} min</option>
+              }
+            </select>
+          </section>
+
+          <section class="grid gap-2">
+            <label for="drawer-date" class="text-sm font-bold text-slate-800">
+              Fecha disponible
+            </label>
+
+            <input
+              id="drawer-date"
+              type="date"
+              class="min-h-11 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+              formControlName="available_date"
+            />
+          </section>
+
+          <label class="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              class="mt-1 size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600"
+              formControlName="is_verified"
+            />
+
+            <span>
+              <span class="block font-bold text-slate-900">Solo verificados</span>
+              <span class="block text-slate-600">
+                Mostrar profesionales con verificacion publica.
+              </span>
+            </span>
+          </label>
+
+          <app-location-picker
+            [showRadius]="true"
+            [showMap]="false"
+            [initialLocation]="pickerLocation()"
+            [initialRadiusKm]="selectedRadius()"
+            searchPlaceholder="Buscar barrio, ciudad o direccion..."
+            (locationChanged)="onLocationChanged($event)"
+            (radiusChanged)="onRadiusChanged($event)"
+            (cleared)="clearLocation()"
           />
-        </section>
+        </div>
 
-        <label class="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
-          <input
-            type="checkbox"
-            class="mt-1 size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600"
-            formControlName="is_verified"
-          />
-          <span>
-            <span class="block font-bold text-slate-900">Solo verificados</span>
-            <span class="block text-slate-600">Mostrar profesionales con verificacion publica.</span>
-          </span>
-        </label>
-
-        <app-location-picker
-          [showRadius]="true"
-          [showMap]="false"
-          [initialLocation]="pickerLocation()"
-          [initialRadiusKm]="selectedRadius()"
-          searchPlaceholder="Buscar barrio, ciudad o direccion..."
-          (locationChanged)="onLocationChanged($event)"
-          (radiusChanged)="onRadiusChanged($event)"
-          (cleared)="clearLocation()"
-        />
-
-        <div class="sticky bottom-0 -mx-5 -mb-5 grid gap-3 border-t border-slate-200 bg-white p-5 sm:grid-cols-2">
+        <div class="grid gap-3 border-t border-slate-200 bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:grid-cols-2">
           <button
             type="button"
             class="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600"
@@ -130,6 +161,7 @@
           >
             Limpiar filtros
           </button>
+
           <button
             type="submit"
             class="inline-flex min-h-11 items-center justify-center rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700"

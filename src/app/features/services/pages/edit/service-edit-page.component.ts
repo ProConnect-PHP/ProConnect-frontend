@@ -3,14 +3,14 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 
-import { ApiClientError } from '../../../core/http/models/api-error.model';
-import { AppAlertComponent } from '../../../shared/ui/alert/alert.component';
-import { AppCardComponent } from '../../../shared/ui/card/card.component';
-import { AppLoadingSpinnerComponent } from '../../../shared/ui/loading-spinner/loading-spinner.component';
-import { AppPageHeaderComponent } from '../../../shared/ui/page-header/page-header.component';
-import { ServiceFormComponent } from '../components/service-form/service-form.component';
-import { ServicesApi } from '../data-access/services.api';
-import { Service, StoreServiceRequest } from '../models/service.models';
+import { ApiClientError } from '../../../../core/http/models/api-error.model';
+import { AppAlertComponent } from '../../../../shared/ui/alert/alert.component';
+import { AppCardComponent } from '../../../../shared/ui/card/card.component';
+import { AppLoadingSpinnerComponent } from '../../../../shared/ui/loading-spinner/loading-spinner.component';
+import { AppPageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
+import { ServiceFormComponent } from '../../components/service-form/service-form.component';
+import { ServicesApi } from '../../data-access/services.api';
+import { Service, StoreServiceRequest } from '../../models/service.models';
 
 @Component({
   selector: 'app-service-edit-page',

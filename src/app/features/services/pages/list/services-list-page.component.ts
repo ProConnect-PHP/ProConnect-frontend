@@ -3,14 +3,14 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 
-import { ApiClientError } from '../../../core/http/models/api-error.model';
-import { AppAlertComponent } from '../../../shared/ui/alert/alert.component';
-import { AppEmptyStateComponent } from '../../../shared/ui/empty-state/empty-state.component';
-import { AppLoadingSpinnerComponent } from '../../../shared/ui/loading-spinner/loading-spinner.component';
-import { AppPageHeaderComponent } from '../../../shared/ui/page-header/page-header.component';
-import { ServiceCardComponent } from '../components/service-card/service-card.component';
-import { ServicesApi } from '../data-access/services.api';
-import { Service } from '../models/service.models';
+import { ApiClientError } from '../../../../core/http/models/api-error.model';
+import { AppAlertComponent } from '../../../../shared/ui/alert/alert.component';
+import { AppEmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
+import { AppLoadingSpinnerComponent } from '../../../../shared/ui/loading-spinner/loading-spinner.component';
+import { AppPageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
+import { ServiceCardComponent } from '../../components/service-card/service-card.component';
+import { ServicesApi } from '../../data-access/services.api';
+import { Service } from '../../models/service.models';
 
 @Component({
   selector: 'app-services-list-page',

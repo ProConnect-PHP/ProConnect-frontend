@@ -49,6 +49,10 @@ export class ProfessionalSoldPackagesPageComponent implements OnInit {
   }
 
   setFilter(filter: PackageFilter): void {
+    if (this.activeFilter() === filter) {
+      return;
+    }
+
     this.activeFilter.set(filter);
     this.loadSoldPackages();
   }
@@ -73,9 +77,12 @@ export class ProfessionalSoldPackagesPageComponent implements OnInit {
       .subscribe({
         next: (response) => this.clientPackages.set(response.client_packages),
         error: (error: unknown) => {
+          this.clientPackages.set([]);
+
           this.errorMessage.set(
             mapPackageApiError(error, 'No pudimos cargar los paquetes vendidos.'),
           );
+
           this.profileRequired.set(
             error instanceof ApiClientError && error.type === 'ProfessionalProfileRequired',
           );
