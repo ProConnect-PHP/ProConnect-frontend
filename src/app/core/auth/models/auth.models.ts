@@ -5,8 +5,8 @@ export type User = {
   role: 'client' | 'professional' | 'admin';
   avatar_url: string | null;
 
-  email_verified_at: string | null;
-  email_verified: boolean;
+  email_verified_at?: string | null;
+  email_verified?: boolean;
 
   has_professional_profile?: boolean;
   professional_profile_status?: 'missing' | 'draft' | 'active' | 'suspended';

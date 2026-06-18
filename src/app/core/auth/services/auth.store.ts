@@ -167,6 +167,7 @@ export class AuthStore {
   private normalizeUser(user: User): User {
     return {
       ...user,
+      email_verified_at: user.email_verified_at ?? null,
       email_verified: user.email_verified === true || !!user.email_verified_at,
     };
   }
