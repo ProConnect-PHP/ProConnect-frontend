@@ -90,7 +90,7 @@ export class DashboardLayoutComponent {
     { label: 'Servicios', shortLabel: 'Servicios', path: '/dashboard/services' },
     {
       label: 'Disponibilidad',
-      shortLabel: 'Agenda',
+      shortLabel: 'Disp.',
       path: '/dashboard/availability',
     },
     {
@@ -124,6 +124,11 @@ export class DashboardLayoutComponent {
       shortLabel: 'Salas',
       path: '/professional/video-sessions',
     },
+    {
+      label: 'Agenda',
+      shortLabel: 'Agenda',
+      path: '/professional/agenda',
+    }
   ];
 
   readonly visibleNavigationGroups = computed<NavigationGroup[]>(() => {

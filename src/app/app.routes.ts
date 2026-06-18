@@ -310,6 +310,12 @@ export const routes: Routes = [
           ).then((m) => m.ProfessionalSoldPackagesPageComponent),
       },
       {
+        path: 'professional/agenda',
+        loadComponent: () =>
+          import('./features/agenda/pages/professional-agenda-page/professional-agenda-page')
+            .then((m) => m.ProfessionalAgendaPage),
+      },
+      {
         path: 'dashboard',
         canActivate: [professionalGuard],
         children: [
@@ -383,7 +389,7 @@ export const routes: Routes = [
               ).then((m) => m.BookingPolicySettingsPageComponent),
           },
         ],
-      },
+      }
     ],
   },
   {
