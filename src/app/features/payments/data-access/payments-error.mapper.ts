@@ -2,6 +2,10 @@ import { ApiClientError } from '../../../core/http/models/api-error.model';
 
 export function mapPaymentError(errorCode?: string, fallback?: string): string {
   switch (errorCode) {
+    case 'EmailNotVerified':
+    case 'EMAIL_NOT_VERIFIED':
+      return 'Debes verificar tu correo electrónico para realizar esta acción.';
+
     case 'BookingNotPayable':
       return 'Solo podes pagar reservas confirmadas.';
     case 'BookingAlreadyPaid':
@@ -24,6 +28,10 @@ export function mapPaymentError(errorCode?: string, fallback?: string): string {
 
 export function mapPaymentApiError(error: unknown, fallback?: string): string {
   if (error instanceof ApiClientError) {
+    if (error.code === 'EMAIL_NOT_VERIFIED' || error.type === 'EmailNotVerified') {
+      return mapPaymentError(error.code ?? error.type, error.message || fallback);
+    }
+
     if (error.status === 409) {
       return 'El pago o el recurso asociado cambio de estado. Actualiza la pagina e intenta nuevamente.';
     }
@@ -36,7 +44,7 @@ export function mapPaymentApiError(error: unknown, fallback?: string): string {
       return 'El proveedor de pagos no respondio correctamente. Proba nuevamente.';
     }
 
-    return mapPaymentError(error.type, error.message || fallback);
+    return mapPaymentError(error.code ?? error.type, error.message || fallback);
   }
 
   if (error instanceof Error) {

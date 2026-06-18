@@ -2,6 +2,10 @@ import { ApiClientError } from '../../../core/http/models/api-error.model';
 
 export function mapReviewError(errorCode?: string, fallback?: string): string {
   switch (errorCode) {
+    case 'EmailNotVerified':
+    case 'EMAIL_NOT_VERIFIED':
+      return 'Debes verificar tu correo electrónico para realizar esta acción.';
+
     case 'BookingNotCompleted':
       return 'Solo podes reseñar reservas finalizadas.';
     case 'BookingAlreadyReviewed':
@@ -24,7 +28,7 @@ export function mapReviewError(errorCode?: string, fallback?: string): string {
 
 export function mapReviewApiError(error: unknown, fallback?: string): string {
   if (error instanceof ApiClientError) {
-    return mapReviewError(error.type, error.message || fallback);
+    return mapReviewError(error.code ?? error.type, error.message || fallback);
   }
 
   if (error instanceof Error) {
@@ -36,5 +40,6 @@ export function mapReviewApiError(error: unknown, fallback?: string): string {
 
 export function reviewFieldErrors(error: unknown, field: string): string[] {
   if (!(error instanceof ApiClientError)) return [];
+
   return error.details?.[field] ?? [];
 }

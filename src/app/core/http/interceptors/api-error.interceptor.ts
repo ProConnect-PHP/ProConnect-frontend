@@ -45,6 +45,16 @@ export const apiErrorInterceptor: HttpInterceptorFn = (request, next) => {
       if (shouldRedirectToLogin(request.url, clientError.status)) {
         tokenStorage.clear();
         void router.navigateByUrl('/login');
+
+        return throwError(() => clientError);
+      }
+
+      if (shouldRedirectToEmailVerification(request.url, router.url, clientError)) {
+        void router.navigate(['/auth/email-verification-required'], {
+          queryParams: {
+            returnUrl: router.url,
+          },
+        });
       }
 
       return throwError(() => clientError);
@@ -79,6 +89,27 @@ function refreshAndRetry(
         }),
       ),
     ),
+  );
+}
+function shouldRedirectToEmailVerification(
+  requestUrl: string,
+  currentUrl: string,
+  error: ApiClientError,
+): boolean {
+  if (isAuthEndpoint(requestUrl)) {
+    return false;
+  }
+
+  if (
+    currentUrl.startsWith('/auth/email-verification-required') ||
+    currentUrl.startsWith('/auth/verify-email')
+  ) {
+    return false;
+  }
+
+  return (
+    error.status === 403 &&
+    (error.type === 'EmailNotVerified' || error.code === 'EMAIL_NOT_VERIFIED')
   );
 }
 
@@ -116,7 +147,13 @@ function toClientError(error: unknown): ApiClientError {
       payload?.message?.trim() ||
       getFriendlyApiMessage(type, error.message);
 
-    return new ApiClientError(message, error.status, type, payload?.details ?? null);
+    return new ApiClientError(
+      message,
+      error.status,
+      type,
+      payload?.details ?? null,
+      payload?.code,
+    );
   }
 
   if (error instanceof Error) {

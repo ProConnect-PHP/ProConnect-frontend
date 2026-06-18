@@ -1,0 +1,85 @@
+<main class="min-h-[calc(100vh-4rem)] bg-slate-50 px-4 py-8 sm:px-6 lg:px-8">
+  <section class="mx-auto max-w-md rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200 sm:p-8">
+    <div
+      class="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl"
+      [class.bg-slate-100]="state() === 'loading'"
+      [class.text-slate-700]="state() === 'loading'"
+      [class.bg-emerald-100]="state() === 'success'"
+      [class.text-emerald-700]="state() === 'success'"
+      [class.bg-red-100]="state() === 'error'"
+      [class.text-red-700]="state() === 'error'"
+    >
+      @if (state() === 'loading') {
+        <span
+          class="h-6 w-6 animate-spin rounded-full border-2 border-current border-t-transparent"
+          aria-label="Verificando"
+        ></span>
+      } @else if (state() === 'success') {
+        <span class="text-2xl font-bold" aria-hidden="true">✓</span>
+      } @else {
+        <span class="text-2xl font-bold" aria-hidden="true">!</span>
+      }
+    </div>
+
+    <h1 class="text-2xl font-bold tracking-tight text-slate-950">
+      @if (state() === 'loading') {
+        Verificando correo
+      } @else if (state() === 'success') {
+        Correo verificado
+      } @else {
+        No pudimos verificarlo
+      }
+    </h1>
+
+    <p class="mt-3 text-sm leading-6 text-slate-600" aria-live="polite">
+      {{ message() }}
+    </p>
+
+    @if (state() === 'success') {
+      <div class="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        Tu cuenta ya puede usar reservas, paquetes, pagos, servicios profesionales y videollamadas.
+      </div>
+
+      <div class="mt-6 flex flex-col gap-3">
+        @if (canGoToApp()) {
+          <button
+            type="button"
+            class="inline-flex w-full items-center justify-center rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
+            (click)="continueToApp()"
+          >
+            Continuar
+          </button>
+        }
+
+        @if (canGoToLogin()) {
+          <button
+            type="button"
+            class="inline-flex w-full items-center justify-center rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
+            (click)="goToLogin()"
+          >
+            Iniciar sesión
+          </button>
+        }
+      </div>
+    }
+
+    @if (state() === 'error') {
+      <div class="mt-6 flex flex-col gap-3">
+        <button
+          type="button"
+          class="inline-flex w-full items-center justify-center rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
+          (click)="goToVerificationRequired()"
+        >
+          Pedir nuevo enlace
+        </button>
+
+        <a
+          routerLink="/login"
+          class="inline-flex w-full items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+        >
+          Ir a login
+        </a>
+      </div>
+    }
+  </section>
+</main>
