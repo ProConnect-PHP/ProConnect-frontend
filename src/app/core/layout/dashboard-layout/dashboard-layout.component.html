@@ -83,6 +83,8 @@
     class="fixed inset-y-0 left-0 z-50 w-[min(20rem,calc(100vw-2rem))] overflow-y-auto border-r border-slate-200 bg-white px-4 py-5 shadow-2xl transition-transform duration-200 ease-out lg:hidden"
     [class.translate-x-0]="isMobileMenuOpen()"
     [class.-translate-x-full]="!isMobileMenuOpen()"
+    [attr.inert]="!isMobileMenuOpen() ? '' : null"
+    [attr.aria-hidden]="!isMobileMenuOpen()"
     aria-label="Navegacion de cuenta movil"
   >
     <div class="flex items-center justify-between gap-3">

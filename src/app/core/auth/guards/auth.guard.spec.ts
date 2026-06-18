@@ -12,6 +12,7 @@ import { User } from '../models/auth.models';
 import { AuthRedirectService } from '../services/auth-redirect.service';
 import { AuthStore } from '../services/auth.store';
 import { TokenStorageService } from '../services/token-storage.service';
+import { adminGuard } from './admin.guard';
 import { authGuard } from './auth.guard';
 import { guestGuard } from './guest.guard';
 import { professionalGuard } from './professional.guard';
@@ -30,17 +31,29 @@ const professional: User = {
   role: 'professional',
 };
 
+const admin: User = {
+  ...client,
+  id: 'admin-1',
+  role: 'admin',
+};
+
 describe('auth guards', () => {
   const loginTree = { kind: 'login' } as unknown as UrlTree;
   const clientTree = { kind: 'client' } as unknown as UrlTree;
   const professionalTree = { kind: 'professional' } as unknown as UrlTree;
+  const adminTree = { kind: 'admin' } as unknown as UrlTree;
   const onboardingTree = { kind: 'onboarding' } as unknown as UrlTree;
-  const createUrlTree = vi.fn((commands: string[]) =>
-    commands[0] === '/professional/onboarding' ? onboardingTree : loginTree,
-  );
-  const parseUrl = vi.fn((url: string) =>
-    url === '/dashboard' ? professionalTree : clientTree,
-  );
+  const rootTree = { kind: 'root' } as unknown as UrlTree;
+  const createUrlTree = vi.fn((commands: string[]) => {
+    if (commands[0] === '/professional/onboarding') return onboardingTree;
+    if (commands[0] === '/') return rootTree;
+    return loginTree;
+  });
+  const parseUrl = vi.fn((url: string) => {
+    if (url === '/admin') return adminTree;
+    if (url === '/dashboard') return professionalTree;
+    return clientTree;
+  });
   const isAuthenticated = vi.fn(() => false);
   const currentUser = vi.fn<() => User | null>(() => null);
   const loadCurrentUser = vi.fn(() => of<User | null>(null));
@@ -126,7 +139,7 @@ describe('auth guards', () => {
     const result = runGuard(guestGuard, '/login');
 
     expect(result).toBe(clientTree);
-    expect(parseUrl).toHaveBeenCalledWith('/client/dashboard');
+    expect(parseUrl).toHaveBeenCalledWith('/my-bookings');
   });
 
   it('redirects authenticated professional users to the professional dashboard', () => {
@@ -137,6 +150,16 @@ describe('auth guards', () => {
 
     expect(result).toBe(professionalTree);
     expect(parseUrl).toHaveBeenCalledWith('/dashboard');
+  });
+
+  it('redirects authenticated admin users to the admin panel', () => {
+    isAuthenticated.mockReturnValue(true);
+    currentUser.mockReturnValue(admin);
+
+    const result = runGuard(guestGuard, '/login');
+
+    expect(result).toBe(adminTree);
+    expect(parseUrl).toHaveBeenCalledWith('/admin');
   });
 
   it('blocks client users from professional routes', () => {
@@ -178,6 +201,45 @@ describe('auth guards', () => {
       queryParams: {
         returnUrl: '/dashboard',
         redirectTo: '/dashboard',
+      },
+    });
+  });
+
+  it('allows admin users into admin routes', () => {
+    isAuthenticated.mockReturnValue(true);
+    currentUser.mockReturnValue(admin);
+
+    expect(runGuard(adminGuard, '/admin')).toBe(true);
+  });
+
+  it('hydrates the current admin before activating an admin route', async () => {
+    isAuthenticated.mockReturnValue(true);
+    loadCurrentUser.mockReturnValue(of(admin));
+
+    const result = runGuard(adminGuard, '/admin') as Observable<boolean | UrlTree>;
+
+    await expect(firstValueFrom(result)).resolves.toBe(true);
+    expect(loadCurrentUser).toHaveBeenCalledOnce();
+  });
+
+  it('blocks non-admin users from admin routes', () => {
+    isAuthenticated.mockReturnValue(true);
+    currentUser.mockReturnValue(professional);
+
+    const result = runGuard(adminGuard, '/admin/users');
+
+    expect(result).toBe(rootTree);
+    expect(createUrlTree).toHaveBeenCalledWith(['/']);
+  });
+
+  it('sends unauthenticated admin-route requests to login', () => {
+    const result = runGuard(adminGuard, '/admin');
+
+    expect(result).toBe(loginTree);
+    expect(createUrlTree).toHaveBeenCalledWith(['/login'], {
+      queryParams: {
+        returnUrl: '/admin',
+        redirectTo: '/admin',
       },
     });
   });

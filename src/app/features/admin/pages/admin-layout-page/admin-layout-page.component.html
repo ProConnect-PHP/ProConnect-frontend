@@ -1,0 +1,72 @@
+<div class="min-h-screen w-full bg-slate-100 text-slate-950">
+  <aside
+    class="fixed inset-y-0 left-0 z-30 hidden w-72 overflow-y-auto border-r border-slate-200 bg-white px-4 py-5 lg:block"
+    aria-label="Panel administrativo"
+  >
+    <a
+      routerLink="/admin"
+      class="flex items-center gap-3 rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-950"
+    >
+      <span class="grid size-10 shrink-0 place-items-center rounded-2xl bg-slate-950 font-black text-white">
+        A
+      </span>
+      <span class="min-w-0">
+        <span class="block truncate text-base font-bold">ProConnect</span>
+        <span class="block truncate text-xs text-slate-500">Panel administrativo</span>
+      </span>
+    </a>
+
+    <div class="mt-8">
+      <app-admin-sidebar />
+    </div>
+
+    <div class="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+      <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Sesion admin</p>
+      <p class="mt-2 truncate text-sm font-black text-slate-950">
+        {{ currentUser()?.email ?? 'Administrador' }}
+      </p>
+    </div>
+  </aside>
+
+  <div class="min-w-0 w-full lg:pl-72">
+    <div class="flex min-h-screen min-w-0 w-full flex-col">
+      <header class="sticky top-0 z-20 w-full border-b border-slate-200 bg-white/95 backdrop-blur">
+        <div class="flex min-h-16 items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+          <div class="min-w-0">
+            <p class="truncate text-xs font-bold uppercase tracking-wide text-slate-500">
+              Administracion
+            </p>
+            <p class="truncate text-sm font-black text-slate-950">
+              {{ currentUser()?.name ?? 'Panel administrativo' }}
+            </p>
+          </div>
+
+          <div class="flex shrink-0 items-center gap-2">
+            <a
+              routerLink="/"
+              class="hidden min-h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-700 sm:inline-flex"
+            >
+              Sitio publico
+            </a>
+
+            <button
+              type="button"
+              class="inline-flex min-h-10 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-700"
+              (click)="logout()"
+            >
+              Salir
+            </button>
+          </div>
+        </div>
+
+        <div class="border-t border-slate-100 px-4 py-3 lg:hidden">
+          <app-admin-sidebar />
+        </div>
+      </header>
+
+      <main class="min-w-0 w-full flex-1">
+        <router-outlet />
+      </main>
+    </div>
+  </div>
+</div>

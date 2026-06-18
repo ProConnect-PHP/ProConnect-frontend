@@ -31,14 +31,14 @@ describe('OAuthCallbackPage', () => {
 
   afterEach(() => vi.restoreAllMocks());
 
-  it('navigates client users to their dashboard after exchanging the code', async () => {
+  it('navigates client users to their bookings after exchanging the code', async () => {
     const { exchangeOAuthCode, navigateByUrl } = await setup(
       { code: 'oauth-code' },
       of(authResponse),
     );
 
     expect(exchangeOAuthCode).toHaveBeenCalledWith('oauth-code');
-    expect(navigateByUrl).toHaveBeenCalledWith('/client/dashboard');
+    expect(navigateByUrl).toHaveBeenCalledWith('/my-bookings');
   });
 
   it('does not send a client to a professional return URL', async () => {
@@ -76,6 +76,20 @@ describe('OAuthCallbackPage', () => {
     );
 
     expect(navigateByUrl).toHaveBeenCalledWith('/dashboard');
+  });
+
+  it('navigates admin users to the admin panel', async () => {
+    const adminResponse: AuthResponse = {
+      ...authResponse,
+      user: {
+        ...authResponse.user,
+        role: 'admin',
+      },
+    };
+
+    const { navigateByUrl } = await setup({ code: 'oauth-code' }, of(adminResponse));
+
+    expect(navigateByUrl).toHaveBeenCalledWith('/admin');
   });
 
   it('shows an error when the callback has no code', async () => {

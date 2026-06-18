@@ -36,7 +36,7 @@ export class AuthRedirectService {
       return '/dashboard';
     }
 
-    return '/client/dashboard';
+    return '/my-bookings';
   }
 
   private isAllowedReturnUrl(url: string): boolean {
