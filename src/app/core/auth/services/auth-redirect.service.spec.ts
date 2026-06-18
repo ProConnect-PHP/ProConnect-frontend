@@ -11,6 +11,12 @@ const client: User = {
   avatar_url: null,
 };
 
+const admin: User = {
+  ...client,
+  id: 'admin-1',
+  role: 'admin',
+};
+
 describe('AuthRedirectService', () => {
   let service: AuthRedirectService;
 
@@ -20,7 +26,11 @@ describe('AuthRedirectService', () => {
   });
 
   it('sends a client to their bookings by default', () => {
-    expect(service.getPostLoginRedirect(client)).toBe('/client/dashboard');
+    expect(service.getPostLoginRedirect(client)).toBe('/my-bookings');
+  });
+
+  it('sends an admin to the admin panel by default', () => {
+    expect(service.getPostLoginRedirect(admin)).toBe('/admin');
   });
 
   it('sends users with professional capability to the professional panel', () => {
@@ -55,7 +65,7 @@ describe('AuthRedirectService', () => {
   });
 
   it('rejects external and auth return URLs', () => {
-    expect(service.getPostLoginRedirect(client, '//example.com')).toBe('/client/dashboard');
-    expect(service.getPostLoginRedirect(client, '/login')).toBe('/client/dashboard');
+    expect(service.getPostLoginRedirect(client, '//example.com')).toBe('/my-bookings');
+    expect(service.getPostLoginRedirect(client, '/login')).toBe('/my-bookings');
   });
 });

@@ -1,4 +1,15 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  computed,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 
 import { LocationPickerComponent } from '../../../../shared/location/components/location-picker/location-picker.component';
@@ -18,10 +29,14 @@ import {
   selector: 'app-public-service-filters-drawer',
   imports: [ReactiveFormsModule, LocationPickerComponent],
   templateUrl: './public-service-filters-drawer.component.html',
+  host: {
+    '(document:keydown.escape)': 'closeFromKeyboard()',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PublicServiceFiltersDrawerComponent {
   private readonly fb = inject(FormBuilder);
+  private readonly closeButton = viewChild<ElementRef<HTMLButtonElement>>('closeButton');
 
   readonly open = input(false);
   readonly query = input<PublicServicesQuery>({});
@@ -46,6 +61,14 @@ export class PublicServiceFiltersDrawerComponent {
 
   constructor() {
     effect(() => this.patchFromQuery(this.query()));
+    effect(() => {
+      if (!this.open()) return;
+      queueMicrotask(() => this.closeButton()?.nativeElement.focus());
+    });
+  }
+
+  closeFromKeyboard(): void {
+    if (this.open()) this.closed.emit();
   }
 
   applyFilters(): void {

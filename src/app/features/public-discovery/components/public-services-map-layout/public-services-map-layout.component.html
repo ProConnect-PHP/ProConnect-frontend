@@ -1,7 +1,7 @@
 @if (loading()) {
   <div class="grid gap-4 lg:grid-cols-[420px_minmax(0,1fr)] lg:gap-6">
     <aside class="order-1 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:order-2">
-      <div class="h-[55vh] min-h-[320px] animate-pulse bg-slate-200 lg:h-[70vh] lg:min-h-[420px]"></div>
+      <div class="h-[42vh] min-h-[240px] animate-pulse bg-slate-200 sm:h-[55vh] sm:min-h-[320px] lg:h-[70vh] lg:min-h-[420px]"></div>
     </aside>
 
     <section class="order-2 grid gap-4 lg:order-1">
@@ -27,7 +27,7 @@
 } @else {
   <div class="grid gap-4 lg:grid-cols-[420px_minmax(0,1fr)] lg:gap-6">
     <aside
-      class="order-1 h-[55vh] min-h-[320px] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:sticky lg:top-24 lg:order-2 lg:h-[70vh] lg:min-h-[420px]"
+      class="order-1 h-[42vh] min-h-[240px] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm sm:h-[55vh] sm:min-h-[320px] lg:sticky lg:top-24 lg:order-2 lg:h-[70vh] lg:min-h-[420px]"
     >
       <app-mapbox-map
         class="block h-full w-full"

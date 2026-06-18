@@ -1,0 +1,115 @@
+<main class="w-full max-w-none px-4 py-6 sm:px-6 lg:px-8">
+  <header>
+    <p class="text-xs font-bold uppercase tracking-wide text-indigo-600">Admin</p>
+    <h1 class="mt-2 text-3xl font-black tracking-tight text-slate-950">Usuarios</h1>
+    <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+      Busca cuentas, revisa roles y administra estados sin eliminar datos.
+    </p>
+  </header>
+
+  <form
+    class="mt-6 grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:grid-cols-[minmax(0,1fr)_12rem_12rem_auto_auto] lg:items-end"
+    [formGroup]="filtersForm"
+    (ngSubmit)="applyFilters()"
+  >
+    <label class="grid gap-2 text-sm font-bold text-slate-800">
+      Buscar
+      <input
+        type="search"
+        class="min-h-11 rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+        placeholder="Nombre o email"
+        formControlName="search"
+      />
+    </label>
+
+    <label class="grid gap-2 text-sm font-bold text-slate-800">
+      Rol
+      <select
+        class="min-h-11 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+        formControlName="role"
+      >
+        <option value="">Todos</option>
+        <option value="client">Cliente</option>
+        <option value="professional">Profesional</option>
+        <option value="admin">Admin</option>
+      </select>
+    </label>
+
+    <label class="grid gap-2 text-sm font-bold text-slate-800">
+      Estado
+      <select
+        class="min-h-11 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+        formControlName="status"
+      >
+        <option value="">Todos</option>
+        <option value="active">Activo</option>
+        <option value="disabled">Deshabilitado</option>
+      </select>
+    </label>
+
+    <button
+      type="submit"
+      class="inline-flex min-h-11 items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700"
+    >
+      Filtrar
+    </button>
+
+    <button
+      type="button"
+      class="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600"
+      (click)="clearFilters()"
+    >
+      Limpiar
+    </button>
+  </form>
+
+  <div class="mt-6 grid gap-3">
+    <app-alert [message]="errorMessage()" variant="danger" />
+  </div>
+
+  <section class="mt-6">
+    @if (loading()) {
+      <div class="rounded-2xl border border-slate-200 bg-white px-4 py-10 shadow-sm">
+        <app-loading-spinner label="Cargando usuarios..." />
+      </div>
+    } @else if (users().length === 0) {
+      <app-empty-state
+        icon="US"
+        title="No hay usuarios para mostrar"
+        description="Proba ajustar la busqueda o limpiar los filtros."
+      />
+    } @else {
+      <app-admin-users-table
+        [users]="users()"
+        [updatingUserId]="updatingUserId()"
+        (statusChange)="confirmStatusChange($event)"
+      />
+    }
+  </section>
+
+  @if (!loading() && meta().last_page > 1) {
+    <nav class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" aria-label="Paginacion de usuarios">
+      <p class="text-sm font-semibold text-slate-600">
+        Pagina {{ meta().current_page }} de {{ meta().last_page }} - {{ meta().total }} usuarios
+      </p>
+      <div class="grid grid-cols-2 gap-2 sm:flex">
+        <button
+          type="button"
+          class="inline-flex min-h-10 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60"
+          [disabled]="!canGoPrevious()"
+          (click)="previousPage()"
+        >
+          Anterior
+        </button>
+        <button
+          type="button"
+          class="inline-flex min-h-10 items-center justify-center rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800 focus:outline focus:outline-2 focus:outline-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+          [disabled]="!canGoNext()"
+          (click)="nextPage()"
+        >
+          Siguiente
+        </button>
+      </div>
+    </nav>
+  }
+</main>

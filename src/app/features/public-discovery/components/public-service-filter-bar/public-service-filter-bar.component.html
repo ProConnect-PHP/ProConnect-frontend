@@ -61,7 +61,7 @@
       <div class="grid grid-cols-2 gap-2">
         <button
           type="button"
-          class="inline-flex min-h-11 items-center justify-center rounded-2xl border px-3 py-2 text-sm font-bold shadow-sm transition focus:outline focus:outline-2 focus:outline-indigo-600"
+          class="inline-flex min-h-11 min-w-0 items-center justify-center rounded-2xl border px-3 py-2 text-sm font-bold shadow-sm transition focus:outline focus:outline-2 focus:outline-indigo-600"
           [class.border-indigo-200]="hasPriceFilter()"
           [class.bg-indigo-50]="hasPriceFilter()"
           [class.text-indigo-700]="hasPriceFilter()"
@@ -70,12 +70,12 @@
           [class.text-slate-700]="!hasPriceFilter()"
           (click)="openFilters.emit()"
         >
-          {{ priceLabel() }}
+          <span class="min-w-0 truncate">{{ priceLabel() }}</span>
         </button>
 
         <button
           type="button"
-          class="inline-flex min-h-11 items-center justify-center rounded-2xl border px-3 py-2 text-sm font-bold shadow-sm transition focus:outline focus:outline-2 focus:outline-indigo-600"
+          class="inline-flex min-h-11 min-w-0 items-center justify-center rounded-2xl border px-3 py-2 text-sm font-bold shadow-sm transition focus:outline focus:outline-2 focus:outline-indigo-600"
           [class.border-indigo-200]="hasLocationFilter()"
           [class.bg-indigo-50]="hasLocationFilter()"
           [class.text-indigo-700]="hasLocationFilter()"
@@ -84,7 +84,7 @@
           [class.text-slate-700]="!hasLocationFilter()"
           (click)="openFilters.emit()"
         >
-          {{ locationLabel() }}
+          <span class="min-w-0 truncate">{{ locationLabel() }}</span>
         </button>
       </div>
 
@@ -138,7 +138,7 @@
 
         <button
           type="button"
-          class="inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-600"
+          class="inline-flex min-w-0 items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-600"
           [class.border-indigo-200]="hasPriceFilter()"
           [class.bg-indigo-50]="hasPriceFilter()"
           [class.text-indigo-700]="hasPriceFilter()"
@@ -147,7 +147,7 @@
           [class.text-slate-700]="!hasPriceFilter()"
           (click)="openFilters.emit()"
         >
-          {{ priceLabel() }}
+          <span class="min-w-0 truncate">{{ priceLabel() }}</span>
         </button>
 
         <label class="relative inline-flex items-center">
@@ -195,7 +195,7 @@
 
         <button
           type="button"
-          class="inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-600"
+          class="inline-flex min-w-0 items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-600"
           [class.border-indigo-200]="hasLocationFilter()"
           [class.bg-indigo-50]="hasLocationFilter()"
           [class.text-indigo-700]="hasLocationFilter()"
@@ -204,7 +204,7 @@
           [class.text-slate-700]="!hasLocationFilter()"
           (click)="openFilters.emit()"
         >
-          {{ locationLabel() }}
+          <span class="min-w-0 truncate">{{ locationLabel() }}</span>
         </button>
 
         <button
