@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { firstValueFrom, of, throwError } from 'rxjs';
 
 import { ApiClientError } from '../../http/models/api-error.model';
-import { AuthResponse } from '../models/auth.models';
+import { AuthResponse, User } from '../models/auth.models';
 import { AuthApi } from './auth.api';
 import { AuthStore } from './auth.store';
 import { TokenStorageService } from './token-storage.service';
@@ -21,6 +21,14 @@ const authResponse: AuthResponse = {
     avatar_url: null,
   },
 };
+
+function normalizeExpectedUser(user: User): User {
+  return {
+    ...user,
+    email_verified_at: user.email_verified_at ?? null,
+    email_verified: user.email_verified === true || !!user.email_verified_at,
+  };
+}
 
 describe('AuthStore', () => {
   const accessToken = signal<string | null>(null);
@@ -40,11 +48,15 @@ describe('AuthStore', () => {
   beforeEach(() => {
     accessToken.set(null);
     refreshToken.set(null);
+
     exchangeOAuthCode.mockReset();
     exchangeOAuthCode.mockReturnValue(of(authResponse));
+
     redirectToOAuthProvider.mockClear();
+
     me.mockReset();
     me.mockReturnValue(of(authResponse.user));
+
     setTokens.mockClear();
     clear.mockClear();
 
@@ -77,13 +89,14 @@ describe('AuthStore', () => {
   it('stores OAuth tokens and user through the normal authenticated session flow', async () => {
     const store = TestBed.inject(AuthStore);
 
-    await expect(firstValueFrom(store.exchangeOAuthCode('oauth-code'))).resolves.toEqual(
-      authResponse,
-    );
+    await expect(firstValueFrom(store.exchangeOAuthCode('oauth-code'))).resolves.toEqual({
+      ...authResponse,
+      user: normalizeExpectedUser(authResponse.user),
+    });
 
     expect(exchangeOAuthCode).toHaveBeenCalledWith('oauth-code');
     expect(setTokens).toHaveBeenCalledWith('access-token', 'refresh-token');
-    expect(store.currentUser()).toEqual(authResponse.user);
+    expect(store.currentUser()).toEqual(normalizeExpectedUser(authResponse.user));
     expect(store.isAuthenticated()).toBe(true);
     expect(store.isLoading()).toBe(false);
   });
@@ -129,15 +142,15 @@ describe('AuthStore', () => {
   it('updates the current user without replacing the authenticated session', () => {
     setTokens('access-token', 'refresh-token');
     const store = TestBed.inject(AuthStore);
-    const professional = {
+    const professional: User = {
       ...authResponse.user,
-      role: 'professional' as const,
+      role: 'professional',
       has_professional_profile: true,
     };
 
     store.setCurrentUser(professional);
 
-    expect(store.currentUser()).toEqual(professional);
+    expect(store.currentUser()).toEqual(normalizeExpectedUser(professional));
     expect(store.isAuthenticated()).toBe(true);
     expect(setTokens).toHaveBeenCalledOnce();
   });
