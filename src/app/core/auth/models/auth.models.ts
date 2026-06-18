@@ -4,6 +4,10 @@ export type User = {
   email: string;
   role: 'client' | 'professional' | 'admin';
   avatar_url: string | null;
+
+  email_verified_at?: string | null;
+  email_verified?: boolean;
+
   has_professional_profile?: boolean;
   professional_profile_status?: 'missing' | 'draft' | 'active' | 'suspended';
 };
@@ -57,4 +61,21 @@ export type MeResponse = {
 export type UpdateMeRequest = {
   name?: string;
   avatar_url?: string | null;
+};
+
+export type SendEmailVerificationResponse = {
+  message: string;
+  email_verified: boolean;
+  expires_at?: string | null;
+};
+
+export type VerifyEmailRequest = {
+  email: string;
+  token: string;
+};
+
+export type VerifyEmailResponse = {
+  message: string;
+  email_verified: boolean;
+  user: User;
 };

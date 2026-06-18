@@ -23,6 +23,8 @@ const client: User = {
   email: 'client@example.com',
   role: 'client',
   avatar_url: null,
+  email_verified_at: '2026-06-18T03:45:00.000Z',
+  email_verified: true,
 };
 
 const professional: User = {
@@ -44,31 +46,50 @@ describe('auth guards', () => {
   const adminTree = { kind: 'admin' } as unknown as UrlTree;
   const onboardingTree = { kind: 'onboarding' } as unknown as UrlTree;
   const rootTree = { kind: 'root' } as unknown as UrlTree;
+  const emailVerificationTree = { kind: 'email-verification' } as unknown as UrlTree;
+
   const createUrlTree = vi.fn((commands: string[]) => {
     if (commands[0] === '/professional/onboarding') return onboardingTree;
+    if (commands[0] === '/auth/email-verification-required') return emailVerificationTree;
     if (commands[0] === '/') return rootTree;
     return loginTree;
   });
+
   const parseUrl = vi.fn((url: string) => {
     if (url === '/admin') return adminTree;
     if (url === '/dashboard') return professionalTree;
+    if (url === '/auth/email-verification-required') return emailVerificationTree;
     return clientTree;
   });
+
   const isAuthenticated = vi.fn(() => false);
+  const isEmailVerified = vi.fn(() => true);
+  const requiresEmailVerification = vi.fn(() => false);
   const currentUser = vi.fn<() => User | null>(() => null);
   const loadCurrentUser = vi.fn(() => of<User | null>(null));
   const hasSession = vi.fn(() => false);
 
   beforeEach(() => {
     vi.spyOn(console, 'debug').mockImplementation(() => undefined);
+
     createUrlTree.mockClear();
     parseUrl.mockClear();
+
     isAuthenticated.mockReset();
     isAuthenticated.mockReturnValue(false);
+
+    isEmailVerified.mockReset();
+    isEmailVerified.mockReturnValue(true);
+
+    requiresEmailVerification.mockReset();
+    requiresEmailVerification.mockReturnValue(false);
+
     currentUser.mockReset();
     currentUser.mockReturnValue(null);
+
     loadCurrentUser.mockReset();
     loadCurrentUser.mockReturnValue(of(null));
+
     hasSession.mockReset();
     hasSession.mockReturnValue(false);
 
@@ -79,6 +100,8 @@ describe('auth guards', () => {
           provide: AuthStore,
           useValue: {
             isAuthenticated,
+            isEmailVerified,
+            requiresEmailVerification,
             currentUser,
             loadCurrentUser,
           },
@@ -134,6 +157,7 @@ describe('auth guards', () => {
 
   it('redirects authenticated client users away from guest routes', () => {
     isAuthenticated.mockReturnValue(true);
+    isEmailVerified.mockReturnValue(true);
     currentUser.mockReturnValue(client);
 
     const result = runGuard(guestGuard, '/login');
@@ -144,6 +168,7 @@ describe('auth guards', () => {
 
   it('redirects authenticated professional users to the professional dashboard', () => {
     isAuthenticated.mockReturnValue(true);
+    isEmailVerified.mockReturnValue(true);
     currentUser.mockReturnValue(professional);
 
     const result = runGuard(guestGuard, '/login');
@@ -154,12 +179,29 @@ describe('auth guards', () => {
 
   it('redirects authenticated admin users to the admin panel', () => {
     isAuthenticated.mockReturnValue(true);
+    isEmailVerified.mockReturnValue(true);
     currentUser.mockReturnValue(admin);
 
     const result = runGuard(guestGuard, '/login');
 
     expect(result).toBe(adminTree);
     expect(parseUrl).toHaveBeenCalledWith('/admin');
+  });
+
+  it('redirects authenticated unverified users away from guest routes to email verification', () => {
+    isAuthenticated.mockReturnValue(true);
+    isEmailVerified.mockReturnValue(false);
+    requiresEmailVerification.mockReturnValue(true);
+    currentUser.mockReturnValue({
+      ...client,
+      email_verified_at: null,
+      email_verified: false,
+    });
+
+    const result = runGuard(guestGuard, '/login');
+
+    expect(result).toBe(emailVerificationTree);
+    expect(parseUrl).toHaveBeenCalledWith('/auth/email-verification-required');
   });
 
   it('blocks client users from professional routes', () => {

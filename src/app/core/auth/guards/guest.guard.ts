@@ -17,12 +17,26 @@ export const guestGuard: CanActivateFn = () => {
   const currentUser = authStore.currentUser();
 
   if (currentUser) {
+    if (!authStore.isEmailVerified()) {
+      return router.parseUrl('/auth/email-verification-required');
+    }
+
     return router.parseUrl(authRedirect.getPostLoginRedirect(currentUser));
   }
 
   return authStore.loadCurrentUser().pipe(
     map((user) => {
-      return user ? router.parseUrl(authRedirect.getPostLoginRedirect(user)) : true;
+      if (!user) {
+        return true;
+      }
+
+      const verified = user.email_verified === true || !!user.email_verified_at;
+
+      if (!verified) {
+        return router.parseUrl('/auth/email-verification-required');
+      }
+
+      return router.parseUrl(authRedirect.getPostLoginRedirect(user));
     }),
     catchError(() => {
       return of(true);

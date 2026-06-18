@@ -9,6 +9,8 @@ const client: User = {
   email: 'client@example.com',
   role: 'client',
   avatar_url: null,
+  email_verified_at: null,
+  email_verified: false,
 };
 
 const admin: User = {
