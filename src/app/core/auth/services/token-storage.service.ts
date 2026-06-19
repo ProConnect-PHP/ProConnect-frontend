@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
+import { Injectable, PLATFORM_ID, inject, isDevMode, signal } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
 export class TokenStorageService {
@@ -19,6 +19,13 @@ export class TokenStorageService {
 
     storage.setItem(this.accessTokenKey, accessToken);
     storage.setItem(this.refreshTokenKey, refreshToken);
+
+    if (isDevMode()) {
+      console.debug('[TokenStorage] Tokens updated.', {
+        access_token_stored: storage.getItem(this.accessTokenKey) !== null,
+        refresh_token_stored: storage.getItem(this.refreshTokenKey) !== null,
+      });
+    }
   }
 
   setAccessToken(accessToken: string): void {

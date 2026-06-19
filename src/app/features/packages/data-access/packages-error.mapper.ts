@@ -2,6 +2,10 @@ import { ApiClientError } from '../../../core/http/models/api-error.model';
 
 export function mapPackageError(errorCode?: string, fallback?: string): string {
   switch (errorCode) {
+    case 'EmailNotVerified':
+    case 'EMAIL_NOT_VERIFIED':
+      return 'Debes verificar tu correo electrónico para realizar esta acción.';
+
     case 'ProfessionalProfileRequired':
       return 'Necesitas completar tu perfil profesional para gestionar paquetes.';
     case 'PackageNotAvailable':
@@ -32,7 +36,7 @@ export function mapPackageError(errorCode?: string, fallback?: string): string {
 
 export function mapPackageApiError(error: unknown, fallback?: string): string {
   if (error instanceof ApiClientError) {
-    return mapPackageError(error.type, error.message || fallback);
+    return mapPackageError(error.code ?? error.type, error.message || fallback);
   }
 
   if (error instanceof Error) {

@@ -1,49 +1,71 @@
-<main class="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-  <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-    <div>
-      <p class="text-xs font-bold uppercase tracking-wide text-indigo-600">Reservas</p>
-      <h1 class="mt-2 text-3xl font-black tracking-tight text-slate-950">Mis reservas</h1>
+<main class="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+  <!-- Header -->
+  <header class="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
+    <div class="min-w-0">
+      <p class="text-xs font-bold uppercase tracking-wide text-indigo-600">
+        Reservas
+      </p>
+
+      <h1 class="mt-2 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
+        Mis reservas
+      </h1>
+
       <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
         Gestiona tus proximos turnos y revisa tu historial.
       </p>
     </div>
+
     <a
       routerLink="/services"
-      class="inline-flex min-h-11 items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700"
+      class="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700 sm:w-auto"
     >
       Explorar servicios
     </a>
   </header>
 
-  <div class="mt-6 grid gap-3">
-    <app-alert [message]="successMessage()" variant="success" />
-    <app-alert [message]="errorMessage()" variant="danger" />
-  </div>
+  <!-- Feedback -->
+  @if (successMessage() || errorMessage()) {
+    <section class="mt-5 grid gap-3" aria-live="polite">
+      @if (successMessage()) {
+        <app-alert [message]="successMessage()" variant="success" />
+      }
 
-  <div class="mt-6">
+      @if (errorMessage()) {
+        <app-alert [message]="errorMessage()" variant="danger" />
+      }
+    </section>
+  }
+
+  <!-- Filters -->
+  <section class="mt-5 sm:mt-6">
     <app-booking-filters
       context="client"
       [activeFilter]="activeFilter()"
       (filterChanged)="setFilter($event)"
     />
-  </div>
+  </section>
 
-  <section class="mt-6 grid gap-4">
+  <!-- Content -->
+  <section class="mt-5 grid gap-4 sm:mt-6">
     @if (loading()) {
-      @for (item of skeletonItems; track item) {
-        <app-booking-skeleton />
-      }
+      <div class="grid gap-4">
+        @for (item of skeletonItems; track item) {
+          <app-booking-skeleton />
+        }
+      </div>
     } @else if (filteredBookings().length === 0) {
       <app-booking-empty-state context="client" />
     } @else {
-      @for (booking of filteredBookings(); track booking.id) {
-        <app-booking-card
-          [booking]="booking"
-          context="client"
-          (cancelClicked)="openCancelDialog($event)"
-          (rescheduleClicked)="openRescheduleDialog($event)"
-        />
-      }
+      <div class="grid gap-4">
+        @for (booking of filteredBookings(); track booking.id) {
+          <app-booking-card
+            [booking]="booking"
+            context="client"
+            (cancelClicked)="openCancelDialog($event)"
+            (rescheduleClicked)="openRescheduleDialog($event)"
+          />
+        }
+      </div>
     }
   </section>
 

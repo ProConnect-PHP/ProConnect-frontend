@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 import { formatMoney } from '../../../../shared/utils/money.util';
 import { Booking } from '../../../bookings/models/booking.models';
 import { Payment, PaymentIntent } from '../../data-access/payments.models';
+import { paymentProviderLabel } from '../../utils/payment-labels.util';
 import { PaymentStatusBadgeComponent } from '../payment-status-badge/payment-status-badge.component';
 
 type PaymentSummarySurface = 'card' | 'plain';
@@ -34,8 +35,10 @@ export class PaymentSummaryCardComponent {
 
   readonly currency = computed(() => this.payment()?.currency ?? this.paymentIntent()?.currency ?? 'UYU');
   readonly formattedAmount = computed(() => formatMoney(this.amount(), this.currency()));
-  readonly provider = computed(() => this.payment()?.provider ?? this.paymentIntent()?.provider ?? 'simulator');
-  readonly providerLabel = computed(() => this.providerLabelFor(this.provider()));
+  readonly provider = computed(
+    () => this.payment()?.provider ?? this.paymentIntent()?.provider ?? 'simulator',
+  );
+  readonly providerLabel = computed(() => paymentProviderLabel(this.provider()));
   readonly status = computed(
     () => this.payment()?.status ?? this.paymentIntent()?.status ?? this.booking()?.status ?? null,
   );
@@ -72,18 +75,4 @@ export class PaymentSummaryCardComponent {
     }).format(date);
   }
 
-  private providerLabelFor(provider: string): string {
-    switch (provider) {
-      case 'simulator':
-        return 'Simulador';
-      case 'mercadopago':
-        return 'MercadoPago';
-      case 'paypal':
-        return 'PayPal';
-      case 'stripe':
-        return 'Stripe';
-      default:
-        return 'Proveedor';
-    }
-  }
 }

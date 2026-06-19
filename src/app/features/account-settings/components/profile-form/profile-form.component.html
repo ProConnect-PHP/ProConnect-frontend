@@ -1,0 +1,74 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-6">
+  <div class="grid gap-5">
+    <div>
+      <label for="profile-name" class="block text-sm font-bold text-slate-800">
+        Nombre completo
+      </label>
+
+      <p class="mt-1 text-sm leading-6 text-slate-500">
+        Este nombre se mostrará en tu cuenta y en las secciones donde interactúes dentro de la plataforma.
+      </p>
+
+      <input
+        id="profile-name"
+        type="text"
+        formControlName="name"
+        autocomplete="name"
+        class="mt-2 block min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-950 shadow-sm transition placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500"
+        [class.border-rose-300]="nameInvalid"
+        [class.focus:border-rose-500]="nameInvalid"
+        [class.focus:ring-rose-100]="nameInvalid"
+        placeholder="Ej: José Gabriel Hernández"
+      />
+
+      @if (nameInvalid) {
+        <div class="mt-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+          @if (nameRequired) {
+            El nombre es obligatorio.
+          } @else if (nameTooShort) {
+            El nombre debe tener al menos 2 caracteres.
+          } @else if (nameTooLong) {
+            El nombre no puede superar los 120 caracteres.
+          }
+        </div>
+      }
+    </div>
+
+    <div>
+      <label for="profile-email" class="block text-sm font-bold text-slate-800">
+        Correo electrónico
+      </label>
+
+      <p class="mt-1 text-sm leading-6 text-slate-500">
+        El correo electrónico está asociado a tu inicio de sesión y no puede modificarse.
+      </p>
+
+      <input
+        id="profile-email"
+        type="email"
+        formControlName="email"
+        autocomplete="email"
+        class="mt-2 block min-h-11 w-full cursor-not-allowed rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-500 shadow-sm"
+      />
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
+    <p class="text-sm text-slate-500">
+      Los cambios se aplicarán a tu cuenta después de guardar.
+    </p>
+
+    <button
+      type="submit"
+      class="inline-flex min-h-10 items-center justify-center rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-blue-700"
+      [disabled]="form.invalid || form.pristine || submitting()"
+    >
+      @if (submitting()) {
+        <span class="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
+        Guardando...
+      } @else {
+        Guardar cambios
+      }
+    </button>
+  </div>
+</form>

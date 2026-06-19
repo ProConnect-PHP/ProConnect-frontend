@@ -1,6 +1,29 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+type Tone = 'blue' | 'emerald' | 'amber' | 'rose' | 'violet' | 'slate';
+
+interface Metric {
+  value: string;
+  label: string;
+}
+
+interface PreviewBooking {
+  title: string;
+  mode: string;
+  time: string;
+  status: string;
+  statusTone: Extract<Tone, 'blue' | 'emerald' | 'amber'>;
+  avatars: string[];
+}
+
+interface Feature {
+  short: string;
+  title: string;
+  description: string;
+  tone: Tone;
+}
+
 @Component({
   selector: 'app-landing-page',
   imports: [RouterLink],
@@ -9,44 +32,108 @@ import { RouterLink } from '@angular/router';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LandingPageComponent {
-  readonly previewBookings = [
-    { title: 'Sesion de liderazgo', mode: 'Videollamada', time: '09:00' },
-    { title: 'Diagnostico inicial', mode: 'Presencial', time: '10:15' },
-    { title: 'Mentoria premium', mode: 'Hibrida', time: '12:00' },
+  readonly metrics: Metric[] = [
+    {
+      value: '24/7',
+      label: 'Reservas disponibles',
+    },
+    {
+      value: '3 modos',
+      label: 'Online, presencial o híbrido',
+    },
+    {
+      value: '1 panel',
+      label: 'Agenda, clientes y servicios',
+    },
   ];
 
-  readonly calendarDays = Array.from({ length: 28 }, (_value, index) => index + 1);
+  readonly weekDays = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
 
-  readonly features = [
+  readonly calendarDays = Array.from({ length: 30 }, (_, index) => index + 1);
+
+  readonly previewBookings: PreviewBooking[] = [
     {
-      title: 'Agenda inteligente',
-      short: 'AI',
+      title: 'Consultoría inicial',
+      mode: 'Online · 60 min',
+      time: '09:30',
+      status: 'Pagada',
+      statusTone: 'emerald',
+      avatars: ['JG', 'MR'],
+    },
+    {
+      title: 'Sesión de seguimiento',
+      mode: 'Híbrida · 45 min',
+      time: '11:00',
+      status: 'Confirmada',
+      statusTone: 'blue',
+      avatars: ['LC'],
+    },
+    {
+      title: 'Mentoría profesional',
+      mode: 'Online · 30 min',
+      time: '15:15',
+      status: 'Pendiente',
+      statusTone: 'amber',
+      avatars: ['AP', 'RS'],
+    },
+  ];
+
+  readonly features: Feature[] = [
+    {
+      short: 'AG',
+      title: 'Agenda avanzada',
+      description:
+        'Horarios laborales, excepciones, pausas, feriados, buffers y reglas por servicio.',
       tone: 'blue',
-      description: 'Reglas semanales, buffers y duraciones para calcular disponibilidad real.',
     },
     {
-      title: 'Videollamadas',
-      short: 'VC',
+      short: 'RS',
+      title: 'Reservas inteligentes',
+      description:
+        'Slots disponibles en tiempo real con validación de disponibilidad antes de confirmar.',
       tone: 'emerald',
-      description: 'Servicios remotos con enlaces listos para compartir con clientes.',
     },
     {
-      title: 'Pagos',
-      short: '$',
+      short: 'PK',
+      title: 'Paquetes de sesiones',
+      description:
+        'Venta y seguimiento de paquetes para procesos de coaching, consultoría o formación.',
       tone: 'amber',
-      description: 'Campo de precio preparado para evolucionar a checkout en futuras fases.',
     },
     {
-      title: 'Disponibilidad',
-      short: '24',
+      short: 'VC',
+      title: 'Videollamadas',
+      description:
+        'Sesiones remotas con acceso controlado según reserva, horario y usuario autenticado.',
       tone: 'rose',
-      description: 'Excepciones por feriados, licencias u horarios alternativos.',
     },
     {
-      title: 'Servicios',
-      short: 'SR',
+      short: 'PG',
+      title: 'Pagos',
+      description:
+        'Base preparada para registrar pagos, estados, confirmaciones y operaciones comerciales.',
+      tone: 'violet',
+    },
+    {
+      short: 'NT',
+      title: 'Notificaciones',
+      description:
+        'Avisos en vivo para reservas, cambios de estado, recordatorios y cancelaciones.',
       tone: 'slate',
-      description: 'CRUD completo para publicar, editar o pausar servicios profesionales.',
+    },
+    {
+      short: 'CL',
+      title: 'Clientes',
+      description:
+        'Historial de reservas, paquetes activos y relación organizada entre cliente y profesional.',
+      tone: 'blue',
+    },
+    {
+      short: 'MX',
+      title: 'Multiusuario',
+      description:
+        'Cada profesional opera servicios, agenda y configuración de forma aislada en la misma plataforma.',
+      tone: 'emerald',
     },
   ];
 }

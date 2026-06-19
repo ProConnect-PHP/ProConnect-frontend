@@ -130,10 +130,6 @@ export interface UpdatePackageProductPayload {
   is_active?: boolean;
 }
 
-export interface PurchasePackagePayload {
-  metadata?: Record<string, unknown>;
-}
-
 export interface PublicPackageProductListParams {
   page?: number;
   per_page?: number;

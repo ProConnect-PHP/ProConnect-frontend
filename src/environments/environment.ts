@@ -1,6 +1,16 @@
 export const environment = {
   production: true,
   apiBaseUrl: 'https://apitallerphp.gyabisito.dev/api/v1',
+  paymentSimulatorEnabled: false,
+  realtime: {
+    enabled: true,
+    key: '1f9c284cdeba0e06763163e7ef3120e0',
+    wsHost: 'reverbtallerphp.gyabisito.dev',
+    wsPort: 80,
+    wssPort: 443,
+    forceTLS: true,
+    authEndpoint: 'https://apitallerphp.gyabisito.dev/api/broadcasting/auth',
+  },
   mapbox: {
     accessToken: 'pk.eyJ1IjoiZ3lhYmlzaXRvIiwiYSI6ImNtcG91czhlNDA4NWcycnB5cXo5cmZtNzUifQ.Xr-oAMmAwYGU6aO0wBi5Nw',
     defaultCenter: {

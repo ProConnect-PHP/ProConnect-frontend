@@ -2,7 +2,8 @@
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "cli": {
-    "packageManager": "npm"
+    "packageManager": "npm",
+    "analytics": false
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -51,7 +52,8 @@
                   "maximumError": "8kB"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "serviceWorker": "ngsw-config.json"
             },
             "development": {
               "fileReplacements": [
@@ -71,7 +73,7 @@
           "builder": "@angular/build:dev-server",
           "options": {
             "allowedHosts": [
-              "localhost:4200"
+              "localhost:4200","a246-2800-a4-2a2b-3a00-fc0f-cc5-a08-be47.ngrok-free.app"
             ]
           },
           "configurations": {

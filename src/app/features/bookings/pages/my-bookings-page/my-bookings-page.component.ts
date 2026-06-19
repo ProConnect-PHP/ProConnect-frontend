@@ -76,7 +76,13 @@ export class MyBookingsPageComponent implements OnInit {
   }
 
   setFilter(filter: BookingListFilter): void {
+    if (this.activeFilter() === filter) {
+      return;
+    }
+
     this.activeFilter.set(filter);
+    this.successMessage.set(null);
+    this.errorMessage.set(null);
   }
 
   openCancelDialog(booking: Booking): void {
@@ -91,11 +97,13 @@ export class MyBookingsPageComponent implements OnInit {
     this.selectedCancelBooking.set(null);
     this.selectedRescheduleBooking.set(null);
   }
-
   onBookingUpdated(booking: Booking, message: string): void {
     this.bookings.update((bookings) =>
       bookings.map((item) => (item.id === booking.id ? { ...item, ...booking } : item)),
     );
+
+    this.closeDialogs();
+    this.errorMessage.set(null);
     this.successMessage.set(message);
   }
 }

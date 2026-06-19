@@ -12,7 +12,7 @@
     (clearFilters)="clearFilters()"
   />
 
-  <section class="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+  <section class="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
     <app-public-active-filters
       [query]="query()"
       (removeFilter)="removeFilter($event)"
@@ -26,10 +26,17 @@
       (sortChanged)="onSortChange($event)"
     />
 
-    <div class="mb-5 grid gap-3">
-      <app-alert [message]="validationMessage()" variant="warning" />
-      <app-alert [message]="errorMessage()" variant="danger" />
-    </div>
+    @if (validationMessage() || errorMessage()) {
+      <section class="mb-5 grid gap-3" aria-live="polite">
+        @if (validationMessage()) {
+          <app-alert [message]="validationMessage()" variant="warning" />
+        }
+
+        @if (errorMessage()) {
+          <app-alert [message]="errorMessage()" variant="danger" />
+        }
+      </section>
+    }
 
     @if (viewMode() === 'map') {
       <app-public-services-map-layout

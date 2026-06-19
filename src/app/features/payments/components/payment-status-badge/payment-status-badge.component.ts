@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
 import { PaymentIntentStatus, PaymentStatus } from '../../data-access/payments.models';
+import { paymentStatusLabel } from '../../utils/payment-labels.util';
 
 type PaymentBadgeKind = 'payment' | 'intent' | 'booking';
 
@@ -23,10 +24,15 @@ export class PaymentStatusBadgeComponent {
         return 'Pagada';
       case 'succeeded':
         return kind === 'intent' ? 'Exitoso' : 'Pagado';
+      case 'approved':
+        return 'Pagado';
       case 'pending':
         return 'Pendiente';
       case 'processing':
         return 'Procesando';
+      case 'checkout_created':
+        return 'Checkout creado';
+      case 'rejected':
       case 'failed':
         return 'Fallido';
       case 'expired':
@@ -40,7 +46,7 @@ export class PaymentStatusBadgeComponent {
       case 'confirmed':
         return 'Pendiente de pago';
       default:
-        return 'Sin estado';
+        return paymentStatusLabel(status);
     }
   }
 
@@ -49,13 +55,16 @@ export class PaymentStatusBadgeComponent {
 
     switch (status) {
       case 'paid':
+      case 'approved':
       case 'succeeded':
         return `${base} border-emerald-200 bg-emerald-50 text-emerald-700`;
       case 'pending':
       case 'confirmed':
+      case 'checkout_created':
         return `${base} border-amber-200 bg-amber-50 text-amber-700`;
       case 'processing':
         return `${base} border-blue-200 bg-blue-50 text-blue-700`;
+      case 'rejected':
       case 'failed':
         return `${base} border-rose-200 bg-rose-50 text-rose-700`;
       case 'expired':

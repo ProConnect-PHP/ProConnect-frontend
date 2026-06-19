@@ -1,0 +1,198 @@
+<section class="min-h-screen bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-5xl">
+    <app-page-header eyebrow="Cuenta" title="Ajustes de cuenta"
+      description="Administrá tus datos personales, seguridad y acceso a la plataforma." />
+
+    @if (loading()) {
+    <div class="mt-8 rounded-2xl border border-slate-200 bg-white p-10 shadow-sm">
+      <app-loading-spinner label="Cargando ajustes de cuenta..." />
+    </div>
+    } @else {
+    <div class="mt-6 space-y-4">
+      @if (successMessage(); as message) {
+      <app-alert type="success" [message]="message" />
+      }
+
+      @if (errorMessage(); as message) {
+      <app-alert type="error" [message]="message" />
+      }
+    </div>
+
+    <div class="mt-6 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+      <div class="space-y-6">
+        <app-card title="Información personal" bodyClass="p-6">
+          @if (userProfile(); as profile) {
+          <div class="mb-6 rounded-2xl border border-blue-100 bg-blue-50 p-4">
+            <div class="flex items-start gap-3">
+              <div
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-100 text-sm font-black text-blue-700">
+                U
+              </div>
+
+              <div>
+                <p class="text-sm font-bold text-blue-950">
+                  {{ accountDisplayName() }}
+                </p>
+
+                <p class="mt-1 text-sm leading-6 text-blue-900">
+                  Estos datos se usan para identificar tu cuenta y mejorar tu experiencia dentro de ProConnect.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          @if (savingProfile()) {
+          <div
+            class="mb-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700">
+            Guardando cambios...
+          </div>
+          }
+
+          <app-profile-form [userInitialData]="profile" [submitting]="savingProfile()" (save)="onSaveProfile($event)" />
+          } @else {
+          <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+            <p class="text-sm font-bold text-amber-950">
+              No pudimos cargar tu perfil
+            </p>
+
+            <p class="mt-1 text-sm leading-6 text-amber-800">
+              Recargá la página o intentá nuevamente en unos minutos.
+            </p>
+          </div>
+          }
+        </app-card>
+      </div>
+
+      <div class="space-y-6">
+        <app-card title="Seguridad" bodyClass="p-6">
+          <div class="space-y-5">
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div class="flex items-start gap-3">
+                <div
+                  class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-200 text-sm font-black text-slate-700">
+                  🔒
+                </div>
+
+                <div>
+                  <p class="text-sm font-bold text-slate-950">
+                    Contraseña
+                  </p>
+
+                  <p class="mt-1 text-sm leading-6 text-slate-600">
+                    Para cambiar tu contraseña, te enviaremos un enlace seguro al correo asociado a tu cuenta.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            @if (passwordResetEmail(); as email) {
+            <div class="rounded-2xl border border-slate-200 bg-white p-4">
+              <p class="text-xs font-bold uppercase tracking-wide text-slate-500">
+                Correo de recuperación
+              </p>
+
+              <p class="mt-1 break-all text-sm font-semibold text-slate-950">
+                {{ email }}
+              </p>
+            </div>
+            }
+
+            @if (passwordResetConfirmationVisible()) {
+            <div class="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+              <p class="text-sm font-bold text-amber-950">
+                Confirmar solicitud
+              </p>
+
+              <p class="mt-1 text-sm leading-6 text-amber-800">
+                Te enviaremos un enlace de restablecimiento. Por seguridad, el enlace tendrá validez limitada.
+              </p>
+
+              <div class="mt-4 flex flex-col gap-2 sm:flex-row">
+                <button type="button"
+                  class="inline-flex min-h-10 items-center justify-center rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-blue-700"
+                  [disabled]="sendingEmail()" (click)="onConfirmPasswordResetRequest()">
+                  @if (sendingEmail()) {
+                  <span
+                    class="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
+                  Enviando...
+                  } @else {
+                  Enviar enlace
+                  }
+                </button>
+
+                <button type="button"
+                  class="inline-flex min-h-10 items-center justify-center rounded-xl border border-amber-300 bg-white px-4 py-2 text-sm font-bold text-amber-900 shadow-sm transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-amber-600"
+                  [disabled]="sendingEmail()" (click)="onCancelPasswordResetConfirmation()">
+                  Cancelar
+                </button>
+              </div>
+            </div>
+            } @else {
+            <button type="button"
+              class="inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-blue-600"
+              [disabled]="!canRequestPasswordReset()" (click)="onOpenPasswordResetConfirmation()">
+              Cambiar contraseña
+            </button>
+            }
+          </div>
+        </app-card>
+
+        <app-card title="Buenas prácticas" bodyClass="p-6">
+          <div class="space-y-4">
+            <div class="flex items-start gap-3">
+              <div
+                class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-sm font-black text-emerald-700">
+                ✓
+              </div>
+
+              <div>
+                <p class="text-sm font-bold text-slate-950">
+                  Usá una contraseña única
+                </p>
+
+                <p class="mt-0.5 text-sm leading-6 text-slate-600">
+                  Evitá reutilizar contraseñas de otros servicios.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <div
+                class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-sm font-black text-emerald-700">
+                ✓
+              </div>
+
+              <div>
+                <p class="text-sm font-bold text-slate-950">
+                  Revisá tu correo
+                </p>
+
+                <p class="mt-0.5 text-sm leading-6 text-slate-600">
+                  Las notificaciones importantes de cuenta se envían al email registrado.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <div
+                class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-sm font-black text-emerald-700">
+                ✓
+              </div>
+
+              <div>
+                <p class="text-sm font-bold text-slate-950">
+                  Cerrá sesión en dispositivos compartidos
+                </p>
+
+                <p class="mt-0.5 text-sm leading-6 text-slate-600">
+                  Reducís el riesgo de accesos no autorizados.
+                </p>
+              </div>
+            </div>
+          </div>
+        </app-card>
+      </div>
+    </div>
+    }
+  </div>
+</section>

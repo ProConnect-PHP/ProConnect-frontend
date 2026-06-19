@@ -22,7 +22,7 @@ import { bookingErrorMessage } from '../../utils/booking-error-message.util';
         ></button>
 
         <section
-          class="absolute inset-x-0 bottom-0 rounded-t-[2rem] bg-white p-5 shadow-2xl sm:left-1/2 sm:top-1/2 sm:bottom-auto sm:w-full sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[2rem]"
+          class="absolute inset-x-0 bottom-0 max-h-[92dvh] overflow-y-auto rounded-t-[2rem] bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-2xl sm:left-1/2 sm:top-1/2 sm:bottom-auto sm:w-full sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[2rem]"
           role="dialog"
           aria-modal="true"
           aria-labelledby="cancel-booking-title"

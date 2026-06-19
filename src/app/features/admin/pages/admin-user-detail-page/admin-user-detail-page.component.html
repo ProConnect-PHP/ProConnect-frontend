@@ -1,0 +1,56 @@
+<main class="w-full max-w-none px-4 py-6 sm:px-6 lg:px-8">
+  <a routerLink="/admin/users"
+    class="inline-flex min-h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600">
+    Volver a usuarios
+  </a>
+
+  <div class="mt-6 grid gap-3">
+    <app-alert [message]="errorMessage()" variant="danger" />
+  </div>
+
+  @if (loading()) {
+  <section class="mt-6 rounded-2xl border border-slate-200 bg-white px-4 py-10 shadow-sm">
+    <app-loading-spinner label="Cargando usuario..." />
+  </section>
+  } @else if (user(); as currentUser) {
+  <section class="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div class="min-w-0">
+        <p class="text-xs font-bold uppercase tracking-wide text-indigo-600">Usuario</p>
+        <h1 class="mt-2 truncate text-3xl font-black tracking-tight text-slate-950">
+          {{ currentUser.name }}
+        </h1>
+        <p class="mt-2 truncate text-sm text-slate-600">{{ currentUser.email }}</p>
+      </div>
+
+      <button type="button"
+        class="inline-flex min-h-11 items-center justify-center rounded-xl px-4 py-2 text-sm font-bold text-white shadow-sm transition focus:outline focus:outline-2 disabled:cursor-not-allowed disabled:opacity-60"
+        [class.bg-rose-600]="nextStatus() === 'disabled'" [class.hover:bg-rose-700]="nextStatus() === 'disabled'"
+        [class.focus:outline-rose-700]="nextStatus() === 'disabled'" [class.bg-emerald-600]="nextStatus() === 'active'"
+        [class.hover:bg-emerald-700]="nextStatus() === 'active'"
+        [class.focus:outline-emerald-700]="nextStatus() === 'active'" [disabled]="saving()" (click)="changeStatus()">
+        {{ actionLabel() }}
+      </button>
+    </div>
+
+    <dl class="mt-6 grid gap-4 sm:grid-cols-2">
+      <div class="rounded-xl bg-slate-50 p-4">
+        <dt class="text-sm font-bold text-slate-500">Rol</dt>
+        <dd class="mt-1 text-base font-black text-slate-950">{{ roleLabel(currentUser.role) }}</dd>
+      </div>
+      <div class="rounded-xl bg-slate-50 p-4">
+        <dt class="text-sm font-bold text-slate-500">Estado</dt>
+        <dd class="mt-1 text-base font-black text-slate-950">{{ statusLabel(currentUser.status) }}</dd>
+      </div>
+      <div class="rounded-xl bg-slate-50 p-4">
+        <dt class="text-sm font-bold text-slate-500">Fecha de registro</dt>
+        <dd class="mt-1 text-base font-black text-slate-950">{{ dateLabel(currentUser.created_at) }}</dd>
+      </div>
+      <div class="rounded-xl bg-slate-50 p-4">
+        <dt class="text-sm font-bold text-slate-500">Ultima actualizacion</dt>
+        <dd class="mt-1 text-base font-black text-slate-950">{{ dateLabel(currentUser.updated_at) }}</dd>
+      </div>
+    </dl>
+  </section>
+  }
+</main>

@@ -1,13 +1,14 @@
 @if (loading()) {
-  <div class="grid gap-6 lg:grid-cols-[420px_minmax(0,1fr)]">
-    <section class="grid gap-4">
+  <div class="grid gap-4 lg:grid-cols-[420px_minmax(0,1fr)] lg:gap-6">
+    <aside class="order-1 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:order-2">
+      <div class="h-[42vh] min-h-[240px] animate-pulse bg-slate-200 sm:h-[55vh] sm:min-h-[320px] lg:h-[70vh] lg:min-h-[420px]"></div>
+    </aside>
+
+    <section class="order-2 grid gap-4 lg:order-1">
       @for (item of skeletonItems; track item) {
         <app-public-service-skeleton />
       }
     </section>
-    <aside class="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
-      <div class="h-[70vh] min-h-[420px] animate-pulse bg-slate-200"></div>
-    </aside>
   </div>
 } @else if (markers().length === 0) {
   <app-empty-state
@@ -17,25 +18,17 @@
   >
     <button
       type="button"
-      class="inline-flex min-h-10 items-center justify-center rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700"
+      class="inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700 sm:w-auto"
       (click)="clearFilters.emit()"
     >
       Limpiar filtros
     </button>
   </app-empty-state>
 } @else {
-  <div class="grid gap-6 lg:grid-cols-[420px_minmax(0,1fr)]">
-    <section class="grid content-start gap-4">
-      @for (service of servicesWithCoordinates(); track service.id) {
-        <app-public-service-compact-card
-          [service]="service"
-          [selected]="isSelected(service)"
-          (serviceSelected)="serviceSelected.emit($event)"
-        />
-      }
-    </section>
-
-    <aside class="sticky top-24 h-[70vh] min-h-[420px] overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+  <div class="grid gap-4 lg:grid-cols-[420px_minmax(0,1fr)] lg:gap-6">
+    <aside
+      class="order-1 h-[42vh] min-h-[240px] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm sm:h-[55vh] sm:min-h-[320px] lg:sticky lg:top-24 lg:order-2 lg:h-[70vh] lg:min-h-[420px]"
+    >
       <app-mapbox-map
         class="block h-full w-full"
         [center]="center()"
@@ -45,5 +38,15 @@
         (markerClicked)="onMarkerClicked($event)"
       />
     </aside>
+
+    <section class="order-2 grid content-start gap-4 lg:order-1">
+      @for (service of servicesWithCoordinates(); track service.id) {
+        <app-public-service-compact-card
+          [service]="service"
+          [selected]="isSelected(service)"
+          (serviceSelected)="serviceSelected.emit($event)"
+        />
+      }
+    </section>
   </div>
 }

@@ -67,7 +67,13 @@ export class ProfessionalPackageProductsPageComponent implements OnInit {
           this.services.set(services.services);
         },
         error: (error: unknown) => {
+          this.packageProducts.set([]);
+          this.services.set([]);
+          this.showForm.set(false);
+          this.editingPackageProduct.set(null);
+
           this.errorMessage.set(mapPackageApiError(error, 'No pudimos cargar tus paquetes.'));
+
           this.profileRequired.set(
             error instanceof ApiClientError && error.type === 'ProfessionalProfileRequired',
           );
@@ -79,12 +85,13 @@ export class ProfessionalPackageProductsPageComponent implements OnInit {
     this.editingPackageProduct.set(null);
     this.showForm.set(true);
     this.errorMessage.set(null);
+    this.successMessage.set(null);
   }
-
   startEdit(packageProduct: PackageProduct): void {
     this.editingPackageProduct.set(packageProduct);
     this.showForm.set(true);
     this.errorMessage.set(null);
+    this.successMessage.set(null);
   }
 
   cancelForm(): void {
@@ -118,6 +125,9 @@ export class ProfessionalPackageProductsPageComponent implements OnInit {
   }
 
   toggleActive(packageProduct: PackageProduct): void {
+    this.errorMessage.set(null);
+    this.successMessage.set(null);
+
     this.api
       .updateProfessionalPackageProduct(packageProduct.id, {
         is_active: !packageProduct.is_active,
@@ -128,6 +138,8 @@ export class ProfessionalPackageProductsPageComponent implements OnInit {
           this.packageProducts.update((items) =>
             upsertPackageProduct(items, updatedPackageProduct),
           );
+
+          this.errorMessage.set(null);
           this.successMessage.set(
             updatedPackageProduct.is_active ? 'Paquete activado.' : 'Paquete desactivado.',
           );
@@ -137,12 +149,19 @@ export class ProfessionalPackageProductsPageComponent implements OnInit {
   }
 
   deletePackageProduct(packageProduct: PackageProduct): void {
+    this.errorMessage.set(null);
+    this.successMessage.set(null);
+
     this.api
       .deleteProfessionalPackageProduct(packageProduct.id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          this.packageProducts.update((items) => items.filter((item) => item.id !== packageProduct.id));
+          this.packageProducts.update((items) =>
+            items.filter((item) => item.id !== packageProduct.id),
+          );
+
+          this.errorMessage.set(null);
           this.successMessage.set('Paquete eliminado.');
         },
         error: (error: unknown) => this.errorMessage.set(mapPackageApiError(error)),

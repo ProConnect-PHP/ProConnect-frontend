@@ -1,5 +1,7 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+
+import { NetworkStatusService } from './core/network/network-status.service';
 
 @Component({
   selector: 'app-root',
@@ -9,4 +11,5 @@ import { RouterOutlet } from '@angular/router';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class App {
+  protected readonly networkStatus = inject(NetworkStatusService);
 }
