@@ -81,9 +81,22 @@
 
           <a
             routerLink="/client/dashboard"
-            class="hidden rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700 sm:inline-flex"
+            class="hidden items-center gap-2 rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700 sm:inline-flex"
           >
-            Mi cuenta
+            <span>{{ accountButtonLabel() }}</span>
+            <svg
+              class="size-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 21a8 8 0 0 1 16 0" />
+            </svg>
           </a>
         } @else {
           <a
@@ -188,10 +201,23 @@
 
             <a
               routerLink="/client/dashboard"
-              class="rounded-2xl bg-indigo-600 px-3 py-3 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
+              class="inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-3 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
               (click)="closeMobileMenu()"
             >
-              Mi cuenta
+              <span>{{ accountButtonLabel() }}</span>
+              <svg
+                class="size-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21a8 8 0 0 1 16 0" />
+              </svg>
             </a>
           } @else {
             <div class="my-2 h-px bg-slate-200 sm:hidden"></div>
