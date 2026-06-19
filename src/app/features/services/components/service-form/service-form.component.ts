@@ -36,7 +36,6 @@ type ServiceFormControls = {
   duration_minutes: string;
   modality: ServiceModality;
   address: string;
-  link: string;
   latitude: string;
   longitude: string;
   max_bookings_per_client: string;
@@ -85,7 +84,6 @@ export class ServiceFormComponent {
     duration_minutes: ['60', [Validators.required]],
     modality: this.fb.control<ServiceModality>('remota', { validators: [Validators.required] }),
     address: [''],
-    link: [''],
     latitude: [''],
     longitude: [''],
     max_bookings_per_client: [''],
@@ -112,7 +110,6 @@ export class ServiceFormComponent {
         duration_minutes: String(service.duration_minutes),
         modality: service.modality,
         address: service.address ?? '',
-        link: service.link ?? '',
         latitude: service.latitude === null ? '' : String(service.latitude),
         longitude: service.longitude === null ? '' : String(service.longitude),
         max_bookings_per_client:
@@ -168,7 +165,6 @@ export class ServiceFormComponent {
 
     const value = this.form.getRawValue();
     const hasPhysicalLocation = value.modality === 'presencial' || value.modality === 'hibrida';
-    const hasRemoteLocation = value.modality === 'remota' || value.modality === 'hibrida';
 
     this.save.emit({
       name: value.name.trim(),
@@ -177,7 +173,7 @@ export class ServiceFormComponent {
       duration_minutes: Number(value.duration_minutes) as ServiceDuration,
       modality: value.modality,
       address: hasPhysicalLocation ? nullableText(value.address) : null,
-      link: hasRemoteLocation ? nullableText(value.link) : null,
+      link: null,
       latitude: hasPhysicalLocation ? numberOrNull(value.latitude) : null,
       longitude: hasPhysicalLocation ? numberOrNull(value.longitude) : null,
       max_bookings_per_client: integerOrNull(value.max_bookings_per_client),

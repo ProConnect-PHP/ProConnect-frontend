@@ -26,7 +26,7 @@
   </div>
   } @else if (booking(); as currentBooking) {
   <section class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-    <div class="grid gap-6">
+    <div class="grid content-start gap-6">
       <app-booking-detail-card [booking]="currentBooking" context="client" />
       <app-booking-timeline [booking]="currentBooking" />
 
