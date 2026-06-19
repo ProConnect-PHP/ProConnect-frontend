@@ -69,17 +69,6 @@
     </app-form-field>
   </div>
 
-  @if (modality() === 'remota' || modality() === 'hibrida') {
-    <app-form-field controlId="link" label="Link de videollamada">
-      <app-input
-        id="link"
-        type="url"
-        placeholder="https://meet.google.com/test"
-        formControlName="link"
-      />
-    </app-form-field>
-  }
-
   @if (modality() === 'presencial' || modality() === 'hibrida') {
     <div class="grid gap-4">
       <section class="grid gap-3">
