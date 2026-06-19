@@ -2,6 +2,15 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 type Tone = 'blue' | 'emerald' | 'amber' | 'rose' | 'violet' | 'slate';
+type FeatureIcon =
+  | 'calendar'
+  | 'availability'
+  | 'package'
+  | 'video'
+  | 'payment'
+  | 'notification'
+  | 'clients'
+  | 'users';
 
 interface Metric {
   value: string;
@@ -18,7 +27,7 @@ interface PreviewBooking {
 }
 
 interface Feature {
-  short: string;
+  icon: FeatureIcon;
   title: string;
   description: string;
   tone: Tone;
@@ -80,56 +89,56 @@ export class LandingPageComponent {
 
   readonly features: Feature[] = [
     {
-      short: 'AG',
+      icon: 'calendar',
       title: 'Agenda avanzada',
       description:
         'Horarios laborales, excepciones, pausas, feriados, buffers y reglas por servicio.',
       tone: 'blue',
     },
     {
-      short: 'RS',
+      icon: 'availability',
       title: 'Reservas inteligentes',
       description:
         'Slots disponibles en tiempo real con validación de disponibilidad antes de confirmar.',
       tone: 'emerald',
     },
     {
-      short: 'PK',
+      icon: 'package',
       title: 'Paquetes de sesiones',
       description:
         'Venta y seguimiento de paquetes para procesos de coaching, consultoría o formación.',
       tone: 'amber',
     },
     {
-      short: 'VC',
+      icon: 'video',
       title: 'Videollamadas',
       description:
         'Sesiones remotas con acceso controlado según reserva, horario y usuario autenticado.',
       tone: 'rose',
     },
     {
-      short: 'PG',
+      icon: 'payment',
       title: 'Pagos',
       description:
         'Base preparada para registrar pagos, estados, confirmaciones y operaciones comerciales.',
       tone: 'violet',
     },
     {
-      short: 'NT',
+      icon: 'notification',
       title: 'Notificaciones',
       description:
         'Avisos en vivo para reservas, cambios de estado, recordatorios y cancelaciones.',
       tone: 'slate',
     },
     {
-      short: 'CL',
+      icon: 'clients',
       title: 'Clientes',
       description:
         'Historial de reservas, paquetes activos y relación organizada entre cliente y profesional.',
       tone: 'blue',
     },
     {
-      short: 'MX',
+      icon: 'users',
       title: 'Multiusuario',
       description:
         'Cada profesional opera servicios, agenda y configuración de forma aislada en la misma plataforma.',
