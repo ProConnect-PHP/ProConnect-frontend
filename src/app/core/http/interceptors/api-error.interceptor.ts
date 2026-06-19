@@ -141,11 +141,19 @@ function toClientError(error: unknown): ApiClientError {
   }
 
   if (error instanceof HttpErrorResponse) {
+    if (isNetworkFailure(error)) {
+      return new ApiClientError(
+        getFriendlyApiMessage('NetworkError', ''),
+        0,
+        'NetworkError',
+      );
+    }
+
     const payload = extractPayload(error);
     const type = payload?.type ?? httpStatusToType(error.status);
     const message =
       payload?.message?.trim() ||
-      getFriendlyApiMessage(type, error.message);
+      getFriendlyApiMessage(type, '');
 
     return new ApiClientError(
       message,
@@ -157,10 +165,14 @@ function toClientError(error: unknown): ApiClientError {
   }
 
   if (error instanceof Error) {
-    return new ApiClientError(error.message, 0, 'HttpError');
+    return new ApiClientError(getFriendlyApiMessage('HttpError', error.message), 0, 'HttpError');
   }
 
   return new ApiClientError('No pudimos completar la accion. Intenta nuevamente.', 0, 'HttpError');
+}
+
+function isNetworkFailure(error: HttpErrorResponse): boolean {
+  return error.status === 0;
 }
 
 function extractPayload(error: HttpErrorResponse): ApiErrorPayload | null {
