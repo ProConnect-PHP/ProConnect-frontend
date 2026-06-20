@@ -5,6 +5,11 @@ import {
   PaymentBookingSummary,
   PaymentIntent,
   PaymentIntentStatus,
+  PaymentMovement,
+  PaymentMovementBooking,
+  PaymentMovementKind,
+  PaymentMovementStatus,
+  PaymentMovementsResponse,
   PaymentPackageSummary,
   PaymentPartySummary,
   PaymentProvider,
@@ -26,24 +31,48 @@ const intentStatuses: PaymentIntentStatus[] = [
   'pending',
   'checkout_created',
   'processing',
+  'pending_capture',
+  'paid',
   'succeeded',
+  'completed',
   'failed',
+  'denied',
   'cancelled',
   'expired',
+  'unknown',
 ];
 
 const paymentStatuses: PaymentStatus[] = [
   'pending',
+  'paid',
   'approved',
   'rejected',
   'cancelled',
   'succeeded',
+  'completed',
   'failed',
+  'denied',
+  'expired',
   'refunded',
   'partially_refunded',
+  'unknown',
 ];
 
-const providers: PaymentProvider[] = ['simulator', 'mercadopago', 'paypal'];
+const movementStatuses: PaymentMovementStatus[] = [
+  'paid',
+  'succeeded',
+  'completed',
+  'pending',
+  'checkout_created',
+  'processing',
+  'pending_capture',
+  'failed',
+  'denied',
+  'cancelled',
+  'expired',
+  'refunded',
+  'unknown',
+];
 
 export function unwrapPaymentIntentResponse(response: unknown): PaymentIntent {
   const body = unwrapApiData(response);
@@ -79,7 +108,44 @@ export function unwrapPaymentStatusResponse(response: unknown): PaymentStatusRes
   return {
     payment_intent: paymentIntent,
     payment,
+    next_poll_after_seconds: readNullablePositiveInteger(record['next_poll_after_seconds']),
   };
+}
+
+/**
+ * Accepts both the unified contract and the previous `Payment`-only contract.
+ * This lets the client deploy independently from the API migration.
+ */
+export function unwrapPaymentMovementsResponse(response: unknown): PaymentMovementsResponse {
+  const body = unwrapApiData(response);
+
+  if (Array.isArray(body)) {
+    const payments = dedupeSuccessfulIntentMovements(body.map((item) => mapPaymentMovement(item)));
+    return { payments, meta: mapPaginationMeta({}, payments.length) };
+  }
+
+  if (!isRecord(body)) return { payments: [], meta: emptyMeta };
+
+  const values = Array.isArray(body['payments'])
+    ? body['payments']
+    : Array.isArray(body['data'])
+      ? body['data']
+      : [];
+  const movements = dedupeSuccessfulIntentMovements(values.map((item) => mapPaymentMovement(item)));
+  const metaValue = isRecord(body['meta']) ? body['meta'] : {};
+
+  return {
+    payments: movements,
+    meta: mapPaginationMeta(metaValue, movements.length),
+  };
+}
+
+/** Maps a status endpoint response (new or old) to a single unified movement. */
+export function unwrapPaymentMovementResponse(response: unknown): PaymentMovement {
+  const body = unwrapApiData(response);
+  const record = recordOrEmpty(body);
+  const value = record['payment_intent'] ?? record['paymentIntent'] ?? record['intent'] ?? body;
+  return mapPaymentMovement(value);
 }
 
 export function unwrapPaginatedPaymentsResponse(response: unknown): PaginatedPayments {
@@ -134,6 +200,11 @@ export function mapPaymentIntent(value: unknown): PaymentIntent {
     failed_at: readNullableString(record['failed_at']),
     cancelled_at: readNullableString(record['cancelled_at']),
     failure_reason: readNullableString(record['failure_reason']),
+    can_retry: readOptionalBoolean(record['can_retry']),
+    can_continue_checkout: readOptionalBoolean(record['can_continue_checkout']),
+    can_refresh_status: readOptionalBoolean(record['can_refresh_status']),
+    can_view_booking: readOptionalBoolean(record['can_view_booking']),
+    next_poll_after_seconds: readNullablePositiveInteger(record['next_poll_after_seconds']),
     payment: mapOptionalPayment(record['payment']),
     booking: mapOptionalBookingSummary(record['booking']),
     package_product: mapOptionalPackageSummary(record['package_product']),
@@ -169,6 +240,55 @@ export function mapPayment(value: unknown): Payment {
     client: mapOptionalPartySummary(record['client']),
     created_at: readNullableString(record['created_at']),
     updated_at: readNullableString(record['updated_at']),
+  };
+}
+
+export function mapPaymentMovement(value: unknown): PaymentMovement {
+  const record = recordOrEmpty(value);
+  const kind = readMovementKind(record['kind']);
+
+  if (!hasMovementKind(record)) {
+    if (looksLikePaymentIntent(record)) {
+      return movementFromLegacyPaymentIntent(mapPaymentIntent(value));
+    }
+
+    return movementFromLegacyPayment(mapPayment(value));
+  }
+
+  const status = readMovementStatus(record['status']);
+  const isSuccessful = readBoolean(record['is_successful'], isSuccessfulStatus(status));
+  const isPending = readBoolean(record['is_pending'], isPendingStatus(status));
+  const isFinal = readBoolean(record['is_final'], isFinalStatus(status));
+
+  return {
+    id: readString(record['id']),
+    kind,
+    status,
+    display_status: readNullableString(record['display_status']),
+    is_final: isFinal,
+    is_successful: isSuccessful,
+    is_pending: isPending,
+    can_retry: readBoolean(record['can_retry'], false),
+    can_continue_checkout: readBoolean(record['can_continue_checkout'], false),
+    can_refresh_status: readBoolean(record['can_refresh_status'], false),
+    can_view_booking: readBoolean(record['can_view_booking'], !!readMovementBooking(record['booking'])),
+    amount: readNumber(record['amount']),
+    currency: readString(record['currency']) || 'UYU',
+    provider: readProvider(record['provider']),
+    provider_label: readNullableString(record['provider_label']),
+    provider_reference: readNullableString(record['provider_reference']),
+    provider_status: readNullableString(record['provider_status']),
+    checkout_url: readNullableString(record['checkout_url']),
+    booking: readMovementBooking(record['booking']),
+    package_product: readNullableValue(record['package_product']),
+    client_package: readNullableValue(record['client_package']),
+    payment_intent_id: readNullableString(record['payment_intent_id']),
+    created_at: readNullableString(record['created_at']),
+    updated_at: readNullableString(record['updated_at']),
+    paid_at: readNullableString(record['paid_at']),
+    failed_at: readNullableString(record['failed_at']),
+    expires_at: readNullableString(record['expires_at']),
+    next_poll_after_seconds: readNullablePositiveInteger(record['next_poll_after_seconds']),
   };
 }
 
@@ -255,8 +375,7 @@ function readPayableId(record: UnknownRecord, payableType: PayableType): string 
 }
 
 function readProvider(value: unknown): PaymentProvider {
-  const text = readString(value);
-  return providers.includes(text as PaymentProvider) ? (text as PaymentProvider) : 'simulator';
+  return readString(value).toLowerCase() || 'simulator';
 }
 
 function readIntentStatus(value: unknown): PaymentIntentStatus {
@@ -269,6 +388,173 @@ function readIntentStatus(value: unknown): PaymentIntentStatus {
 function readPaymentStatus(value: unknown): PaymentStatus {
   const text = readString(value);
   return paymentStatuses.includes(text as PaymentStatus) ? (text as PaymentStatus) : 'pending';
+}
+
+function movementFromLegacyPayment(payment: Payment): PaymentMovement {
+  const status = legacyPaymentStatusToMovementStatus(payment.status);
+  const isSuccessful = isSuccessfulStatus(status);
+
+  return {
+    id: payment.id,
+    kind: 'payment',
+    status,
+    display_status: null,
+    is_final: !isPendingStatus(status),
+    is_successful: isSuccessful,
+    is_pending: isPendingStatus(status),
+    can_retry: false,
+    can_continue_checkout: false,
+    can_refresh_status: false,
+    can_view_booking: !!payment.booking_id,
+    amount: payment.amount,
+    currency: payment.currency,
+    provider: payment.provider,
+    provider_label: null,
+    provider_reference: payment.provider_reference,
+    provider_status: null,
+    checkout_url: null,
+    booking: payment.booking
+      ? {
+          id: payment.booking.id,
+          status: payment.booking.status,
+          starts_at: payment.booking.starts_at,
+        }
+      : payment.booking_id
+        ? { id: payment.booking_id }
+        : null,
+    package_product: payment.package_product,
+    client_package: payment.client_package,
+    payment_intent_id: payment.payment_intent_id || null,
+    created_at: payment.created_at,
+    updated_at: payment.updated_at,
+    paid_at: payment.paid_at,
+    failed_at: payment.failed_at,
+    expires_at: null,
+    next_poll_after_seconds: null,
+  };
+}
+
+function movementFromLegacyPaymentIntent(paymentIntent: PaymentIntent): PaymentMovement {
+  const status = readMovementStatus(paymentIntent.status);
+
+  return {
+    id: paymentIntent.id,
+    kind: 'payment_intent',
+    status,
+    display_status: null,
+    is_final: isFinalStatus(status),
+    is_successful: isSuccessfulStatus(status),
+    is_pending: isPendingStatus(status),
+    can_retry: paymentIntent.can_retry ?? false,
+    can_continue_checkout: paymentIntent.can_continue_checkout ?? false,
+    can_refresh_status: paymentIntent.can_refresh_status ?? isPendingStatus(status),
+    can_view_booking: paymentIntent.can_view_booking ?? !!paymentIntent.booking_id,
+    amount: paymentIntent.amount,
+    currency: paymentIntent.currency,
+    provider: paymentIntent.provider,
+    provider_label: null,
+    provider_reference: paymentIntent.provider_reference,
+    provider_status: null,
+    checkout_url: paymentIntent.checkout_url,
+    booking: paymentIntent.booking
+      ? {
+          id: paymentIntent.booking.id,
+          status: paymentIntent.booking.status,
+          starts_at: paymentIntent.booking.starts_at,
+        }
+      : paymentIntent.booking_id
+        ? { id: paymentIntent.booking_id }
+        : null,
+    package_product: paymentIntent.package_product,
+    client_package: null,
+    payment_intent_id: null,
+    created_at: paymentIntent.created_at,
+    updated_at: paymentIntent.updated_at,
+    paid_at: paymentIntent.succeeded_at,
+    failed_at: paymentIntent.failed_at,
+    expires_at: paymentIntent.expires_at,
+    next_poll_after_seconds: paymentIntent.next_poll_after_seconds ?? null,
+  };
+}
+
+function dedupeSuccessfulIntentMovements(movements: PaymentMovement[]): PaymentMovement[] {
+  const successfulPaymentIntentIds = new Set(
+    movements
+      .filter((movement) => movement.kind === 'payment' && movement.is_successful)
+      .map((movement) => movement.payment_intent_id)
+      .filter((id): id is string => !!id),
+  );
+
+  return movements.filter(
+    (movement) =>
+      !(
+        movement.kind === 'payment_intent' &&
+        movement.is_successful &&
+        successfulPaymentIntentIds.has(movement.id)
+      ),
+  );
+}
+
+function hasMovementKind(record: UnknownRecord): boolean {
+  return record['kind'] === 'payment' || record['kind'] === 'payment_intent';
+}
+
+function looksLikePaymentIntent(record: UnknownRecord): boolean {
+  return (
+    'payable_type' in record ||
+    'payable_id' in record ||
+    'checkout_url' in record ||
+    'processing_at' in record ||
+    'succeeded_at' in record
+  );
+}
+
+function readMovementKind(value: unknown): PaymentMovementKind {
+  return value === 'payment' ? 'payment' : 'payment_intent';
+}
+
+function readMovementStatus(value: unknown): PaymentMovementStatus {
+  const text = readString(value).toLowerCase();
+  if (text === 'approved') return 'paid';
+  if (text === 'rejected') return 'denied';
+  if (text === 'partially_refunded') return 'refunded';
+  return movementStatuses.includes(text as PaymentMovementStatus)
+    ? (text as PaymentMovementStatus)
+    : 'unknown';
+}
+
+function legacyPaymentStatusToMovementStatus(status: PaymentStatus): PaymentMovementStatus {
+  return readMovementStatus(status);
+}
+
+function readMovementBooking(value: unknown): PaymentMovementBooking | null {
+  if (!isRecord(value)) return null;
+
+  const id = readString(value['id']);
+  return id
+    ? {
+        id,
+        status: readNullableString(value['status']),
+        starts_at: readNullableString(value['starts_at']),
+      }
+    : null;
+}
+
+function isSuccessfulStatus(status: PaymentMovementStatus): boolean {
+  return status === 'paid' || status === 'succeeded' || status === 'completed';
+}
+
+function isPendingStatus(status: PaymentMovementStatus): boolean {
+  return (
+    status === 'pending' ||
+    status === 'checkout_created' ||
+    status === 'processing' ||
+    status === 'pending_capture'
+  );
+}
+
+function isFinalStatus(status: PaymentMovementStatus): boolean {
+  return !isPendingStatus(status) && status !== 'unknown';
 }
 
 function readServiceId(value: unknown): string | number | null {
@@ -296,6 +582,28 @@ function readNumber(value: unknown): number {
     return Number.isFinite(parsed) ? parsed : 0;
   }
   return 0;
+}
+
+function readBoolean(value: unknown, fallback: boolean): boolean {
+  if (typeof value === 'boolean') return value;
+  if (value === 1 || value === '1' || value === 'true') return true;
+  if (value === 0 || value === '0' || value === 'false') return false;
+  return fallback;
+}
+
+function readOptionalBoolean(value: unknown): boolean | undefined {
+  if (value === undefined || value === null) return undefined;
+  return readBoolean(value, false);
+}
+
+function readNullablePositiveInteger(value: unknown): number | null {
+  if (value === null || value === undefined) return null;
+  const parsed = Math.trunc(readNumber(value));
+  return parsed > 0 ? parsed : null;
+}
+
+function readNullableValue(value: unknown): unknown | null {
+  return value === undefined ? null : value;
 }
 
 function readNullableRecord(value: unknown): Record<string, unknown> | null {

@@ -40,6 +40,8 @@ export class PaymentProviderSelectorComponent {
         return 'Continua de forma segura en PayPal.';
       case 'simulator':
         return 'Prueba local sin cargos reales.';
+      default:
+        return 'Continua de forma segura con este proveedor.';
     }
   }
 }

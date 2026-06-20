@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
 import { PaymentIntentStatus, PaymentStatus } from '../../data-access/payments.models';
-import { paymentStatusLabel } from '../../utils/payment-labels.util';
+import { PaymentStatusTone, paymentStatusUi } from '../../utils/payment-labels.util';
 
 type PaymentBadgeKind = 'payment' | 'intent' | 'booking';
 
@@ -12,68 +12,29 @@ type PaymentBadgeKind = 'payment' | 'intent' | 'booking';
 })
 export class PaymentStatusBadgeComponent {
   readonly status = input<PaymentStatus | PaymentIntentStatus | string | null>(null);
+  readonly displayStatus = input<string | null>(null);
   readonly kind = input<PaymentBadgeKind>('payment');
 
   readonly normalizedStatus = computed(() => this.status() ?? 'unknown');
-  readonly label = computed(() => this.labelFor(this.normalizedStatus(), this.kind()));
-  readonly classes = computed(() => this.classesFor(this.normalizedStatus()));
+  readonly statusUi = computed(() => paymentStatusUi(this.normalizedStatus(), this.displayStatus()));
+  readonly label = computed(() => this.statusUi().label);
+  readonly classes = computed(() => this.classesFor(this.statusUi().tone));
 
-  private labelFor(status: string, kind: PaymentBadgeKind): string {
-    switch (status) {
-      case 'paid':
-        return 'Pagada';
-      case 'succeeded':
-        return kind === 'intent' ? 'Exitoso' : 'Pagado';
-      case 'approved':
-        return 'Pagado';
-      case 'pending':
-        return 'Pendiente';
-      case 'processing':
-        return 'Procesando';
-      case 'checkout_created':
-        return 'Checkout creado';
-      case 'rejected':
-      case 'failed':
-        return 'Fallido';
-      case 'expired':
-        return 'Expirado';
-      case 'cancelled':
-        return 'Cancelado';
-      case 'refunded':
-        return 'Reembolsado';
-      case 'partially_refunded':
-        return 'Reembolso parcial';
-      case 'confirmed':
-        return 'Pendiente de pago';
-      default:
-        return paymentStatusLabel(status);
-    }
-  }
-
-  private classesFor(status: string): string {
+  private classesFor(tone: PaymentStatusTone): string {
     const base = 'inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold';
 
-    switch (status) {
-      case 'paid':
-      case 'approved':
-      case 'succeeded':
+    switch (tone) {
+      case 'success':
         return `${base} border-emerald-200 bg-emerald-50 text-emerald-700`;
-      case 'pending':
-      case 'confirmed':
-      case 'checkout_created':
+      case 'warning':
         return `${base} border-amber-200 bg-amber-50 text-amber-700`;
-      case 'processing':
+      case 'info':
         return `${base} border-blue-200 bg-blue-50 text-blue-700`;
-      case 'rejected':
-      case 'failed':
+      case 'danger':
         return `${base} border-rose-200 bg-rose-50 text-rose-700`;
-      case 'expired':
-      case 'cancelled':
-      case 'refunded':
-      case 'partially_refunded':
-        return `${base} border-slate-200 bg-slate-100 text-slate-700`;
+      case 'neutral':
       default:
-        return `${base} border-slate-200 bg-white text-slate-600`;
+        return `${base} border-slate-200 bg-slate-100 text-slate-700`;
     }
   }
 }

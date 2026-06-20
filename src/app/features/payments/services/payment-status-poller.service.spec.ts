@@ -41,12 +41,14 @@ const baseIntent: PaymentIntent = {
 function statusResult(
   status: PaymentIntentStatus,
   metadata: Record<string, unknown> | null = null,
+  nextPollAfterSeconds: number | null = null,
 ): PaymentStatusResult {
   return {
     payment_intent: {
       ...baseIntent,
       status,
       metadata,
+      next_poll_after_seconds: nextPollAfterSeconds,
     },
     payment: null,
   };
@@ -161,7 +163,15 @@ describe('PaymentStatusPollerService', () => {
     });
   });
 
-  it.each<PaymentIntentStatus>(['succeeded', 'failed', 'cancelled', 'expired'])(
+  it.each<PaymentIntentStatus>([
+    'paid',
+    'succeeded',
+    'completed',
+    'failed',
+    'denied',
+    'cancelled',
+    'expired',
+  ])(
     'stops after one request for terminal status %s',
     async (status) => {
       api.getPaymentStatus.mockReturnValue(of(statusResult(status)));
@@ -174,7 +184,7 @@ describe('PaymentStatusPollerService', () => {
     },
   );
 
-  it('stops after 20 provider-return attempts', async () => {
+  it('uses the bounded backoff sequence and stops after eight provider-return attempts', async () => {
     api.getPaymentStatus.mockReturnValue(of(statusResult('checkout_created')));
     const poller = TestBed.inject(PaymentStatusPollerService);
     const events: PaymentPollingEvent[] = [];
@@ -182,15 +192,29 @@ describe('PaymentStatusPollerService', () => {
     poller
       .pollProviderReturn('intent-1')
       .subscribe((event) => events.push(event));
-    await vi.advanceTimersByTimeAsync(60_000);
+    await vi.advanceTimersByTimeAsync(61_000);
 
-    expect(api.getPaymentStatus).toHaveBeenCalledTimes(20);
+    expect(api.getPaymentStatus).toHaveBeenCalledTimes(8);
     expect(events.at(-1)).toMatchObject({
       type: 'result',
-      attempt: 20,
+      attempt: 8,
       done: true,
       reason: 'max_attempts',
     });
+  });
+
+  it('respects next_poll_after_seconds from the backend', async () => {
+    api.getPaymentStatus.mockReturnValue(of(statusResult('processing', null, 12)));
+    const poller = TestBed.inject(PaymentStatusPollerService);
+
+    poller.pollProviderReturn('intent-1').subscribe();
+    await vi.advanceTimersByTimeAsync(11_999);
+
+    expect(api.getPaymentStatus).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(1);
+
+    expect(api.getPaymentStatus).toHaveBeenCalledTimes(2);
   });
 
   it('stops immediately on rate limiting', async () => {

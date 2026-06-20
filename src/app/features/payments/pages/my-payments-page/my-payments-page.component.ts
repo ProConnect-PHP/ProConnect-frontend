@@ -1,75 +1,77 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { finalize } from 'rxjs/operators';
 
 import { AppAlertComponent } from '../../../../shared/ui/alert/alert.component';
 import { AppLoadingSpinnerComponent } from '../../../../shared/ui/loading-spinner/loading-spinner.component';
-import { PaymentsListComponent } from '../../components/payments-list/payments-list.component';
-import { PaymentsApi } from '../../data-access/payments.api';
-import { mapPaymentApiError } from '../../data-access/payments-error.mapper';
-import { Payment, PaymentsPaginationMeta } from '../../data-access/payments.models';
-
-const initialMeta: PaymentsPaginationMeta = {
-  current_page: 1,
-  per_page: 10,
-  total: 0,
-  last_page: 1,
-};
+import { PaymentMovementsListComponent } from '../../components/payment-movements-list/payment-movements-list.component';
+import { PaymentMovement } from '../../data-access/payments.models';
+import { ClientPaymentsStore } from '../../state/client-payments.store';
 
 @Component({
   selector: 'app-my-payments-page',
-  imports: [RouterLink, AppAlertComponent, AppLoadingSpinnerComponent, PaymentsListComponent],
+  imports: [RouterLink, AppAlertComponent, AppLoadingSpinnerComponent, PaymentMovementsListComponent],
   templateUrl: './my-payments-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [ClientPaymentsStore],
 })
 export class MyPaymentsPageComponent implements OnInit {
-  private readonly api = inject(PaymentsApi);
-  private readonly destroyRef = inject(DestroyRef);
+  readonly store = inject(ClientPaymentsStore);
 
-  readonly payments = signal<Payment[]>([]);
-  readonly meta = signal<PaymentsPaginationMeta>(initialMeta);
-  readonly loading = signal(false);
-  readonly errorMessage = signal<string | null>(null);
-  readonly page = signal(1);
-  readonly perPage = 10;
-
-  readonly canGoPrevious = computed(() => this.page() > 1);
-  readonly canGoNext = computed(() => this.page() < this.meta().last_page);
+  readonly selectedStatus = computed(() => {
+    const filters = this.store.filters();
+    if (filters.only_pending) return 'pending';
+    if (filters.only_final) return 'final';
+    return filters.status ?? '';
+  });
+  readonly selectedProvider = computed(() => this.store.filters().provider ?? '');
+  readonly searchValue = computed(() => this.store.filters().search ?? '');
 
   ngOnInit(): void {
-    this.loadPayments();
+    this.store.load();
   }
 
-  loadPayments(page = this.page()): void {
-    this.loading.set(true);
-    this.errorMessage.set(null);
-    this.page.set(page);
+  onStatusFilterChange(event: Event): void {
+    const value = this.selectValue(event);
 
-    this.api
-      .listMyPayments({ page, per_page: this.perPage })
-      .pipe(
-        finalize(() => this.loading.set(false)),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: (response) => {
-          this.payments.set(response.payments);
-          this.meta.set(response.meta);
-          this.page.set(response.meta.current_page);
-        },
-        error: (error: unknown) =>
-          this.errorMessage.set(mapPaymentApiError(error, 'No pudimos cargar tus pagos.')),
-      });
+    if (value === 'pending') {
+      this.store.updateFilters({ status: undefined, only_pending: true, only_final: undefined });
+      return;
+    }
+
+    if (value === 'final') {
+      this.store.updateFilters({ status: undefined, only_pending: undefined, only_final: true });
+      return;
+    }
+
+    this.store.updateFilters({
+      status: value || undefined,
+      only_pending: undefined,
+      only_final: undefined,
+    });
   }
 
-  previousPage(): void {
-    if (!this.canGoPrevious()) return;
-    this.loadPayments(this.page() - 1);
+  onProviderFilterChange(event: Event): void {
+    this.store.updateFilters({ provider: this.selectValue(event) || undefined });
   }
 
-  nextPage(): void {
-    if (!this.canGoNext()) return;
-    this.loadPayments(this.page() + 1);
+  applySearch(value: string): void {
+    this.store.updateFilters({ search: value.trim() || undefined });
+  }
+
+  onRefreshRequested(payment: PaymentMovement): void {
+    this.store.refreshMovement(payment);
+  }
+
+  onContinueCheckoutRequested(payment: PaymentMovement): void {
+    this.store.continueCheckout(payment);
+  }
+
+  onRetryRequested(payment: PaymentMovement): void {
+    this.store.retryPayment(payment);
+  }
+
+  private selectValue(event: Event): string {
+    const target = event.target;
+    return target instanceof HTMLSelectElement ? target.value : '';
   }
 }
