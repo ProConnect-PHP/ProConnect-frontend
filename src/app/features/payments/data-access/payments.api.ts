@@ -15,6 +15,7 @@ import {
   PaymentMovementsResponse,
   PaymentStatusResult,
   SimulatePaymentFailurePayload,
+  PaginatedResponse,
 } from './payments.models';
 import {
   unwrapPaginatedPaymentsResponse,
@@ -36,7 +37,7 @@ export class PaymentsApi {
       .post<unknown, CreatePaymentIntentRequest>('payment-intents', payload)
       .pipe(map((response) => unwrapPaymentIntentResponse(response)));
   }
-  
+
   syncProviderStatus(
     paymentIntentId: string,
     payload: Record<string, string> = {},
@@ -97,10 +98,16 @@ export class PaymentsApi {
       .pipe(map((response) => unwrapPaginatedPaymentsResponse(response)));
   }
 
-  getMyPayments(): Observable<PaymentHistoryItem[]> {
-    return this.api
-      .get<unknown>('me/payments')
-      .pipe(map((response) => unwrapMyPaymentsResponse(response)));
+  getMyPayments(page = 1, perPage = 10): Observable<PaginatedResponse<PaymentHistoryItem>> {
+    return this.api.get<PaginatedResponse<PaymentHistoryItem>>(
+      `me/payments`,
+      {
+        params: {
+          page,
+          per_page: perPage,
+        },
+      },
+    );
   }
 
   getMyPayment(paymentId: string): Observable<PaymentDetail> {
