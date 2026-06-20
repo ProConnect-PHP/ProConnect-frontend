@@ -30,10 +30,17 @@ export class EchoService {
     eventName: string,
     callback: (payload: unknown) => void,
   ): Promise<boolean> {
+
+
     const echo = await this.getInstance();
-    if (!echo) return false;
+
+    if (!echo) {
+      console.warn('[EchoService] Echo unavailable');
+      return false;
+    }
 
     echo.private(channelName).listen(eventName, callback);
+
     return true;
   }
 
@@ -47,7 +54,10 @@ export class EchoService {
   }
 
   private getInstance(): Promise<Echo<'reverb'> | null> {
-    if (!isPlatformBrowser(this.platformId) || !this.config.enabled) {
+    const isBrowser = isPlatformBrowser(this.platformId);
+
+
+    if (!isBrowser || !this.config.enabled) {
       return Promise.resolve(null);
     }
 
@@ -60,11 +70,12 @@ export class EchoService {
 
     return this.initialization;
   }
-
   private async createInstance(): Promise<Echo<'reverb'> | null> {
     try {
+
       const [{ default: EchoConstructor }, { default: PusherConstructor }] =
         await Promise.all([import('laravel-echo'), import('pusher-js')]);
+
       const browserWindow = window as typeof window & { Pusher: typeof Pusher };
       browserWindow.Pusher = PusherConstructor;
 
@@ -75,31 +86,43 @@ export class EchoService {
         wsPort: this.config.wsPort,
         wssPort: this.config.wssPort,
         forceTLS: this.config.forceTLS,
-        enabledTransports: this.config.forceTLS ? ['wss'] : ['ws'],
+        enabledTransports: ['wss', 'ws'],
         disableStats: true,
         authorizer: (channel: AuthorizableChannel) => ({
           authorize: (socketId: string, callback: AuthorizerCallback) => {
+
             this.http
               .post<ChannelAuthorizationData>(this.config.authEndpoint, {
                 socket_id: socketId,
                 channel_name: channel.name,
               })
               .subscribe({
-                next: (response) => callback(null, response),
-                error: (error: unknown) =>
+                next: (response) => {
+
+                  callback(null, response);
+                },
+                error: (error: unknown) => {
+                  console.error('[EchoService] private channel authorization failed', {
+                    channelName: channel.name,
+                    error,
+                  });
+
                   callback(
                     error instanceof Error
                       ? error
                       : new Error('No se pudo autorizar el canal privado.'),
                     null,
-                  ),
+                  );
+                },
               });
           },
         }),
       });
 
+
       return this.echo;
-    } catch {
+    } catch (error) {
+      console.error('[EchoService] Error creating Echo instance', error);
       return null;
     }
   }
