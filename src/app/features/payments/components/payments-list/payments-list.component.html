@@ -7,7 +7,10 @@
         <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div class="min-w-0">
             <div class="flex flex-wrap items-center gap-2">
-              <app-payment-status-badge [status]="status(payment)" />
+              <app-payment-status-badge
+                [status]="status(payment)"
+                [displayStatus]="displayStatus(payment)"
+              />
               <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
                 {{ providerLabel(payment) }}
               </span>
@@ -66,6 +69,8 @@
           <div class="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-950">
             {{ failureReason }}
           </div>
+        } @else if (statusMessage(payment); as statusMessage) {
+          <p class="mt-4 text-sm leading-6 text-slate-600">{{ statusMessage }}</p>
         }
       </article>
     }

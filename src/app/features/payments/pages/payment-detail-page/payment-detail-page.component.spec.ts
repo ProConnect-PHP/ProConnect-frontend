@@ -68,6 +68,7 @@ const operation: PaymentHistoryItem = {
   package_product_id: null,
   provider: 'paypal',
   status: 'succeeded',
+  display_status: 'paid',
   amount: 1800,
   currency: 'UYU',
   provider_reference: '5GP76217KU6931916',
@@ -104,6 +105,48 @@ const detail: PaymentDetail = {
       succeeded_at: null,
     },
   ],
+};
+
+const rejectedAttemptDetail: PaymentDetail = {
+  source: 'payment_intent',
+  operation: {
+    ...operation,
+    id: 'intent-rejected',
+    source: 'payment_intent',
+    payment_id: null,
+    payment_intent_id: 'intent-rejected',
+    provider: 'mercadopago',
+    status: 'rejected',
+    display_status: 'rejected',
+    provider_reference: 'preference-rejected',
+    provider_payment_id: null,
+    paid_at: null,
+    failed_at: '2026-06-20 18:40:00',
+    failure_reason: 'La tarjeta fue rechazada.',
+    can_retry: true,
+  },
+  payment: null,
+  payment_intent: {
+    ...successfulIntent,
+    id: 'intent-rejected',
+    provider: 'mercadopago',
+    status: 'rejected',
+    provider_reference: 'preference-rejected',
+    succeeded_at: null,
+    failed_at: '2026-06-20 18:40:00',
+    failure_reason: 'La tarjeta fue rechazada.',
+    can_retry: true,
+  },
+  booking: {
+    id: 'booking-1',
+    status: 'confirmed',
+    starts_at: '2026-06-25 10:00:00',
+    ends_at: '2026-06-25 11:00:00',
+    service_id: 'service-1',
+  },
+  package_product: null,
+  successful_intent: null,
+  related_attempts: [],
 };
 
 describe('PaymentDetailPageComponent', () => {
@@ -151,5 +194,18 @@ describe('PaymentDetailPageComponent', () => {
     expect(host.textContent).toContain('Historial de intentos relacionados');
     expect(host.textContent).toContain('5GP76217KU6931916');
     expect(host.textContent).toContain('mp-preference-1');
+  });
+
+  it('supports a rejected payment intent without a captured payment', () => {
+    api.getMyPayment.mockReturnValue(of(rejectedAttemptDetail));
+
+    const fixture = TestBed.createComponent(PaymentDetailPageComponent);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.textContent).toContain('Pago rechazado');
+    expect(host.textContent).toContain('preference-rejected');
+    expect(host.textContent).toContain('La tarjeta fue rechazada.');
+    expect(host.textContent).toContain('Intentar nuevamente');
   });
 });

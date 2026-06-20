@@ -33,6 +33,14 @@ export function getPaymentStatusUi(
   const fallback = statusUiFor(payment.status);
   const displayStatus = payment.display_status?.trim();
 
+  if (displayStatus) {
+    const normalizedDisplayStatus = normalizeMovementStatus(displayStatus);
+
+    if (normalizedDisplayStatus !== 'unknown') {
+      return statusUiFor(normalizedDisplayStatus);
+    }
+  }
+
   return {
     ...fallback,
     label: displayStatus || fallback.label,
@@ -74,6 +82,8 @@ export function paymentStatusLabel(
       return 'Cancelado';
     case 'expired':
       return 'Expirado';
+    case 'not_confirmed':
+      return 'No confirmado';
     case 'refunded':
       return 'Reembolsado';
     case 'partially_refunded':
@@ -107,6 +117,8 @@ function statusUiFor(status: PaymentMovementStatus): PaymentStatusUi {
       return { label: 'Cancelado', tone: 'neutral' };
     case 'expired':
       return { label: 'Expirado', tone: 'neutral' };
+    case 'not_confirmed':
+      return { label: 'No confirmado', tone: 'warning' };
     case 'refunded':
       return { label: 'Reembolsado', tone: 'info' };
     case 'unknown':
@@ -132,6 +144,7 @@ function normalizeMovementStatus(status: string): PaymentMovementStatus {
     case 'denied':
     case 'cancelled':
     case 'expired':
+    case 'not_confirmed':
     case 'refunded':
     case 'unknown':
       return status;

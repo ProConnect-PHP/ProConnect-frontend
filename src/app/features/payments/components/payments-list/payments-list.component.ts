@@ -30,7 +30,7 @@ export class PaymentsListComponent {
   emptyDescription(): string {
     return this.context() === 'professional'
       ? 'Los pagos confirmados de tus reservas apareceran aca.'
-      : 'Los pagos confirmados y los intentos rechazados aparecerán acá.';
+      : 'Cuando pagues, rechaces o intentes pagar una reserva, aparecerá acá.';
   }
 
   paymentDetailLink(payment: PaymentsListItem): string | null {
@@ -101,6 +101,10 @@ export class PaymentsListComponent {
     return payment.status;
   }
 
+  displayStatus(payment: PaymentsListItem): string | null {
+    return this.isHistoryItem(payment) ? payment.display_status : null;
+  }
+
   relevantDate(payment: PaymentsListItem): string | null {
     if (this.isHistoryItem(payment)) {
       return payment.paid_at ?? payment.failed_at ?? payment.cancelled_at ?? payment.created_at;
@@ -110,13 +114,38 @@ export class PaymentsListComponent {
   }
 
   dateLabel(payment: PaymentsListItem): string {
-    return this.isHistoryItem(payment) && payment.source === 'payment_intent'
-      ? 'Fecha del intento'
-      : 'Fecha de pago';
+    return payment.paid_at ? 'Fecha de pago' : 'Fecha del intento';
   }
 
   failureReason(payment: PaymentsListItem): string | null {
     return payment.failure_reason;
+  }
+
+  statusMessage(payment: PaymentsListItem): string {
+    switch (this.displayStatus(payment) ?? payment.status) {
+      case 'paid':
+      case 'approved':
+      case 'succeeded':
+      case 'completed':
+        return 'Pago confirmado correctamente.';
+      case 'rejected':
+      case 'denied':
+        return 'El proveedor rechazó este pago.';
+      case 'failed':
+        return 'No pudimos completar este pago.';
+      case 'cancelled':
+        return 'Este pago fue cancelado.';
+      case 'expired':
+        return 'Este intento de pago expiró.';
+      case 'processing':
+      case 'pending_capture':
+        return 'El proveedor todavía está procesando este pago.';
+      case 'not_confirmed':
+      case 'checkout_created':
+        return 'No encontramos un pago asociado a este intento.';
+      default:
+        return '';
+    }
   }
 
   canRetry(payment: PaymentsListItem): boolean {

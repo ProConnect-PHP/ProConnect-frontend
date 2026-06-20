@@ -2,7 +2,9 @@ import { mapPaymentError } from './payments-error.mapper';
 
 describe('payments error mapper', () => {
   it('maps BookingNotPayable', () => {
-    expect(mapPaymentError('BookingNotPayable')).toBe('Solo podes pagar reservas confirmadas.');
+    expect(mapPaymentError('BookingNotPayable')).toBe(
+      'Esta reserva ya no puede pagarse en su estado actual.',
+    );
   });
 
   it('uses a fallback for unknown errors', () => {
@@ -10,7 +12,10 @@ describe('payments error mapper', () => {
   });
 
   it.each([
-    ['ProviderPaymentNotFound', 'Todavía no encontramos un pago asociado a este intento.'],
+    [
+      'ProviderPaymentNotFound',
+      'No encontramos un pago asociado a este intento. Si no completaste el checkout, podés intentar nuevamente.',
+    ],
     ['ProviderPaymentAmountMismatch', 'El monto confirmado por el proveedor no coincide.'],
     ['ProviderCurrencyMismatch', 'La moneda confirmada por el proveedor no coincide.'],
     ['PaymentIntentNotSyncable', 'Este intento de pago ya no puede sincronizarse.'],

@@ -43,6 +43,7 @@ describe('getPaymentStatusUi', () => {
     ['failed', 'Fallido', 'danger'],
     ['cancelled', 'Cancelado', 'neutral'],
     ['expired', 'Expirado', 'neutral'],
+    ['not_confirmed', 'No confirmado', 'warning'],
     ['refunded', 'Reembolsado', 'info'],
     ['unknown', 'Desconocido', 'neutral'],
   ] as const)('maps %s to a readable %s badge', (status, label, tone) => {
@@ -53,6 +54,13 @@ describe('getPaymentStatusUi', () => {
     expect(getPaymentStatusUi(movement('checkout_created', 'Esperando autorizacion'))).toEqual({
       label: 'Esperando autorizacion',
       tone: 'info',
+    });
+  });
+
+  it('uses a normalized display status as the visual history state', () => {
+    expect(getPaymentStatusUi(movement('checkout_created', 'not_confirmed'))).toEqual({
+      label: 'No confirmado',
+      tone: 'warning',
     });
   });
 });

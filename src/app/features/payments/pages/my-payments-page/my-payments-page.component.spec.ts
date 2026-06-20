@@ -3,11 +3,11 @@ import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 
 import { PaymentsApi } from '../../data-access/payments.api';
-import { Payment } from '../../data-access/payments.models';
+import { Payment, PaymentHistoryItem } from '../../data-access/payments.models';
 import { MyPaymentsPageComponent } from './my-payments-page.component';
 
 const payment: Payment = {
-  id: 'payment-1',
+  id: 'payment:payment-1',
   payment_intent_id: 'intent-1',
   booking_id: 'booking-1',
   package_product_id: null,
@@ -37,6 +37,38 @@ const payment: Payment = {
   updated_at: '2026-06-20 18:39:43',
 };
 
+const rejectedOperation: PaymentHistoryItem = {
+  id: 'intent:intent-rejected',
+  source: 'payment_intent',
+  payment_id: null,
+  payment_intent_id: 'intent-rejected',
+  booking_id: 'booking-1',
+  package_product_id: null,
+  provider: 'mercadopago',
+  status: 'rejected',
+  display_status: 'rejected',
+  amount: 1800,
+  currency: 'UYU',
+  provider_reference: 'preference-1',
+  provider_payment_id: null,
+  paid_at: null,
+  failed_at: '2026-06-20 18:40:00',
+  cancelled_at: null,
+  created_at: '2026-06-20 18:39:43',
+  failure_reason: 'La tarjeta fue rechazada.',
+  booking: {
+    id: 'booking-1',
+    status: 'confirmed',
+    starts_at: '2026-06-25 10:00:00',
+    ends_at: '2026-06-25 11:00:00',
+    service_id: 'service-1',
+    service: { id: 'service-1', name: 'Consulta' },
+  },
+  package_product: null,
+  client_package: null,
+  can_retry: true,
+};
+
 describe('MyPaymentsPageComponent', () => {
   const api = {
     getMyPayments: vi.fn(),
@@ -60,8 +92,9 @@ describe('MyPaymentsPageComponent', () => {
     const host = fixture.nativeElement as HTMLElement;
     expect(api.getMyPayments).toHaveBeenCalledOnce();
     expect(host.textContent).toContain('Consulta');
+    expect(host.textContent).toContain('Fecha de pago');
     expect(host.textContent).toContain('Ver detalle');
-    expect(host.querySelector('a[href="/my-payments/payment-1"]')).not.toBeNull();
+    expect(host.querySelector('a[href="/my-payments/payment:payment-1"]')).not.toBeNull();
     expect(host.textContent).not.toContain('Continuar pago');
     expect(host.textContent).not.toContain('Reintentar pago');
     expect(host.textContent).not.toContain('Pagar ahora');
@@ -76,7 +109,58 @@ describe('MyPaymentsPageComponent', () => {
     const host = fixture.nativeElement as HTMLElement;
     expect(host.textContent).toContain('Todavía no tenés operaciones de pago.');
     expect(host.textContent).toContain(
-      'Los pagos confirmados y los intentos rechazados aparecerán acá.',
+      'Cuando pagues, rechaces o intentes pagar una reserva, aparecerá acá.',
     );
+  });
+
+  it('shows rejected and not-confirmed operations with their distinct badges', () => {
+    api.getMyPayments.mockReturnValue(
+      of([
+        rejectedOperation,
+        {
+          ...rejectedOperation,
+          id: 'intent-not-confirmed',
+          payment_intent_id: 'intent-not-confirmed',
+          status: 'not_confirmed',
+          display_status: 'not_confirmed',
+          failure_reason: null,
+          can_retry: false,
+        },
+      ]),
+    );
+
+    const fixture = TestBed.createComponent(MyPaymentsPageComponent);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.textContent).toContain('Rechazado');
+    expect(host.textContent).toContain('No confirmado');
+    expect(host.textContent).toContain('Fecha del intento');
+    expect(host.textContent).toContain('La tarjeta fue rechazada.');
+    expect(host.textContent).not.toContain('Pagado');
+    expect(host.querySelector('a[href="/my-bookings/booking-1"]')).not.toBeNull();
+    expect(host.querySelector('a[href="/my-bookings/booking-1"]')?.textContent).toContain(
+      'Ver reserva',
+    );
+    expect(
+      host.querySelector('a[href="/my-payments/intent:intent-rejected"]'),
+    ).not.toBeNull();
+    expect(host.textContent).toContain('Intentar nuevamente');
+  });
+
+  it('does not show retry for a rejected operation linked to a cancelled booking', () => {
+    api.getMyPayments.mockReturnValue(
+      of([
+        {
+          ...rejectedOperation,
+          booking: { ...rejectedOperation.booking!, status: 'cancelled' },
+        },
+      ]),
+    );
+
+    const fixture = TestBed.createComponent(MyPaymentsPageComponent);
+    fixture.detectChanges();
+
+    expect((fixture.nativeElement as HTMLElement).textContent).not.toContain('Intentar nuevamente');
   });
 });

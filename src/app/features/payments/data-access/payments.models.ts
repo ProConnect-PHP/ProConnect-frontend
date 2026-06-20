@@ -22,6 +22,7 @@ export type PaymentIntentStatus =
   | 'denied'
   | 'cancelled'
   | 'expired'
+  | 'not_confirmed'
   | 'unknown';
 
 export type PaymentStatus =
@@ -36,6 +37,7 @@ export type PaymentStatus =
   | 'failed'
   | 'denied'
   | 'expired'
+  | 'not_confirmed'
   | 'refunded'
   | 'partially_refunded'
   | 'unknown';
@@ -98,6 +100,15 @@ export interface Payment {
 
 export type PaymentHistorySource = 'payment' | 'payment_intent';
 
+export type PaymentHistoryDisplayStatus =
+  | 'paid'
+  | 'rejected'
+  | 'failed'
+  | 'cancelled'
+  | 'expired'
+  | 'processing'
+  | 'not_confirmed';
+
 /**
  * A client-facing payment-history operation. A successful provider capture is
  * represented by `payment`; a rejected or pending provider operation by
@@ -112,6 +123,7 @@ export interface PaymentHistoryItem {
   package_product_id: string | null;
   provider: PaymentProvider;
   status: PaymentStatus | PaymentIntentStatus;
+  display_status: PaymentHistoryDisplayStatus | null;
   amount: number;
   currency: string;
   provider_reference: string | null;
@@ -229,6 +241,7 @@ export type PaymentMovementStatus =
   | 'denied'
   | 'cancelled'
   | 'expired'
+  | 'not_confirmed'
   | 'refunded'
   | 'unknown';
 

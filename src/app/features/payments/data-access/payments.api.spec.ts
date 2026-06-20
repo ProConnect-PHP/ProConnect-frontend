@@ -85,16 +85,30 @@ describe('PaymentsApi', () => {
     expect(apiClient.get).toHaveBeenCalledWith('payment-intents/intent-1/status');
   });
 
-  it('requests only confirmed payments from the client payments endpoint', async () => {
+  it('requests normalized payment history from the client payments endpoint', async () => {
     apiClient.get.mockReturnValue(
       of({
         data: [
           {
-            id: 'payment-1',
+            id: 'payment:payment-1',
+            source: 'payment',
+            payment_id: 'payment-1',
             payment_intent_id: 'intent-1',
             provider: 'paypal',
             status: 'succeeded',
+            display_status: 'paid',
             amount: 1800,
+            currency: 'UYU',
+          },
+          {
+            id: 'intent:intent-1',
+            source: 'payment_intent',
+            payment_id: null,
+            payment_intent_id: 'intent-1',
+            provider: 'mercadopago',
+            status: 'checkout_created',
+            display_status: 'not_confirmed',
+            amount: 1600,
             currency: 'UYU',
           },
         ],
@@ -105,8 +119,10 @@ describe('PaymentsApi', () => {
     const payments = await firstValueFrom(service.getMyPayments());
 
     expect(apiClient.get).toHaveBeenCalledWith('me/payments');
-    expect(payments).toHaveLength(1);
-    expect(payments[0]?.id).toBe('payment-1');
+    expect(payments).toHaveLength(2);
+    expect(payments[0]?.id).toBe('payment:payment-1');
+    expect(payments[0]?.display_status).toBe('paid');
+    expect(payments[1]?.display_status).toBe('not_confirmed');
   });
 
   it('requests a payment detail with its related attempts', async () => {

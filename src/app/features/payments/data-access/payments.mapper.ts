@@ -4,6 +4,7 @@ import {
   Payment,
   PaymentBookingSummary,
   PaymentDetail,
+  PaymentHistoryDisplayStatus,
   PaymentHistoryItem,
   PaymentHistorySource,
   PaymentIntent,
@@ -44,6 +45,7 @@ const intentStatuses: PaymentIntentStatus[] = [
   'denied',
   'cancelled',
   'expired',
+  'not_confirmed',
   'unknown',
 ];
 
@@ -60,6 +62,7 @@ const paymentStatuses: PaymentStatus[] = [
   'rejected',
   'denied',
   'expired',
+  'not_confirmed',
   'refunded',
   'partially_refunded',
   'unknown',
@@ -74,11 +77,23 @@ const movementStatuses: PaymentMovementStatus[] = [
   'processing',
   'pending_capture',
   'failed',
+  'rejected',
   'denied',
   'cancelled',
   'expired',
+  'not_confirmed',
   'refunded',
   'unknown',
+];
+
+const historyDisplayStatuses: PaymentHistoryDisplayStatus[] = [
+  'paid',
+  'rejected',
+  'failed',
+  'cancelled',
+  'expired',
+  'processing',
+  'not_confirmed',
 ];
 
 export function unwrapPaymentIntentResponse(response: unknown): PaymentIntent {
@@ -372,6 +387,7 @@ export function mapPaymentHistoryItem(
         readNullableString(record['package_product_id']) ?? paymentIntent.package_product_id,
       provider: paymentIntent.provider,
       status: paymentIntent.status,
+      display_status: readHistoryDisplayStatus(record['display_status']),
       amount: paymentIntent.amount,
       currency: paymentIntent.currency,
       provider_reference: paymentIntent.provider_reference,
@@ -399,6 +415,7 @@ export function mapPaymentHistoryItem(
     package_product_id: payment.package_product_id,
     provider: payment.provider,
     status: payment.status,
+    display_status: readHistoryDisplayStatus(record['display_status']),
     amount: payment.amount,
     currency: payment.currency,
     provider_reference: payment.provider_reference,
@@ -567,6 +584,13 @@ function readIntentStatus(value: unknown): PaymentIntentStatus {
 function readPaymentStatus(value: unknown): PaymentStatus {
   const text = readString(value);
   return paymentStatuses.includes(text as PaymentStatus) ? (text as PaymentStatus) : 'pending';
+}
+
+function readHistoryDisplayStatus(value: unknown): PaymentHistoryDisplayStatus | null {
+  const text = readString(value);
+  return historyDisplayStatuses.includes(text as PaymentHistoryDisplayStatus)
+    ? (text as PaymentHistoryDisplayStatus)
+    : null;
 }
 
 function movementFromLegacyPayment(payment: Payment): PaymentMovement {
