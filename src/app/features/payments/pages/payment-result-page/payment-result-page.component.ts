@@ -21,6 +21,7 @@ import {
   PaymentIntentStatus,
   PaymentStatusResult,
 } from '../../data-access/payments.models';
+import { PaymentsApi } from '../../data-access/payments.api';
 import { PaymentRedirectService } from '../../services/payment-redirect.service';
 import {
   PaymentPollingEvent,
@@ -30,8 +31,11 @@ import {
 } from '../../services/payment-status-poller.service';
 
 const TERMINAL_PAYMENT_INTENT_STATUSES: PaymentIntentStatus[] = [
+  'paid',
   'succeeded',
+  'completed',
   'failed',
+  'denied',
   'cancelled',
   'expired',
 ];
@@ -40,6 +44,7 @@ const NON_TERMINAL_PAYMENT_INTENT_STATUSES: PaymentIntentStatus[] = [
   'pending',
   'checkout_created',
   'processing',
+  'pending_capture',
 ];
 
 const RECENT_POLLING_WINDOW_MS = 60_000;
@@ -53,6 +58,7 @@ const POLLING_STORAGE_KEY_PREFIX = 'payment-provider-return-polled:';
 })
 export class PaymentResultPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly api = inject(PaymentsApi);
   private readonly redirectService = inject(PaymentRedirectService);
   private readonly poller = inject(PaymentStatusPollerService);
   private readonly destroyRef = inject(DestroyRef);
@@ -85,8 +91,39 @@ export class PaymentResultPageComponent implements OnInit {
   readonly message = computed(() => this.messageForStatus(this.status()));
   readonly statusClasses = computed(() => this.classesForStatus(this.status()));
   readonly canRetry = computed(() => {
-    const status = this.status();
-    return status === 'failed' || status === 'cancelled' || status === 'expired';
+    const paymentIntent = this.result()?.payment_intent;
+    if (!paymentIntent) return false;
+
+    return paymentIntent.can_retry ??
+      (
+      paymentIntent.status === 'failed' ||
+      paymentIntent.status === 'denied' ||
+      paymentIntent.status === 'cancelled' ||
+      paymentIntent.status === 'expired'
+      );
+  });
+  readonly canContinueCheckout = computed(() => {
+    const paymentIntent = this.result()?.payment_intent;
+    if (!paymentIntent) return false;
+
+    return (
+      paymentIntent.can_continue_checkout ??
+      (paymentIntent.status === 'checkout_created' && !!paymentIntent.checkout_url)
+    );
+  });
+  readonly canRefreshStatus = computed(() => {
+    const paymentIntent = this.result()?.payment_intent;
+    if (!paymentIntent) return !!this.paymentIntentId();
+
+    return paymentIntent.can_refresh_status ?? this.isPendingConfirmation();
+  });
+  readonly bookingLink = computed(() => {
+    const paymentIntent = this.result()?.payment_intent;
+    if (!paymentIntent) return null;
+
+    return (paymentIntent.can_view_booking ?? !!paymentIntent.booking_id) && paymentIntent.booking_id
+      ? `/my-bookings/${paymentIntent.booking_id}`
+      : null;
   });
   readonly retryLink = computed(() => {
     const paymentIntent = this.result()?.payment_intent;
@@ -147,6 +184,45 @@ export class PaymentResultPageComponent implements OnInit {
     this.fetchStatusOnce(paymentIntentId);
   }
 
+  continueCheckout(): void {
+    const paymentIntent = this.result()?.payment_intent;
+    if (!paymentIntent || !this.canContinueCheckout() || this.loading() || this.polling()) return;
+
+    this.errorMessage.set(null);
+    this.noticeMessage.set(null);
+
+    if (paymentIntent.checkout_url) {
+      this.redirectService.redirectToCheckout(paymentIntent.checkout_url);
+      return;
+    }
+
+    this.loading.set(true);
+    this.api
+      .createCheckout(paymentIntent.id, { provider: paymentIntent.provider })
+      .pipe(
+        tap((updatedIntent) => {
+          this.applyResult({
+            payment_intent: updatedIntent,
+            payment: this.result()?.payment ?? null,
+          });
+
+          if (updatedIntent.checkout_url) {
+            this.redirectService.redirectToCheckout(updatedIntent.checkout_url);
+            return;
+          }
+
+          this.noticeMessage.set('El checkout todavia no esta disponible. Intenta actualizar el estado.');
+        }),
+        catchError((error: unknown) => {
+          this.applyRequestError(error, 'No pudimos continuar el pago.');
+          return of(null);
+        }),
+        finalize(() => this.loading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
   private fetchStatusOnce(paymentIntentId: string): void {
     this.loading.set(true);
 
@@ -205,8 +281,8 @@ export class PaymentResultPageComponent implements OnInit {
 
     this.applyResult(event.result);
 
-    if (event.reason === 'max_attempts') {
-      this.setPendingConfirmationNotice();
+    if (event.reason === 'max_attempts' || event.reason === 'max_duration') {
+      this.setPollingTimeoutNotice();
     }
   }
 
@@ -224,6 +300,10 @@ export class PaymentResultPageComponent implements OnInit {
     this.noticeMessage.set(
       'El proveedor puede demorar unos segundos mas en notificar la operacion. Podes actualizar el estado manualmente.',
     );
+  }
+
+  private setPollingTimeoutNotice(): void {
+    this.noticeMessage.set('El pago sigue siendo procesado. Te avisaremos cuando se confirme.');
   }
 
   private applyRequestError(error: unknown, fallback: string): void {
@@ -304,8 +384,11 @@ export class PaymentResultPageComponent implements OnInit {
   private titleForStatus(status: PaymentIntentStatus | null): string {
     switch (status) {
       case 'succeeded':
+      case 'paid':
+      case 'completed':
         return 'Pago confirmado';
       case 'failed':
+      case 'denied':
         return 'El pago fue rechazado';
       case 'cancelled':
         return 'El pago fue cancelado';
@@ -314,6 +397,7 @@ export class PaymentResultPageComponent implements OnInit {
       case 'pending':
       case 'checkout_created':
       case 'processing':
+      case 'pending_capture':
         return this.polling()
           ? 'Estamos confirmando tu pago'
           : 'Pago pendiente de confirmacion';
@@ -325,8 +409,11 @@ export class PaymentResultPageComponent implements OnInit {
   private messageForStatus(status: PaymentIntentStatus | null): string {
     switch (status) {
       case 'succeeded':
+      case 'paid':
+      case 'completed':
         return 'El proveedor notifico la operacion y ProConnect ya confirmo el pago.';
       case 'failed':
+      case 'denied':
         return 'El proveedor rechazo la operacion. Podes volver a intentarlo.';
       case 'cancelled':
         return 'La operacion fue cancelada antes de completarse.';
@@ -335,6 +422,7 @@ export class PaymentResultPageComponent implements OnInit {
       case 'pending':
       case 'checkout_created':
       case 'processing':
+      case 'pending_capture':
         return this.polling()
           ? `${this.providerLabel()} ya te redirigio a ProConnect. Estamos esperando la confirmacion automatica del proveedor.`
           : 'El proveedor puede demorar unos segundos mas en notificar la operacion. Podes actualizar el estado manualmente.';
@@ -348,8 +436,11 @@ export class PaymentResultPageComponent implements OnInit {
   private classesForStatus(status: PaymentIntentStatus | null): string {
     switch (status) {
       case 'succeeded':
+      case 'paid':
+      case 'completed':
         return 'border-emerald-200 bg-emerald-50 text-emerald-950';
       case 'failed':
+      case 'denied':
         return 'border-rose-200 bg-rose-50 text-rose-950';
       case 'cancelled':
       case 'expired':

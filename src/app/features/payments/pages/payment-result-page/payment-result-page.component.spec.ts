@@ -227,20 +227,20 @@ describe('PaymentResultPageComponent', () => {
     );
   });
 
-  it('makes at most 20 provider-return requests and then shows pending confirmation', async () => {
+  it('uses a bounded provider-return backoff and then shows the processing notice', async () => {
     api.getPaymentStatus.mockReturnValue(of(statusResult('checkout_created')));
     const fixture = await createFixture({
       payment_intent_id: 'intent-1',
       payment_id: 'mercadopago-payment-1',
     });
 
-    await vi.advanceTimersByTimeAsync(60_000);
+    await vi.advanceTimersByTimeAsync(61_000);
     fixture.detectChanges();
 
-    expect(api.getPaymentStatus).toHaveBeenCalledTimes(20);
+    expect(api.getPaymentStatus).toHaveBeenCalledTimes(8);
     expect(fixture.componentInstance.polling()).toBe(false);
     expect(fixture.nativeElement.textContent).toContain(
-      'El proveedor puede demorar unos segundos mas',
+      'El pago sigue siendo procesado',
     );
   });
 
