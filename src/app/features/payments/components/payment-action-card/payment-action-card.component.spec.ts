@@ -55,4 +55,18 @@ describe('PaymentActionCardComponent', () => {
     expect(host.textContent).toContain('Pago confirmado');
     expect(host.textContent).not.toContain('Pagar reserva');
   });
+
+  it('does not mount payment controls for cancelled bookings', () => {
+    const fixture = TestBed.createComponent(PaymentActionCardComponent);
+    fixture.componentRef.setInput('booking', {
+      ...baseBooking,
+      status: 'cancelled',
+      cancelled_at: '2026-06-01 12:05:00',
+    });
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.textContent).not.toContain('Pagar reserva');
+    expect(host.querySelector('app-payment-checkout-panel')).toBeNull();
+  });
 });

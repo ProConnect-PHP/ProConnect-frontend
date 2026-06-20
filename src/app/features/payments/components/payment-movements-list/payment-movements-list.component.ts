@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 
 import { AppEmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
 import { formatMoney } from '../../../../shared/utils/money.util';
+import { isBookingPayable } from '../../../bookings/utils/booking-payment.util';
 import { PaymentMovement } from '../../data-access/payments.models';
 import { paymentProviderLabel } from '../../utils/payment-labels.util';
 import { PaymentStatusBadgeComponent } from '../payment-status-badge/payment-status-badge.component';
@@ -66,6 +67,30 @@ export class PaymentMovementsListComponent {
 
   isActive(payment: PaymentMovement): boolean {
     return this.activeMovementId() === payment.id;
+  }
+
+  canContinueCheckout(payment: PaymentMovement): boolean {
+    return (
+      payment.kind === 'payment_intent' &&
+      payment.can_continue_checkout &&
+      isBookingPayable(payment.booking?.status)
+    );
+  }
+
+  canRetry(payment: PaymentMovement): boolean {
+    return (
+      payment.kind === 'payment_intent' &&
+      payment.can_retry &&
+      isBookingPayable(payment.booking?.status)
+    );
+  }
+
+  canRefreshStatus(payment: PaymentMovement): boolean {
+    return (
+      payment.kind === 'payment_intent' &&
+      payment.can_refresh_status &&
+      isBookingPayable(payment.booking?.status)
+    );
   }
 
   formatDateTime(value: string | null): string {

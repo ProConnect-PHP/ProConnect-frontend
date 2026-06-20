@@ -56,6 +56,14 @@ const CLIENT_READ_ROUTES: Routes = [
       ),
   },
   {
+    path: 'my-payments/:paymentId',
+    title: 'Detalle de pago | ProConnect',
+    loadComponent: () =>
+      import('../payments/pages/payment-detail-page/payment-detail-page.component').then(
+        (m) => m.PaymentDetailPageComponent,
+      ),
+  },
+  {
     path: 'my-packages',
     title: 'Mis paquetes | ProConnect',
     loadComponent: () =>

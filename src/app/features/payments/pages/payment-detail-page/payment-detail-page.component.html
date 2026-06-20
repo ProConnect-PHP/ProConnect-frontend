@@ -1,0 +1,206 @@
+<main class="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
+  <a
+    routerLink="/my-payments"
+    class="inline-flex min-h-10 items-center rounded-md text-sm font-bold text-indigo-700 hover:text-indigo-900 focus:outline focus:outline-2 focus:outline-indigo-600"
+  >
+    Volver a mis pagos
+  </a>
+
+  @if (errorMessage()) {
+    <div class="mt-6">
+      <app-alert [message]="errorMessage()" variant="danger" />
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="mt-6">
+      <app-loading-spinner label="Cargando detalle del pago..." />
+    </div>
+  } @else if (detail(); as paymentDetail) {
+    <header
+      class="mt-6 flex flex-col gap-4 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:items-start sm:justify-between"
+    >
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wide text-indigo-600">
+          {{ operationTitle(paymentDetail.operation) }}
+        </p>
+        <h1 class="mt-2 text-3xl font-black tracking-tight text-slate-950">
+          {{ money(paymentDetail.operation) }}
+        </h1>
+        <p class="mt-2 text-sm leading-6 text-slate-600">
+          {{ operationDateLabel(paymentDetail.operation) }}:
+          {{ formatDateTime(operationDate(paymentDetail.operation)) }}
+        </p>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <app-payment-status-badge [status]="paymentDetail.operation.status" />
+        <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
+          {{ providerLabel(paymentDetail.operation.provider) }}
+        </span>
+      </div>
+    </header>
+
+    @if (retryLink(paymentDetail); as retryLink) {
+      <a
+        class="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700 sm:w-auto"
+        [routerLink]="retryLink"
+      >
+        Intentar nuevamente
+      </a>
+    }
+
+    <section class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <article class="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 class="text-lg font-black tracking-tight text-slate-950">Información de la operación</h2>
+        <dl class="mt-5 grid gap-4 text-sm">
+          <div>
+            <dt class="font-bold uppercase tracking-wide text-slate-500">Proveedor</dt>
+            <dd class="mt-1 font-semibold text-slate-950">
+              {{ providerLabel(paymentDetail.operation.provider) }}
+            </dd>
+          </div>
+          <div>
+            <dt class="font-bold uppercase tracking-wide text-slate-500">Estado</dt>
+            <dd class="mt-1">
+              <app-payment-status-badge [status]="paymentDetail.operation.status" />
+            </dd>
+          </div>
+          <div>
+            <dt class="font-bold uppercase tracking-wide text-slate-500">Monto</dt>
+            <dd class="mt-1 text-xl font-black text-slate-950">
+              {{ money(paymentDetail.operation) }}
+            </dd>
+          </div>
+          @if (paymentDetail.source === 'payment') {
+            <div>
+              <dt class="font-bold uppercase tracking-wide text-slate-500">ID externo del proveedor</dt>
+              <dd class="mt-1 break-all font-mono text-xs text-slate-700">
+                {{ paymentDetail.operation.provider_payment_id ?? paymentDetail.operation.provider_reference ?? 'No disponible' }}
+              </dd>
+            </div>
+            <div>
+              <dt class="font-bold uppercase tracking-wide text-slate-500">Fecha de pago</dt>
+              <dd class="mt-1 font-semibold text-slate-950">
+                {{ formatDateTime(paymentDetail.operation.paid_at) }}
+              </dd>
+            </div>
+          } @else {
+            <div>
+              <dt class="font-bold uppercase tracking-wide text-slate-500">Referencia del proveedor</dt>
+              <dd class="mt-1 break-all font-mono text-xs text-slate-700">
+                {{ paymentDetail.operation.provider_reference ?? 'No disponible' }}
+              </dd>
+            </div>
+            <div>
+              <dt class="font-bold uppercase tracking-wide text-slate-500">Fecha del intento</dt>
+              <dd class="mt-1 font-semibold text-slate-950">
+                {{ formatDateTime(operationDate(paymentDetail.operation)) }}
+              </dd>
+            </div>
+          }
+        </dl>
+
+        @if (paymentDetail.operation.failure_reason; as failureReason) {
+          <div class="mt-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-950">
+            <p class="font-bold">Motivo informado por el proveedor</p>
+            <p class="mt-1">{{ failureReason }}</p>
+          </div>
+        }
+      </article>
+
+      <article class="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 class="text-lg font-black tracking-tight text-slate-950">Reserva o paquete asociado</h2>
+
+        @if (paymentDetail.booking ?? paymentDetail.operation.booking; as booking) {
+          <div class="mt-5">
+            <p class="font-bold text-slate-950">Reserva</p>
+            <p class="mt-1 text-sm leading-6 text-slate-600">
+              Inicio: {{ formatDateTime(booking.starts_at) }}
+            </p>
+            <p class="mt-1 text-sm leading-6 text-slate-600">Estado: {{ booking.status }}</p>
+
+            @if (isCancelledBooking(booking.status)) {
+              <p class="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm leading-6 text-amber-950">
+                @if (paymentDetail.source === 'payment') {
+                  Esta reserva está cancelada, pero el pago fue registrado correctamente.
+                } @else {
+                  Esta reserva está cancelada. No hay acciones de pago disponibles.
+                }
+              </p>
+            }
+
+            <a
+              class="mt-4 inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600"
+              [routerLink]="['/my-bookings', booking.id]"
+            >
+              Ver reserva
+            </a>
+          </div>
+        } @else if (paymentDetail.package_product ?? paymentDetail.operation.package_product; as packageProduct) {
+          <div class="mt-5">
+            <p class="font-bold text-slate-950">Paquete</p>
+            <p class="mt-1 text-sm leading-6 text-slate-600">{{ packageProduct.name }}</p>
+            @if (packageProduct.sessions_count !== undefined) {
+              <p class="mt-1 text-sm leading-6 text-slate-600">
+                Sesiones: {{ packageProduct.sessions_count }}
+              </p>
+            }
+          </div>
+        } @else {
+          <p class="mt-5 text-sm leading-6 text-slate-600">
+            No hay una reserva o paquete asociado disponible para mostrar.
+          </p>
+        }
+      </article>
+    </section>
+
+    <section class="mt-6 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
+      <h2 class="text-lg font-black tracking-tight text-slate-950">Intento exitoso relacionado</h2>
+      @if (paymentDetail.successful_intent; as successfulIntent) {
+        <div class="mt-4 flex flex-col gap-3 rounded-2xl bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div class="min-w-0">
+            <p class="font-bold text-slate-950">{{ providerLabel(successfulIntent.provider) }}</p>
+            <p class="mt-1 break-all text-xs text-slate-600">
+              {{ successfulIntent.provider_reference ?? successfulIntent.id }}
+            </p>
+          </div>
+          <app-payment-status-badge [status]="successfulIntent.status" kind="intent" />
+        </div>
+      } @else {
+        <p class="mt-4 text-sm leading-6 text-slate-600">
+          No hay un intento exitoso relacionado disponible para mostrar.
+        </p>
+      }
+    </section>
+
+    <section class="mt-6 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
+      <h2 class="text-lg font-black tracking-tight text-slate-950">Historial de intentos relacionados</h2>
+      @if (paymentDetail.related_attempts.length === 0) {
+        <p class="mt-4 text-sm leading-6 text-slate-600">No hay intentos relacionados para mostrar.</p>
+      } @else {
+        <div class="mt-4 grid gap-3">
+          @for (attempt of paymentDetail.related_attempts; track attempt.id) {
+            <article class="flex flex-col gap-3 rounded-2xl border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div class="min-w-0">
+                <p class="font-bold text-slate-950">{{ providerLabel(attempt.provider) }}</p>
+                <p class="mt-1 break-all text-xs text-slate-600">
+                  {{ attempt.provider_reference ?? attempt.id }}
+                </p>
+                <p class="mt-2 text-sm text-slate-600">{{ formatDateTime(attemptDate(attempt)) }}</p>
+              </div>
+              <app-payment-status-badge [status]="attempt.status" kind="intent" />
+            </article>
+          }
+        </div>
+      }
+    </section>
+  } @else if (!errorMessage()) {
+    <div class="mt-6">
+      <app-empty-state
+        icon="$"
+        title="Pago no encontrado"
+        description="No pudimos encontrar la operación solicitada."
+      />
+    </div>
+  }
+</main>

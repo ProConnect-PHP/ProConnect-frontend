@@ -85,44 +85,75 @@ describe('PaymentsApi', () => {
     expect(apiClient.get).toHaveBeenCalledWith('payment-intents/intent-1/status');
   });
 
-  it('sends all supported client payment filters to the unified endpoint', async () => {
+  it('requests only confirmed payments from the client payments endpoint', async () => {
     apiClient.get.mockReturnValue(
       of({
-        payments: [],
-        meta: { current_page: 2, per_page: 20, total: 0, last_page: 1 },
+        data: [
+          {
+            id: 'payment-1',
+            payment_intent_id: 'intent-1',
+            provider: 'paypal',
+            status: 'succeeded',
+            amount: 1800,
+            currency: 'UYU',
+          },
+        ],
       }),
     );
     const service = TestBed.inject(PaymentsApi);
 
-    await firstValueFrom(
-      service.getMyPayments({
-        page: 2,
-        per_page: 20,
-        status: 'processing',
-        provider: 'paypal',
-        kind: 'payment_intent',
-        booking_id: 'booking-1',
-        only_pending: true,
-        only_final: false,
-        date_from: '2026-06-01',
-        date_to: '2026-06-30',
-        search: 'paypal-order-1',
+    const payments = await firstValueFrom(service.getMyPayments());
+
+    expect(apiClient.get).toHaveBeenCalledWith('me/payments');
+    expect(payments).toHaveLength(1);
+    expect(payments[0]?.id).toBe('payment-1');
+  });
+
+  it('requests a payment detail with its related attempts', async () => {
+    apiClient.get.mockReturnValue(
+      of({
+        payment: {
+          id: 'payment-1',
+          payment_intent_id: 'intent-1',
+          provider: 'paypal',
+          status: 'succeeded',
+          amount: 1800,
+          currency: 'UYU',
+        },
+        booking: null,
+        package_product: null,
+        successful_intent: null,
+        related_attempts: [],
       }),
     );
+    const service = TestBed.inject(PaymentsApi);
+
+    const detail = await firstValueFrom(service.getMyPayment('payment-1'));
+
+    expect(apiClient.get).toHaveBeenCalledWith('me/payments/payment-1');
+    expect(detail.payment.id).toBe('payment-1');
+    expect(detail.related_attempts).toEqual([]);
+  });
+
+  it('keeps the unified movements endpoint behind its explicit legacy method', async () => {
+    apiClient.get.mockReturnValue(of({ payments: [], meta: {} }));
+    const service = TestBed.inject(PaymentsApi);
+
+    await firstValueFrom(service.getMyPaymentMovements({ only_pending: true }));
 
     expect(apiClient.get).toHaveBeenCalledWith('payments/my', {
       params: {
-        page: 2,
-        per_page: 20,
-        status: 'processing',
-        provider: 'paypal',
-        kind: 'payment_intent',
-        booking_id: 'booking-1',
+        page: undefined,
+        per_page: undefined,
+        status: undefined,
+        provider: undefined,
+        kind: undefined,
+        booking_id: undefined,
         only_pending: true,
-        only_final: false,
-        date_from: '2026-06-01',
-        date_to: '2026-06-30',
-        search: 'paypal-order-1',
+        only_final: undefined,
+        date_from: undefined,
+        date_to: undefined,
+        search: undefined,
       },
     });
   });

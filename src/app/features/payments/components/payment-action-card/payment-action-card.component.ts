@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input, output, signal } f
 
 import { formatMoney } from '../../../../shared/utils/money.util';
 import { Booking } from '../../../bookings/models/booking.models';
+import { isBookingPayable } from '../../../bookings/utils/booking-payment.util';
 import { Payment } from '../../data-access/payments.models';
 import { PaymentCheckoutPanelComponent } from '../payment-checkout-panel/payment-checkout-panel.component';
 import { PaymentStatusBadgeComponent } from '../payment-status-badge/payment-status-badge.component';
@@ -36,6 +37,7 @@ export class PaymentActionCardComponent {
   );
   readonly canPay = computed(
     () =>
+      isBookingPayable(this.booking().status) &&
       this.booking().status === 'confirmed' &&
       !this.paymentConfirmed() &&
       !this.coveredByPackage(),

@@ -39,7 +39,7 @@ const baseMovement: PaymentMovement = {
 
 describe('ClientPaymentsStore', () => {
   const api = {
-    getMyPayments: vi.fn(),
+    getMyPaymentMovements: vi.fn(),
     refreshPaymentMovement: vi.fn(),
     createCheckout: vi.fn(),
   };
@@ -48,7 +48,7 @@ describe('ClientPaymentsStore', () => {
   };
 
   beforeEach(() => {
-    api.getMyPayments.mockReset();
+    api.getMyPaymentMovements.mockReset();
     api.refreshPaymentMovement.mockReset();
     api.createCheckout.mockReset();
     redirectService.redirectToCheckout.mockReset();
@@ -65,7 +65,7 @@ describe('ClientPaymentsStore', () => {
   afterEach(() => TestBed.resetTestingModule());
 
   it('loads unified movements into signal state', () => {
-    api.getMyPayments.mockReturnValue(
+    api.getMyPaymentMovements.mockReturnValue(
       of({
         payments: [baseMovement],
         meta: { current_page: 1, per_page: 10, total: 1, last_page: 1 },
@@ -81,7 +81,7 @@ describe('ClientPaymentsStore', () => {
   });
 
   it('applies filters from page one', () => {
-    api.getMyPayments.mockReturnValue(
+    api.getMyPaymentMovements.mockReturnValue(
       of({
         payments: [],
         meta: { current_page: 1, per_page: 10, total: 0, last_page: 1 },
@@ -91,7 +91,7 @@ describe('ClientPaymentsStore', () => {
 
     store.updateFilters({ provider: 'paypal', only_pending: true });
 
-    expect(api.getMyPayments).toHaveBeenCalledWith({
+    expect(api.getMyPaymentMovements).toHaveBeenCalledWith({
       page: 1,
       per_page: 10,
       provider: 'paypal',

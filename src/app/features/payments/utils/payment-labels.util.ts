@@ -66,6 +66,7 @@ export function paymentStatusLabel(
     case 'pending_capture':
       return 'Procesando';
     case 'rejected':
+      return 'Rechazado';
     case 'denied':
     case 'failed':
       return 'Fallido';
@@ -97,6 +98,8 @@ function statusUiFor(status: PaymentMovementStatus): PaymentStatusUi {
     case 'processing':
     case 'pending_capture':
       return { label: 'Procesando', tone: 'warning' };
+    case 'rejected':
+      return { label: 'Rechazado', tone: 'danger' };
     case 'failed':
     case 'denied':
       return { label: 'Fallido', tone: 'danger' };
@@ -115,8 +118,6 @@ function normalizeMovementStatus(status: string): PaymentMovementStatus {
   switch (status) {
     case 'approved':
       return 'paid';
-    case 'rejected':
-      return 'denied';
     case 'partially_refunded':
       return 'refunded';
     case 'paid':
@@ -127,6 +128,7 @@ function normalizeMovementStatus(status: string): PaymentMovementStatus {
     case 'processing':
     case 'pending_capture':
     case 'failed':
+    case 'rejected':
     case 'denied':
     case 'cancelled':
     case 'expired':
