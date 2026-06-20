@@ -132,37 +132,47 @@ export function unwrapMyPaymentsResponse(response: unknown): PaymentHistoryItem[
 
 export function unwrapPaymentDetailResponse(response: unknown): PaymentDetail {
   const body = unwrapApiData(response);
-  const record = recordOrEmpty(body);
+  const responseRecord = recordOrEmpty(body);
+  const detailValue = responseRecord['item'] ?? body;
+  const record = recordOrEmpty(detailValue);
   const source = readPaymentHistorySource(record);
+  const paymentValue = record['payment'];
+  const paymentIntentValue = record['payment_intent'] ?? record['paymentIntent'];
   const operationValue =
     record['operation'] ??
     record['history_item'] ??
     (source === 'payment'
-      ? record['payment'] ?? body
-      : record['payment_intent'] ?? record['paymentIntent'] ?? record['intent'] ?? body);
+      ? mergeOperationRecord(detailValue, paymentValue)
+      : mergeOperationRecord(detailValue, paymentIntentValue ?? record['intent']));
   const operation = mapPaymentHistoryItem(operationValue, source);
   const relatedAttempts = Array.isArray(record['related_attempts'])
     ? record['related_attempts'].map((attempt) => mapPaymentIntent(attempt))
     : [];
+  const paymentIntent = mapOptionalPaymentIntent(paymentIntentValue);
+  const successfulIntent =
+    mapOptionalPaymentIntent(record['successful_intent']) ??
+    (paymentIntent && isSuccessfulIntentStatus(paymentIntent.status) ? paymentIntent : undefined) ??
+    relatedAttempts.find((attempt) => isSuccessfulIntentStatus(attempt.status)) ??
+    null;
 
   return {
     source: operation.source,
     operation,
     payment:
       operation.source === 'payment'
-        ? mapPayment(operationValue)
+        ? mapPayment(isRecord(paymentValue) ? paymentValue : operationValue)
         : mapOptionalPayment(record['payment']) ?? null,
     payment_intent:
       operation.source === 'payment_intent'
         ? mapPaymentIntent(operationValue)
-        : mapOptionalPaymentIntent(record['payment_intent'] ?? record['paymentIntent']) ?? null,
+        : paymentIntent ?? null,
     booking:
       mapOptionalBookingSummary(record['booking']) ?? operation.booking ?? null,
     package_product:
       mapOptionalPackageProductSummary(record['package_product']) ??
       mapHistoryPackageProduct(operation.package_product) ??
       null,
-    successful_intent: mapOptionalPaymentIntent(record['successful_intent']) ?? null,
+    successful_intent: successfulIntent,
     related_attempts: relatedAttempts,
   };
 }
@@ -441,6 +451,17 @@ function mapOptionalPayment(value: unknown): Payment | null | undefined {
   if (value === null) return null;
   if (!isRecord(value)) return undefined;
   return mapPayment(value);
+}
+
+function mergeOperationRecord(detailValue: unknown, nestedValue: unknown): unknown {
+  if (!isRecord(nestedValue) || !isRecord(detailValue)) {
+    return nestedValue ?? detailValue;
+  }
+
+  return {
+    ...nestedValue,
+    ...detailValue,
+  };
 }
 
 function mapOptionalPaymentIntent(value: unknown): PaymentIntent | null | undefined {
@@ -743,6 +764,10 @@ function readMovementBooking(value: unknown): PaymentMovementBooking | null {
 }
 
 function isSuccessfulStatus(status: PaymentMovementStatus): boolean {
+  return status === 'paid' || status === 'succeeded' || status === 'completed';
+}
+
+function isSuccessfulIntentStatus(status: PaymentIntentStatus): boolean {
   return status === 'paid' || status === 'succeeded' || status === 'completed';
 }
 
