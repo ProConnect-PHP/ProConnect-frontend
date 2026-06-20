@@ -125,22 +125,6 @@ export class DashboardPageComponent implements OnInit {
       : 'Creá tu perfil para publicar servicios.';
   });
 
-  readonly profileVerificationLabel = computed(() => {
-    const professionalProfile = this.profile();
-
-    if (!professionalProfile) return 'Sin perfil';
-
-    return professionalProfile.is_verified ? 'Verificado' : 'Sin verificar';
-  });
-
-  readonly profileVerificationVariant = computed<'success' | 'warning' | 'neutral'>(() => {
-    const professionalProfile = this.profile();
-
-    if (!professionalProfile) return 'neutral';
-
-    return professionalProfile.is_verified ? 'success' : 'warning';
-  });
-
   ngOnInit(): void {
     this.loadDashboard();
   }
