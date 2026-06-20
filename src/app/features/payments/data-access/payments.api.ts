@@ -33,6 +33,7 @@ export class PaymentsApi {
       .post<unknown, CreatePaymentIntentRequest>('payment-intents', payload)
       .pipe(map((response) => unwrapPaymentIntentResponse(response)));
   }
+  
   syncProviderStatus(
     paymentIntentId: string,
     payload: Record<string, string> = {},

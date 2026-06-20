@@ -50,6 +50,7 @@ function statusResult(status: PaymentIntentStatus): PaymentStatusResult {
 describe('PaymentResultPageComponent', () => {
   const api = {
     getPaymentStatus: vi.fn(),
+    syncProviderStatus: vi.fn(),
   };
   const redirectService = {
     clear: vi.fn(),
@@ -57,7 +58,13 @@ describe('PaymentResultPageComponent', () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
+
     api.getPaymentStatus.mockReset();
+    api.syncProviderStatus.mockReset();
+
+    api.getPaymentStatus.mockReturnValue(of(statusResult('checkout_created')));
+    api.syncProviderStatus.mockReturnValue(of(statusResult('checkout_created')));
+
     redirectService.clear.mockReset();
     window.sessionStorage.clear();
   });
@@ -194,18 +201,23 @@ describe('PaymentResultPageComponent', () => {
     expect(api.getPaymentStatus).toHaveBeenCalledTimes(1);
   });
 
-  it('manual refresh performs exactly one request', async () => {
-    api.getPaymentStatus.mockReturnValue(of(statusResult('checkout_created')));
+  it('manual refresh performs exactly one provider sync request', async () => {
     const fixture = await createFixture({ payment_intent_id: 'intent-1' });
 
     api.getPaymentStatus.mockClear();
-    api.getPaymentStatus.mockReturnValue(of(statusResult('succeeded')));
+    api.syncProviderStatus.mockClear();
+    api.syncProviderStatus.mockReturnValue(of(statusResult('succeeded')));
+
     fixture.componentInstance.refresh();
 
-    expect(api.getPaymentStatus).toHaveBeenCalledTimes(1);
+    expect(api.syncProviderStatus).toHaveBeenCalledTimes(1);
+    expect(api.syncProviderStatus).toHaveBeenCalledWith(
+      'intent-1',
+      expect.any(Object),
+    );
+    expect(api.getPaymentStatus).not.toHaveBeenCalled();
     expect(fixture.componentInstance.status()).toBe('succeeded');
   });
-
   it('uses one status request instead of restarting polling after a recent route visit', async () => {
     window.sessionStorage.setItem(
       'payment-provider-return-polled:intent-1',
