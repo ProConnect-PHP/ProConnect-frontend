@@ -44,7 +44,7 @@ export class ProfessionalBookingsPageComponent implements OnInit {
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
   readonly profileRequired = signal(false);
-  readonly activeFilter = signal<BookingListFilter>('pending');
+  readonly activeFilter = signal<BookingListFilter>('all');
   readonly dateFilter = signal<string | null>(null);
   readonly selectedCancelBooking = signal<Booking | null>(null);
   readonly selectedRescheduleBooking = signal<Booking | null>(null);
