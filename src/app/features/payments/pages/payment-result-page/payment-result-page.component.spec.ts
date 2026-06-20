@@ -195,22 +195,23 @@ describe('PaymentResultPageComponent', () => {
     },
   );
 
-  it('does not start a second provider sync when ngOnInit is called again', async () => {
-    api.syncProviderStatus.mockReturnValue(of(statusResult('processing')));
+it('starts provider sync on provider return', async () => {
+  api.syncProviderStatus.mockReturnValue(of(statusResult('processing')));
 
-    const fixture = await createFixture({
-      payment_intent_id: 'intent-1',
-      token: 'paypal-token-1',
-    });
-
-    fixture.componentInstance.ngOnInit();
-
-    await vi.advanceTimersByTimeAsync(0);
-    fixture.detectChanges();
-
-    expect(api.syncProviderStatus).toHaveBeenCalledTimes(1);
-    expect(api.getPaymentStatus).not.toHaveBeenCalled();
+  const fixture = await createFixture({
+    payment_intent_id: 'intent-1',
+    token: 'paypal-token-1',
   });
+
+  await vi.advanceTimersByTimeAsync(0);
+  fixture.detectChanges();
+
+  expect(api.syncProviderStatus).toHaveBeenCalledTimes(1);
+  expect(api.getPaymentStatus).not.toHaveBeenCalled();
+
+  expect(fixture.componentInstance.status()).toBe('processing');
+  expect(fixture.componentInstance.polling()).toBe(false);
+});
 
   it('manual refresh performs exactly one provider sync request', async () => {
     const fixture = await createFixture({ payment_intent_id: 'intent-1' });
@@ -277,9 +278,9 @@ describe('PaymentResultPageComponent', () => {
     expect(api.getPaymentStatus).not.toHaveBeenCalled();
 
     expect(fixture.componentInstance.polling()).toBe(false);
-    expect(fixture.nativeElement.textContent).toContain(
-      'El pago sigue siendo procesado',
-    );
+expect(fixture.nativeElement.textContent).toContain(
+  'Podes actualizar el estado manualmente',
+);
   });
 
   it('stops provider sync immediately on 429 and shows a friendly message', async () => {
