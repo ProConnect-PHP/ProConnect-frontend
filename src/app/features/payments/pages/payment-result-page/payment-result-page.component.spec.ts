@@ -173,7 +173,7 @@ describe('PaymentResultPageComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Pago confirmado');
   });
 
-  it.each<PaymentIntentStatus>(['succeeded', 'failed', 'cancelled', 'expired'])(
+  it.each<PaymentIntentStatus>(['succeeded', 'rejected', 'failed', 'cancelled', 'expired'])(
     'stops after one provider sync request when status is %s',
     async (status) => {
       api.syncProviderStatus.mockReturnValue(of(statusResult(status)));
@@ -194,6 +194,62 @@ describe('PaymentResultPageComponent', () => {
       expect(fixture.componentInstance.polling()).toBe(false);
     },
   );
+
+  it('shows a business rejection instead of an internal error', async () => {
+    api.syncProviderStatus.mockReturnValue(of(statusResult('rejected')));
+
+    const fixture = await createFixture({
+      payment_intent_id: 'intent-1',
+      payment_id: 'mercadopago-payment-1',
+    });
+
+    await vi.advanceTimersByTimeAsync(0);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Pago rechazado');
+    expect(fixture.nativeElement.textContent).not.toContain('Ocurrió un error interno');
+  });
+
+  it('shows payment not confirmed when the provider has no payment for the attempt', async () => {
+    api.syncProviderStatus.mockReturnValue(
+      throwError(
+        () => new ApiClientError('Provider payment not found.', 404, 'ProviderPaymentNotFound'),
+      ),
+    );
+
+    const fixture = await createFixture({
+      payment_intent_id: 'intent-1',
+      payment_id: 'null',
+      preference_id: 'preference-1',
+    });
+
+    await vi.advanceTimersByTimeAsync(0);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Pago no confirmado');
+    expect(fixture.nativeElement.textContent).toContain(
+      'No encontramos un pago asociado a este intento.',
+    );
+    expect(fixture.nativeElement.textContent).not.toContain('Ocurrió un error interno');
+  });
+
+  it('does not send null-like provider return values to the sync endpoint', async () => {
+    api.syncProviderStatus.mockReturnValue(of(statusResult('checkout_created')));
+
+    const fixture = await createFixture({
+      payment_intent_id: 'intent-1',
+      payment_id: 'null',
+      preference_id: ' undefined ',
+      external_reference: 'NULL',
+      status: 'null',
+      merchant_order_id: 'Undefined',
+    });
+
+    await vi.advanceTimersByTimeAsync(0);
+    fixture.detectChanges();
+
+    expect(api.syncProviderStatus).toHaveBeenCalledWith('intent-1', {});
+  });
 
 it('starts provider sync on provider return', async () => {
   api.syncProviderStatus.mockReturnValue(of(statusResult('processing')));
