@@ -67,14 +67,16 @@ describe('MyPaymentsPageComponent', () => {
     expect(host.textContent).not.toContain('Pagar ahora');
   });
 
-  it('shows the confirmed-payments empty state when the endpoint returns no payments', () => {
+  it('shows the payment-history empty state when the endpoint returns no operations', () => {
     api.getMyPayments.mockReturnValue(of([]));
 
     const fixture = TestBed.createComponent(MyPaymentsPageComponent);
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
-    expect(host.textContent).toContain('Todavía no tenés pagos realizados.');
-    expect(host.textContent).toContain('Cuando completes un pago, aparecerá acá.');
+    expect(host.textContent).toContain('Todavía no tenés operaciones de pago.');
+    expect(host.textContent).toContain(
+      'Los pagos confirmados y los intentos rechazados aparecerán acá.',
+    );
   });
 });
