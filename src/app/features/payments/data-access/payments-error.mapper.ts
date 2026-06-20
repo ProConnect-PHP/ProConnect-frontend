@@ -14,6 +14,17 @@ export function mapPaymentError(errorCode?: string, fallback?: string): string {
       return 'El intento de pago expiro. Genera un nuevo intento.';
     case 'PaymentIntentNotProcessable':
       return 'Este intento de pago no puede procesarse.';
+    case 'PaymentIntentNotSyncable':
+      return 'Este intento de pago ya no puede sincronizarse.';
+    case 'ProviderPaymentNotFound':
+      return 'Todavía no encontramos un pago asociado a este intento.';
+    case 'ProviderPaymentAmountMismatch':
+      return 'El monto confirmado por el proveedor no coincide.';
+    case 'ProviderCurrencyMismatch':
+      return 'La moneda confirmada por el proveedor no coincide.';
+    case 'ProviderPaymentRejected':
+    case 'PaymentRejected':
+      return 'El proveedor rechazó este pago. Podés intentar nuevamente con otro medio de pago.';
     case 'ProfessionalProfileRequired':
       return 'Necesitas un perfil profesional para ver estos pagos.';
     case 'Forbidden':

@@ -57,7 +57,7 @@ export class ClientPaymentsStore {
     this.errorMessage.set(null);
 
     this.api
-      .getMyPayments(filters)
+      .getMyPaymentMovements(filters)
       .pipe(
         finalize(() => {
           if (requestVersion === this.requestVersion) this.loading.set(false);

@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { AuthStore } from '../../../../core/auth/services/auth.store';
@@ -8,8 +8,7 @@ import { EmailVerificationApiService } from '../../../../core/auth/services/emai
 
 @Component({
   selector: 'app-email-verification-required-page',
-  standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule],
   templateUrl: './email-verification-required.page.html',
 })
 export class EmailVerificationRequiredPage {

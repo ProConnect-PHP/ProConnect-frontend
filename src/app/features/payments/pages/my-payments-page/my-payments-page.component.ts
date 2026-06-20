@@ -1,77 +1,48 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
 
 import { AppAlertComponent } from '../../../../shared/ui/alert/alert.component';
 import { AppLoadingSpinnerComponent } from '../../../../shared/ui/loading-spinner/loading-spinner.component';
-import { PaymentMovementsListComponent } from '../../components/payment-movements-list/payment-movements-list.component';
-import { PaymentMovement } from '../../data-access/payments.models';
-import { ClientPaymentsStore } from '../../state/client-payments.store';
+import { PaymentsListComponent } from '../../components/payments-list/payments-list.component';
+import { PaymentsApi } from '../../data-access/payments.api';
+import { mapPaymentApiError } from '../../data-access/payments-error.mapper';
+import { PaymentHistoryItem } from '../../data-access/payments.models';
 
 @Component({
   selector: 'app-my-payments-page',
-  imports: [RouterLink, AppAlertComponent, AppLoadingSpinnerComponent, PaymentMovementsListComponent],
+  imports: [RouterLink, AppAlertComponent, AppLoadingSpinnerComponent, PaymentsListComponent],
   templateUrl: './my-payments-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [ClientPaymentsStore],
 })
 export class MyPaymentsPageComponent implements OnInit {
-  readonly store = inject(ClientPaymentsStore);
+  private readonly api = inject(PaymentsApi);
+  private readonly destroyRef = inject(DestroyRef);
 
-  readonly selectedStatus = computed(() => {
-    const filters = this.store.filters();
-    if (filters.only_pending) return 'pending';
-    if (filters.only_final) return 'final';
-    return filters.status ?? '';
-  });
-  readonly selectedProvider = computed(() => this.store.filters().provider ?? '');
-  readonly searchValue = computed(() => this.store.filters().search ?? '');
+  readonly payments = signal<PaymentHistoryItem[]>([]);
+  readonly loading = signal(false);
+  readonly errorMessage = signal<string | null>(null);
 
   ngOnInit(): void {
-    this.store.load();
+    this.loadPayments();
   }
 
-  onStatusFilterChange(event: Event): void {
-    const value = this.selectValue(event);
+  loadPayments(): void {
+    this.loading.set(true);
+    this.errorMessage.set(null);
 
-    if (value === 'pending') {
-      this.store.updateFilters({ status: undefined, only_pending: true, only_final: undefined });
-      return;
-    }
-
-    if (value === 'final') {
-      this.store.updateFilters({ status: undefined, only_pending: undefined, only_final: true });
-      return;
-    }
-
-    this.store.updateFilters({
-      status: value || undefined,
-      only_pending: undefined,
-      only_final: undefined,
-    });
-  }
-
-  onProviderFilterChange(event: Event): void {
-    this.store.updateFilters({ provider: this.selectValue(event) || undefined });
-  }
-
-  applySearch(value: string): void {
-    this.store.updateFilters({ search: value.trim() || undefined });
-  }
-
-  onRefreshRequested(payment: PaymentMovement): void {
-    this.store.refreshMovement(payment);
-  }
-
-  onContinueCheckoutRequested(payment: PaymentMovement): void {
-    this.store.continueCheckout(payment);
-  }
-
-  onRetryRequested(payment: PaymentMovement): void {
-    this.store.retryPayment(payment);
-  }
-
-  private selectValue(event: Event): string {
-    const target = event.target;
-    return target instanceof HTMLSelectElement ? target.value : '';
+    this.api
+      .getMyPayments()
+      .pipe(
+        finalize(() => this.loading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (payments) => this.payments.set(payments),
+        error: (error: unknown) => {
+          this.errorMessage.set(mapPaymentApiError(error, 'No pudimos cargar tus pagos.'));
+        },
+      });
   }
 }

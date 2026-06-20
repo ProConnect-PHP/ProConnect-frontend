@@ -65,4 +65,21 @@ describe('PaymentMovementsListComponent', () => {
       'No encontramos pagos con esos filtros.',
     );
   });
+
+  it('does not render payment actions for a cancelled booking even when the API flags them', () => {
+    const fixture = TestBed.createComponent(PaymentMovementsListComponent);
+    fixture.componentRef.setInput('payments', [
+      {
+        ...checkoutMovement,
+        can_retry: true,
+        booking: { id: 'booking-1', status: 'cancelled', starts_at: null },
+      },
+    ]);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.textContent).not.toContain('Continuar pago');
+    expect(host.textContent).not.toContain('Reintentar pago');
+    expect(host.textContent).not.toContain('Actualizar estado');
+  });
 });

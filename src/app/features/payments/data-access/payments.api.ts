@@ -7,7 +7,8 @@ import {
   ClientPaymentsQuery,
   CreatePaymentIntentRequest,
   PaginatedPayments,
-  Payment,
+  PaymentDetail,
+  PaymentHistoryItem,
   PaymentIntent,
   PaymentListParams,
   PaymentMovement,
@@ -18,6 +19,8 @@ import {
 import {
   unwrapPaginatedPaymentsResponse,
   unwrapPaymentIntentResponse,
+  unwrapMyPaymentsResponse,
+  unwrapPaymentDetailResponse,
   unwrapPaymentMovementResponse,
   unwrapPaymentMovementsResponse,
   unwrapPaymentResponse,
@@ -94,7 +97,23 @@ export class PaymentsApi {
       .pipe(map((response) => unwrapPaginatedPaymentsResponse(response)));
   }
 
-  getMyPayments(params: ClientPaymentsQuery = {}): Observable<PaymentMovementsResponse> {
+  getMyPayments(): Observable<PaymentHistoryItem[]> {
+    return this.api
+      .get<unknown>('me/payments')
+      .pipe(map((response) => unwrapMyPaymentsResponse(response)));
+  }
+
+  getMyPayment(paymentId: string): Observable<PaymentDetail> {
+    return this.api
+      .get<unknown>(`me/payments/${paymentId}`)
+      .pipe(map((response) => unwrapPaymentDetailResponse(response)));
+  }
+
+  /**
+   * Legacy unified movements feed. It remains available for backwards
+   * compatibility, but it must not power the confirmed-payments UI.
+   */
+  getMyPaymentMovements(params: ClientPaymentsQuery = {}): Observable<PaymentMovementsResponse> {
     return this.api
       .get<unknown>('payments/my', { params: this.toApiParams(params) })
       .pipe(map((response) => unwrapPaymentMovementsResponse(response)));

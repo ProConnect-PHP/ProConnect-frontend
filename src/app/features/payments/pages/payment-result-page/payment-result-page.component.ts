@@ -97,6 +97,7 @@ export class PaymentResultPageComponent implements OnInit {
     return paymentIntent.can_retry ??
       (
         paymentIntent.status === 'failed' ||
+        paymentIntent.status === 'rejected' ||
         paymentIntent.status === 'denied' ||
         paymentIntent.status === 'cancelled' ||
         paymentIntent.status === 'expired'
@@ -427,20 +428,23 @@ export class PaymentResultPageComponent implements OnInit {
       case 'paid':
       case 'completed':
         return 'Pago confirmado';
-      case 'failed':
+      case 'rejected':
       case 'denied':
-        return 'El pago fue rechazado';
+        return 'Pago rechazado';
+      case 'failed':
+        return 'Pago fallido';
       case 'cancelled':
-        return 'El pago fue cancelado';
+        return 'Pago cancelado';
       case 'expired':
-        return 'El intento de pago expiro';
-      case 'pending':
-      case 'checkout_created':
+        return 'Intento expirado';
       case 'processing':
       case 'pending_capture':
+        return 'Pago en proceso';
+      case 'pending':
+      case 'checkout_created':
         return this.polling()
           ? 'Estamos confirmando tu pago'
-          : 'Pago pendiente de confirmacion';
+          : 'Pago pendiente de confirmación';
       default:
         return this.polling() ? 'Estamos confirmando tu pago' : 'Resultado del pago';
     }
@@ -452,17 +456,20 @@ export class PaymentResultPageComponent implements OnInit {
       case 'paid':
       case 'completed':
         return 'El proveedor notifico la operacion y ProConnect ya confirmo el pago.';
-      case 'failed':
+      case 'rejected':
       case 'denied':
-        return 'El proveedor rechazo la operacion. Podes volver a intentarlo.';
+        return 'El proveedor rechazó este pago. Podés intentar nuevamente con otro medio de pago.';
+      case 'failed':
+        return 'No se pudo completar el pago. Podés intentar nuevamente si la reserva sigue disponible.';
       case 'cancelled':
-        return 'La operacion fue cancelada antes de completarse.';
+        return 'El pago fue cancelado.';
       case 'expired':
-        return 'Este intento ya no esta vigente. Inicia un pago nuevo para continuar.';
-      case 'pending':
-      case 'checkout_created':
+        return 'Este intento de pago expiró. Podés crear uno nuevo si la reserva sigue disponible.';
       case 'processing':
       case 'pending_capture':
+        return 'El proveedor todavía está procesando el pago.';
+      case 'pending':
+      case 'checkout_created':
         return this.polling()
           ? `${this.providerLabel()} ya te redirigio a ProConnect. Estamos esperando la confirmacion automatica del proveedor.`
           : 'El proveedor puede demorar unos segundos mas en notificar la operacion. Podes actualizar el estado manualmente.';
@@ -479,8 +486,9 @@ export class PaymentResultPageComponent implements OnInit {
       case 'paid':
       case 'completed':
         return 'border-emerald-200 bg-emerald-50 text-emerald-950';
-      case 'failed':
+      case 'rejected':
       case 'denied':
+      case 'failed':
         return 'border-rose-200 bg-rose-50 text-rose-950';
       case 'cancelled':
       case 'expired':
