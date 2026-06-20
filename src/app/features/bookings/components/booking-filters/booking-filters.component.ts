@@ -15,10 +15,10 @@ const clientFilters: FilterOption[] = [
 ];
 
 const professionalFilters: FilterOption[] = [
+  { value: 'all', label: 'Todas' },
   { value: 'pending', label: 'Pendientes' },
   { value: 'confirmed', label: 'Confirmadas' },
   { value: 'cancelled', label: 'Canceladas' },
-  { value: 'all', label: 'Todas' },
 ];
 
 @Component({

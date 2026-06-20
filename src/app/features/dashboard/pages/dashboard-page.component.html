@@ -261,9 +261,9 @@
           </div>
 
           <div class="flex flex-wrap gap-2">
-            <app-badge [variant]="profileVerificationVariant()">
-              {{ profileVerificationLabel() }}
-            </app-badge>
+            @if (professionalProfile.is_verified) {
+              <app-badge variant="success">Verificado</app-badge>
+            }
 
             <app-badge variant="neutral">
               {{ professionalProfile.avg_rating }} rating
