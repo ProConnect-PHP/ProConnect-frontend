@@ -45,7 +45,6 @@ export function publicServicesQueryFromParams(params: ParamMap): PublicServicesQ
     max_price: numberParam(params, 'max_price'),
     duration_minutes: durationParam(params, 'duration_minutes'),
     available_date: stringParam(params, 'available_date'),
-    is_verified: booleanParam(params, 'is_verified'),
     latitude: numberParam(params, 'latitude'),
     longitude: numberParam(params, 'longitude'),
     radius_km: numberParam(params, 'radius_km'),
@@ -121,13 +120,6 @@ function positiveIntegerParam(params: ParamMap, key: string): number | null {
   const value = numberParam(params, key);
   if (value === null || !Number.isInteger(value) || value < 1) return null;
   return value;
-}
-
-function booleanParam(params: ParamMap, key: string): boolean | null {
-  const value = params.get(key);
-  if (value === 'true' || value === '1') return true;
-  if (value === 'false' || value === '0') return false;
-  return null;
 }
 
 function durationParam(params: ParamMap, key: string): PublicServiceDuration | null {

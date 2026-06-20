@@ -209,20 +209,6 @@
 
         <button
           type="button"
-          class="inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-600"
-          [class.border-indigo-200]="query().is_verified"
-          [class.bg-indigo-50]="query().is_verified"
-          [class.text-indigo-700]="query().is_verified"
-          [class.border-slate-200]="!query().is_verified"
-          [class.bg-white]="!query().is_verified"
-          [class.text-slate-700]="!query().is_verified"
-          (click)="toggleVerified()"
-        >
-          Solo verificados
-        </button>
-
-        <button
-          type="button"
           class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-600"
           (click)="openFilters.emit()"
         >

@@ -61,6 +61,15 @@ export class PaymentRedirectService {
 
   redirectToCheckout(checkoutUrl: string): void {
     if (!isPlatformBrowser(this.platformId)) return;
-    this.document.location.href = checkoutUrl;
+
+    const openedWindow = this.document.defaultView?.open(
+      checkoutUrl,
+      '_blank',
+      'noopener,noreferrer',
+    );
+
+    if (!openedWindow) {
+      this.document.location.href = checkoutUrl;
+    }
   }
 }

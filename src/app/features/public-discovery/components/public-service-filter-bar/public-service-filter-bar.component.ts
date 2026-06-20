@@ -86,10 +86,4 @@ export class PublicServiceFilterBarComponent {
       available_date: input.value || null,
     });
   }
-
-  toggleVerified(): void {
-    this.quickFilterChanged.emit({
-      is_verified: this.query().is_verified ? null : true,
-    });
-  }
 }

@@ -1,0 +1,8 @@
+:host {
+  display: block;
+}
+
+:host(.h-full),
+:host(.h-full) section {
+  height: 100%;
+}
