@@ -96,10 +96,10 @@ export class PaymentResultPageComponent implements OnInit {
 
     return paymentIntent.can_retry ??
       (
-      paymentIntent.status === 'failed' ||
-      paymentIntent.status === 'denied' ||
-      paymentIntent.status === 'cancelled' ||
-      paymentIntent.status === 'expired'
+        paymentIntent.status === 'failed' ||
+        paymentIntent.status === 'denied' ||
+        paymentIntent.status === 'cancelled' ||
+        paymentIntent.status === 'expired'
       );
   });
   readonly canContinueCheckout = computed(() => {
@@ -168,11 +168,11 @@ export class PaymentResultPageComponent implements OnInit {
 
     if (this.hasRecentlyPolled(paymentIntentId)) {
       this.setPendingConfirmationNotice();
-      this.fetchStatusOnce(paymentIntentId);
+      this.syncProviderStatus(paymentIntentId);
       return;
     }
 
-    this.startProviderReturnPolling(paymentIntentId);
+    this.syncProviderStatus(paymentIntentId);
   }
 
   refresh(): void {
@@ -181,9 +181,49 @@ export class PaymentResultPageComponent implements OnInit {
 
     this.errorMessage.set(null);
     this.noticeMessage.set(null);
-    this.fetchStatusOnce(paymentIntentId);
+    this.syncProviderStatus(paymentIntentId);
   }
+  private syncProviderStatus(paymentIntentId: string): void {
+    this.loading.set(true);
 
+    this.api
+      .syncProviderStatus(paymentIntentId, this.providerReturnPayload())
+      .pipe(
+        tap((result) => {
+          this.applyResult(result);
+
+          if (this.isPendingConfirmation()) {
+            this.setPendingConfirmationNotice();
+          }
+        }),
+        catchError((error: unknown) => {
+          this.applyRequestError(error, 'No pudimos sincronizar el estado del pago con el proveedor.');
+          return of(null);
+        }),
+        finalize(() => this.loading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+  private providerReturnPayload(): Record<string, string> {
+    const queryParams = this.route.snapshot.queryParamMap;
+
+    const payload: Record<string, string> = {};
+
+    const paymentId = queryParams.get('payment_id') ?? queryParams.get('collection_id');
+    const preferenceId = queryParams.get('preference_id');
+    const externalReference = queryParams.get('external_reference');
+    const status = queryParams.get('status') ?? queryParams.get('collection_status');
+    const merchantOrderId = queryParams.get('merchant_order_id');
+
+    if (paymentId) payload['payment_id'] = paymentId;
+    if (preferenceId) payload['preference_id'] = preferenceId;
+    if (externalReference) payload['external_reference'] = externalReference;
+    if (status) payload['status'] = status;
+    if (merchantOrderId) payload['merchant_order_id'] = merchantOrderId;
+
+    return payload;
+  }
   continueCheckout(): void {
     const paymentIntent = this.result()?.payment_intent;
     if (!paymentIntent || !this.canContinueCheckout() || this.loading() || this.polling()) return;

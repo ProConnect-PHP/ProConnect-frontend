@@ -33,7 +33,16 @@ export class PaymentsApi {
       .post<unknown, CreatePaymentIntentRequest>('payment-intents', payload)
       .pipe(map((response) => unwrapPaymentIntentResponse(response)));
   }
-
+  
+  syncProviderStatus(
+    paymentIntentId: string,
+    payload: Record<string, string> = {},
+  ) {
+    return this.api.post<PaymentStatusResult>(
+      `payment-intents/${paymentIntentId}/sync-provider-status`,
+      payload,
+    );
+  }
   createCheckout(
     paymentIntentId: string,
     payload: CreatePaymentCheckoutRequest,
@@ -111,16 +120,16 @@ export class PaymentsApi {
       per_page: params.per_page,
       ...(this.isClientPaymentsQuery(params)
         ? {
-            status: params.status,
-            provider: params.provider,
-            kind: params.kind,
-            booking_id: params.booking_id,
-            only_pending: params.only_pending,
-            only_final: params.only_final,
-            date_from: params.date_from,
-            date_to: params.date_to,
-            search: params.search,
-          }
+          status: params.status,
+          provider: params.provider,
+          kind: params.kind,
+          booking_id: params.booking_id,
+          only_pending: params.only_pending,
+          only_final: params.only_final,
+          date_from: params.date_from,
+          date_to: params.date_to,
+          search: params.search,
+        }
         : {}),
     };
   }
