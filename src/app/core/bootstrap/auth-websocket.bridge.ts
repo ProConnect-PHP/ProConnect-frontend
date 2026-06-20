@@ -10,21 +10,26 @@ export class AuthWebsocketBridge {
   private readonly socket = inject(NotificationSocketService);
   private readonly store = inject(NotificationStore);
 
-  constructor() {
-    let activeUserId: string | null = null;
+constructor() {
 
-    effect(() => {
-      const userId = this.authStore.currentUser()?.id ?? null;
-      if (userId === activeUserId) return;
+  let activeUserId: string | null = null;
 
-      this.socket.unsubscribe();
-      this.store.reset();
-      activeUserId = userId;
+  effect(() => {
+    const user = this.authStore.currentUser();
+    const userId = user?.id ?? null;
 
-      if (!userId) return;
 
-      this.store.loadUnreadCount(true);
-      this.socket.subscribe(userId);
-    });
-  }
+    if (userId === activeUserId) return;
+
+    this.socket.unsubscribe();
+    this.store.reset();
+    activeUserId = userId;
+
+    if (!userId) return;
+
+
+    this.store.loadUnreadCount(true);
+    this.socket.subscribe(userId);
+  });
+}
 }

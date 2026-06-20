@@ -26,4 +26,14 @@ describe('PaymentStatusBadgeComponent', () => {
     const host = fixture.nativeElement as HTMLElement;
     expect(host.textContent).toContain('Fallido');
   });
+
+  it('prefers the display status supplied by the backend', () => {
+    const fixture = TestBed.createComponent(PaymentStatusBadgeComponent);
+    fixture.componentRef.setInput('status', 'checkout_created');
+    fixture.componentRef.setInput('displayStatus', 'Esperando confirmacion de PayPal');
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.textContent).toContain('Esperando confirmacion de PayPal');
+  });
 });

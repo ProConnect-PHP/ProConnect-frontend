@@ -50,14 +50,22 @@ function statusResult(status: PaymentIntentStatus): PaymentStatusResult {
 describe('PaymentResultPageComponent', () => {
   const api = {
     getPaymentStatus: vi.fn(),
+    syncProviderStatus: vi.fn(),
   };
+
   const redirectService = {
     clear: vi.fn(),
   };
 
   beforeEach(() => {
     vi.useFakeTimers();
+
     api.getPaymentStatus.mockReset();
+    api.syncProviderStatus.mockReset();
+
+    api.getPaymentStatus.mockReturnValue(of(statusResult('checkout_created')));
+    api.syncProviderStatus.mockReturnValue(of(statusResult('checkout_created')));
+
     redirectService.clear.mockReset();
     window.sessionStorage.clear();
   });
@@ -87,15 +95,19 @@ describe('PaymentResultPageComponent', () => {
 
     const fixture = TestBed.createComponent(PaymentResultPageComponent);
     fixture.detectChanges();
+
     return fixture;
   }
 
-  it('does not poll without payment_intent_id and shows a PayPal token reference', async () => {
+  it('does not request status without payment_intent_id and shows a PayPal token reference', async () => {
     const fixture = await createFixture({ token: 'paypal-token-1' });
+
     await vi.advanceTimersByTimeAsync(30_000);
     fixture.detectChanges();
 
     expect(api.getPaymentStatus).not.toHaveBeenCalled();
+    expect(api.syncProviderStatus).not.toHaveBeenCalled();
+
     expect(fixture.nativeElement.textContent).toContain(
       'falta el identificador interno del pago',
     );
@@ -105,147 +117,230 @@ describe('PaymentResultPageComponent', () => {
   it.each([
     ['token', 'paypal-token-1'],
     ['PayerID', 'paypal-payer-1'],
-  ] as const)('starts provider-return polling for query param %s', async (key, value) => {
-    api.getPaymentStatus.mockReturnValue(of(statusResult('checkout_created')));
+  ] as const)('syncs provider status for query param %s', async (key, value) => {
+    api.syncProviderStatus.mockReturnValue(of(statusResult('checkout_created')));
+
     const fixture = await createFixture({
       payment_intent_id: 'intent-1',
       [key]: value,
     });
 
-    await vi.advanceTimersByTimeAsync(3_000);
+    await vi.advanceTimersByTimeAsync(0);
     fixture.detectChanges();
 
-    expect(api.getPaymentStatus).toHaveBeenCalledTimes(2);
-    expect(fixture.componentInstance.polling()).toBe(true);
-    expect(fixture.nativeElement.textContent).toContain(
-      'Estamos confirmando tu pago',
+    expect(api.syncProviderStatus).toHaveBeenCalledTimes(1);
+    expect(api.syncProviderStatus).toHaveBeenCalledWith(
+      'intent-1',
+      expect.any(Object),
     );
+    expect(api.getPaymentStatus).not.toHaveBeenCalled();
+
+    expect(fixture.componentInstance.status()).toBe('checkout_created');
+    expect(fixture.componentInstance.polling()).toBe(false);
   });
 
-  it('performs one request when the page was not opened by a provider return', async () => {
+  it('performs one local status request when the page was not opened by a provider return', async () => {
     api.getPaymentStatus.mockReturnValue(of(statusResult('checkout_created')));
+
     const fixture = await createFixture({ payment_intent_id: 'intent-1' });
 
     await vi.advanceTimersByTimeAsync(60_000);
     fixture.detectChanges();
 
     expect(api.getPaymentStatus).toHaveBeenCalledTimes(1);
+    expect(api.syncProviderStatus).not.toHaveBeenCalled();
+
+    expect(fixture.componentInstance.status()).toBe('checkout_created');
     expect(fixture.componentInstance.polling()).toBe(false);
   });
 
-  it('keeps polling stale PayPal state and confirms automatically after the webhook', async () => {
-    api.getPaymentStatus
-      .mockReturnValueOnce(
-        of({
-          ...statusResult('checkout_created'),
-          payment_intent: {
-            ...baseIntent,
-            status: 'checkout_created',
-            metadata: {
-              external_status: 'PAYER_ACTION_REQUIRED',
-            },
-          },
-        }),
-      )
-      .mockReturnValueOnce(of(statusResult('succeeded')));
+  it('confirms a stale PayPal checkout through provider sync', async () => {
+    api.syncProviderStatus.mockReturnValueOnce(of(statusResult('succeeded')));
+
     const fixture = await createFixture({
       payment_intent_id: 'intent-1',
       token: 'paypal-token-1',
     });
 
-    await vi.advanceTimersByTimeAsync(3_000);
-    await vi.advanceTimersByTimeAsync(30_000);
+    await vi.advanceTimersByTimeAsync(0);
     fixture.detectChanges();
 
-    expect(api.getPaymentStatus).toHaveBeenCalledTimes(2);
+    expect(api.syncProviderStatus).toHaveBeenCalledTimes(1);
+    expect(api.getPaymentStatus).not.toHaveBeenCalled();
+
     expect(fixture.componentInstance.status()).toBe('succeeded');
     expect(fixture.componentInstance.polling()).toBe(false);
     expect(fixture.nativeElement.textContent).toContain('Pago confirmado');
   });
 
-  it.each<PaymentIntentStatus>(['succeeded', 'failed', 'cancelled', 'expired'])(
-    'stops after one request when status is %s',
+  it.each<PaymentIntentStatus>(['succeeded', 'rejected', 'failed', 'cancelled', 'expired'])(
+    'stops after one provider sync request when status is %s',
     async (status) => {
-      api.getPaymentStatus.mockReturnValue(of(statusResult(status)));
+      api.syncProviderStatus.mockReturnValue(of(statusResult(status)));
+
       const fixture = await createFixture({
-        paymentIntentId: 'intent-1',
+        payment_intent_id: 'intent-1',
         token: 'paypal-token-1',
       });
 
       await vi.advanceTimersByTimeAsync(0);
       await vi.advanceTimersByTimeAsync(30_000);
+      fixture.detectChanges();
 
-      expect(api.getPaymentStatus).toHaveBeenCalledTimes(1);
+      expect(api.syncProviderStatus).toHaveBeenCalledTimes(1);
+      expect(api.getPaymentStatus).not.toHaveBeenCalled();
+
       expect(fixture.componentInstance.status()).toBe(status);
       expect(fixture.componentInstance.polling()).toBe(false);
     },
   );
 
-  it('does not start a second polling loop', async () => {
-    api.getPaymentStatus.mockReturnValue(of(statusResult('processing')));
+  it('shows a business rejection instead of an internal error', async () => {
+    api.syncProviderStatus.mockReturnValue(of(statusResult('rejected')));
+
     const fixture = await createFixture({
       payment_intent_id: 'intent-1',
-      token: 'paypal-token-1',
+      payment_id: 'mercadopago-payment-1',
     });
 
-    fixture.componentInstance.ngOnInit();
     await vi.advanceTimersByTimeAsync(0);
+    fixture.detectChanges();
 
-    expect(api.getPaymentStatus).toHaveBeenCalledTimes(1);
+    expect(fixture.nativeElement.textContent).toContain('Pago rechazado');
+    expect(fixture.nativeElement.textContent).not.toContain('Ocurrió un error interno');
   });
 
-  it('manual refresh performs exactly one request', async () => {
-    api.getPaymentStatus.mockReturnValue(of(statusResult('checkout_created')));
+  it('shows payment not confirmed when the provider has no payment for the attempt', async () => {
+    api.syncProviderStatus.mockReturnValue(
+      throwError(
+        () => new ApiClientError('Provider payment not found.', 404, 'ProviderPaymentNotFound'),
+      ),
+    );
+
+    const fixture = await createFixture({
+      payment_intent_id: 'intent-1',
+      payment_id: 'null',
+      preference_id: 'preference-1',
+    });
+
+    await vi.advanceTimersByTimeAsync(0);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Pago no confirmado');
+    expect(fixture.nativeElement.textContent).toContain(
+      'No encontramos un pago asociado a este intento.',
+    );
+    expect(fixture.nativeElement.textContent).not.toContain('Ocurrió un error interno');
+  });
+
+  it('does not send null-like provider return values to the sync endpoint', async () => {
+    api.syncProviderStatus.mockReturnValue(of(statusResult('checkout_created')));
+
+    const fixture = await createFixture({
+      payment_intent_id: 'intent-1',
+      payment_id: 'null',
+      preference_id: ' undefined ',
+      external_reference: 'NULL',
+      status: 'null',
+      merchant_order_id: 'Undefined',
+    });
+
+    await vi.advanceTimersByTimeAsync(0);
+    fixture.detectChanges();
+
+    expect(api.syncProviderStatus).toHaveBeenCalledWith('intent-1', {});
+  });
+
+it('starts provider sync on provider return', async () => {
+  api.syncProviderStatus.mockReturnValue(of(statusResult('processing')));
+
+  const fixture = await createFixture({
+    payment_intent_id: 'intent-1',
+    token: 'paypal-token-1',
+  });
+
+  await vi.advanceTimersByTimeAsync(0);
+  fixture.detectChanges();
+
+  expect(api.syncProviderStatus).toHaveBeenCalledTimes(1);
+  expect(api.getPaymentStatus).not.toHaveBeenCalled();
+
+  expect(fixture.componentInstance.status()).toBe('processing');
+  expect(fixture.componentInstance.polling()).toBe(false);
+});
+
+  it('manual refresh performs exactly one provider sync request', async () => {
     const fixture = await createFixture({ payment_intent_id: 'intent-1' });
 
     api.getPaymentStatus.mockClear();
-    api.getPaymentStatus.mockReturnValue(of(statusResult('succeeded')));
+    api.syncProviderStatus.mockClear();
+    api.syncProviderStatus.mockReturnValue(of(statusResult('succeeded')));
+
     fixture.componentInstance.refresh();
 
-    expect(api.getPaymentStatus).toHaveBeenCalledTimes(1);
+    expect(api.syncProviderStatus).toHaveBeenCalledTimes(1);
+    expect(api.syncProviderStatus).toHaveBeenCalledWith(
+      'intent-1',
+      expect.any(Object),
+    );
+    expect(api.getPaymentStatus).not.toHaveBeenCalled();
+
     expect(fixture.componentInstance.status()).toBe('succeeded');
   });
 
-  it('uses one status request instead of restarting polling after a recent route visit', async () => {
+  it('uses one provider sync request after a recent provider-return route visit', async () => {
     window.sessionStorage.setItem(
       'payment-provider-return-polled:intent-1',
       String(Date.now()),
     );
-    api.getPaymentStatus.mockReturnValue(of(statusResult('checkout_created')));
+
+    api.syncProviderStatus.mockReturnValue(of(statusResult('checkout_created')));
 
     const fixture = await createFixture({
       payment_intent_id: 'intent-1',
       token: 'paypal-token-1',
     });
+
     await vi.advanceTimersByTimeAsync(60_000);
     fixture.detectChanges();
 
-    expect(api.getPaymentStatus).toHaveBeenCalledTimes(1);
+    expect(api.syncProviderStatus).toHaveBeenCalledTimes(1);
+    expect(api.getPaymentStatus).not.toHaveBeenCalled();
+
     expect(fixture.componentInstance.polling()).toBe(false);
     expect(fixture.nativeElement.textContent).toContain(
       'Podes actualizar el estado manualmente',
     );
   });
 
-  it('makes at most 20 provider-return requests and then shows pending confirmation', async () => {
-    api.getPaymentStatus.mockReturnValue(of(statusResult('checkout_created')));
+  it('uses provider sync for MercadoPago return and then shows the processing notice', async () => {
+    api.syncProviderStatus.mockReturnValue(of(statusResult('checkout_created')));
+
     const fixture = await createFixture({
       payment_intent_id: 'intent-1',
       payment_id: 'mercadopago-payment-1',
     });
 
-    await vi.advanceTimersByTimeAsync(60_000);
+    await vi.advanceTimersByTimeAsync(61_000);
     fixture.detectChanges();
 
-    expect(api.getPaymentStatus).toHaveBeenCalledTimes(20);
-    expect(fixture.componentInstance.polling()).toBe(false);
-    expect(fixture.nativeElement.textContent).toContain(
-      'El proveedor puede demorar unos segundos mas',
+    expect(api.syncProviderStatus).toHaveBeenCalledTimes(1);
+    expect(api.syncProviderStatus).toHaveBeenCalledWith(
+      'intent-1',
+      expect.objectContaining({
+        payment_id: 'mercadopago-payment-1',
+      }),
     );
+    expect(api.getPaymentStatus).not.toHaveBeenCalled();
+
+    expect(fixture.componentInstance.polling()).toBe(false);
+expect(fixture.nativeElement.textContent).toContain(
+  'Podes actualizar el estado manualmente',
+);
   });
 
-  it('stops polling immediately on 429 and shows a friendly message', async () => {
-    api.getPaymentStatus.mockReturnValue(
+  it('stops provider sync immediately on 429 and shows a friendly message', async () => {
+    api.syncProviderStatus.mockReturnValue(
       throwError(
         () =>
           new ApiClientError(
@@ -255,6 +350,7 @@ describe('PaymentResultPageComponent', () => {
           ),
       ),
     );
+
     const fixture = await createFixture({
       payment_intent_id: 'intent-1',
       token: 'paypal-token-1',
@@ -264,26 +360,35 @@ describe('PaymentResultPageComponent', () => {
     await vi.advanceTimersByTimeAsync(30_000);
     fixture.detectChanges();
 
-    expect(api.getPaymentStatus).toHaveBeenCalledTimes(1);
+    expect(api.syncProviderStatus).toHaveBeenCalledTimes(1);
+    expect(api.getPaymentStatus).not.toHaveBeenCalled();
+
     expect(fixture.componentInstance.polling()).toBe(false);
     expect(fixture.nativeElement.textContent).toContain(
       'Se realizaron demasiadas consultas',
     );
   });
 
-  it('cancels polling when the component is destroyed', async () => {
-    api.getPaymentStatus.mockReturnValue(of(statusResult('checkout_created')));
+  it('does not perform more provider sync requests when the component is destroyed', async () => {
+    api.syncProviderStatus.mockReturnValue(of(statusResult('checkout_created')));
+
     const fixture = await createFixture({
       payment_intent_id: 'intent-1',
       token: 'paypal-token-1',
     });
 
     await vi.advanceTimersByTimeAsync(0);
-    expect(api.getPaymentStatus).toHaveBeenCalledTimes(1);
+    fixture.detectChanges();
+
+    expect(api.syncProviderStatus).toHaveBeenCalledTimes(1);
+    expect(api.getPaymentStatus).not.toHaveBeenCalled();
 
     fixture.destroy();
-    await vi.advanceTimersByTimeAsync(30_000);
 
-    expect(api.getPaymentStatus).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(30_000);
+    fixture.detectChanges();
+
+    expect(api.syncProviderStatus).toHaveBeenCalledTimes(1);
+    expect(api.getPaymentStatus).not.toHaveBeenCalled();
   });
 });

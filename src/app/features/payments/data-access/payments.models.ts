@@ -1,4 +1,11 @@
-export type PaymentProvider = 'simulator' | 'mercadopago' | 'paypal';
+export type KnownPaymentProvider = 'simulator' | 'mercadopago' | 'paypal';
+
+/**
+ * Providers are backend-owned. Keep the known values for selector UIs while
+ * allowing a newly configured provider to be displayed before the frontend is
+ * deployed again.
+ */
+export type PaymentProvider = KnownPaymentProvider | (string & {});
 
 export type PayableType = 'booking' | 'package';
 
@@ -6,20 +13,34 @@ export type PaymentIntentStatus =
   | 'pending'
   | 'checkout_created'
   | 'processing'
+  | 'pending_capture'
+  | 'paid'
   | 'succeeded'
+  | 'completed'
   | 'failed'
+  | 'rejected'
+  | 'denied'
   | 'cancelled'
-  | 'expired';
+  | 'expired'
+  | 'not_confirmed'
+  | 'unknown';
 
 export type PaymentStatus =
   | 'pending'
+  | 'processing'
+  | 'paid'
   | 'approved'
   | 'rejected'
   | 'cancelled'
   | 'succeeded'
+  | 'completed'
   | 'failed'
+  | 'denied'
+  | 'expired'
+  | 'not_confirmed'
   | 'refunded'
-  | 'partially_refunded';
+  | 'partially_refunded'
+  | 'unknown';
 
 export interface PaymentBookingSummary {
   id: string;
@@ -41,11 +62,18 @@ export interface PaymentPartySummary {
 export interface PaymentPackageSummary {
   id: string;
   name: string;
+  sessions_count?: number;
+  service_id?: string | number | null;
+}
+
+export interface PaymentPackageProductSummary extends PaymentPackageSummary {
+  sessions_count: number;
+  service_id: string | number | null;
 }
 
 export interface Payment {
   id: string;
-  payment_intent_id: string;
+  payment_intent_id: string | null;
   booking_id: string | null;
   package_product_id: string | null;
   client_package_id: string | null;
@@ -56,6 +84,7 @@ export interface Payment {
   amount: number;
   currency: string;
   provider_reference: string | null;
+  provider_payment_id?: string | null;
   metadata: Record<string, unknown> | null;
   paid_at: string | null;
   failed_at: string | null;
@@ -67,6 +96,47 @@ export interface Payment {
   client?: PaymentPartySummary | null;
   created_at: string | null;
   updated_at: string | null;
+}
+
+export type PaymentHistorySource = 'payment' | 'payment_intent';
+
+export type PaymentHistoryDisplayStatus =
+  | 'paid'
+  | 'rejected'
+  | 'failed'
+  | 'cancelled'
+  | 'expired'
+  | 'processing'
+  | 'not_confirmed';
+
+/**
+ * A client-facing payment-history operation. A successful provider capture is
+ * represented by `payment`; a rejected or pending provider operation by
+ * `payment_intent`.
+ */
+export interface PaymentHistoryItem {
+  id: string;
+  source: PaymentHistorySource;
+  payment_id: string | null;
+  payment_intent_id: string | null;
+  booking_id: string | null;
+  package_product_id: string | null;
+  provider: PaymentProvider;
+  status: PaymentStatus | PaymentIntentStatus;
+  display_status: PaymentHistoryDisplayStatus | null;
+  amount: number;
+  currency: string;
+  provider_reference: string | null;
+  provider_payment_id: string | null;
+  paid_at: string | null;
+  failed_at: string | null;
+  cancelled_at: string | null;
+  created_at: string | null;
+  failure_reason: string | null;
+  booking?: PaymentBookingSummary | null;
+  package_product?: PaymentPackageProductSummary | PaymentPackageSummary | null;
+  client_package?: PaymentPackageSummary | null;
+  can_retry?: boolean;
 }
 
 export interface PaymentIntent {
@@ -90,6 +160,11 @@ export interface PaymentIntent {
   failed_at: string | null;
   cancelled_at: string | null;
   failure_reason: string | null;
+  can_retry?: boolean;
+  can_continue_checkout?: boolean;
+  can_refresh_status?: boolean;
+  can_view_booking?: boolean;
+  next_poll_after_seconds?: number | null;
   payment?: Payment | null;
   booking?: PaymentBookingSummary | null;
   package_product?: PaymentPackageSummary | null;
@@ -114,6 +189,24 @@ export interface SimulatePaymentFailurePayload {
 export interface PaymentStatusResult {
   payment_intent: PaymentIntent;
   payment: Payment | null;
+  next_poll_after_seconds?: number | null;
+}
+
+/** Response returned by the client-facing payment-history endpoint. */
+export interface MyPaymentsResponse {
+  data: PaymentHistoryItem[];
+}
+
+/** Informative detail for a successful payment or a failed payment attempt. */
+export interface PaymentDetail {
+  source: PaymentHistorySource;
+  operation: PaymentHistoryItem;
+  payment: Payment | null;
+  payment_intent: PaymentIntent | null;
+  booking: PaymentBookingSummary | null;
+  package_product: PaymentPackageProductSummary | null;
+  successful_intent: PaymentIntent | null;
+  related_attempts: PaymentIntent[];
 }
 
 export interface PaymentsPaginationMeta {
@@ -131,4 +224,102 @@ export interface PaginatedPayments {
 export interface PaymentListParams {
   page?: number;
   per_page?: number;
+}
+
+export type PaymentMovementKind = 'payment' | 'payment_intent';
+
+export type PaymentMovementStatus =
+  | 'paid'
+  | 'succeeded'
+  | 'completed'
+  | 'pending'
+  | 'checkout_created'
+  | 'processing'
+  | 'pending_capture'
+  | 'failed'
+  | 'rejected'
+  | 'denied'
+  | 'cancelled'
+  | 'expired'
+  | 'not_confirmed'
+  | 'refunded'
+  | 'unknown';
+
+export interface PaymentMovementBooking {
+  id: string;
+  status?: string | null;
+  starts_at?: string | null;
+}
+
+/** A client-facing movement returned by the unified `payments/my` endpoint. */
+export interface PaymentMovement {
+  id: string;
+  kind: PaymentMovementKind;
+  status: PaymentMovementStatus;
+  display_status: string | null;
+  is_final: boolean;
+  is_successful: boolean;
+  is_pending: boolean;
+  can_retry: boolean;
+  can_continue_checkout: boolean;
+  can_refresh_status: boolean;
+  can_view_booking: boolean;
+  amount: number;
+  currency: string;
+  provider: PaymentProvider;
+  provider_label: string | null;
+  provider_reference: string | null;
+  provider_status: string | null;
+  checkout_url: string | null;
+  booking: PaymentMovementBooking | null;
+  package_product: unknown | null;
+  client_package: unknown | null;
+  /** Present in legacy payment records and used only to avoid duplicate successes. */
+  payment_intent_id: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  paid_at: string | null;
+  failed_at: string | null;
+  expires_at: string | null;
+  next_poll_after_seconds: number | null;
+}
+
+export interface PaymentMovementsResponse {
+  payments: PaymentMovement[];
+  meta: PaymentsPaginationMeta;
+}
+
+export interface ClientPaymentsQuery extends PaymentListParams {
+  status?: PaymentMovementStatus | string;
+  provider?: PaymentProvider | string;
+  kind?: PaymentMovementKind;
+  booking_id?: string;
+  only_pending?: boolean;
+  only_final?: boolean;
+  date_from?: string;
+  date_to?: string;
+  search?: string;
+}
+
+export interface PaginatedLinks {
+  first: string | null;
+  last: string | null;
+  prev: string | null;
+  next: string | null;
+}
+
+export interface PaginatedMeta {
+  current_page: number;
+  from: number | null;
+  last_page: number;
+  path: string;
+  per_page: number;
+  to: number | null;
+  total: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  links: PaginatedLinks;
+  meta: PaginatedMeta;
 }

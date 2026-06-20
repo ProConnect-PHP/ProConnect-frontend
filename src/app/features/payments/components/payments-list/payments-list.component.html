@@ -7,7 +7,10 @@
         <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div class="min-w-0">
             <div class="flex flex-wrap items-center gap-2">
-              <app-payment-status-badge [status]="payment.status" />
+              <app-payment-status-badge
+                [status]="status(payment)"
+                [displayStatus]="displayStatus(payment)"
+              />
               <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
                 {{ providerLabel(payment) }}
               </span>
@@ -17,7 +20,7 @@
               {{ money(payment) }}
             </h2>
             <p class="mt-2 text-sm leading-6 text-slate-600">
-              Fecha: {{ formatDateTime(payment.paid_at ?? payment.created_at) }}
+              {{ dateLabel(payment) }}: {{ formatDateTime(relevantDate(payment)) }}
             </p>
             <p class="mt-1 text-sm font-semibold leading-6 text-slate-700">
               {{ associationLabel(payment) }}
@@ -25,29 +28,49 @@
             <p class="mt-1 break-all text-xs leading-5 text-slate-500">
               Referencia interna: {{ associationId(payment) }}
             </p>
-            @if (context() === 'professional' && payment.client) {
+            @if (context() === 'professional' && isProfessionalPayment(payment) && payment.client) {
               <p class="mt-2 text-sm leading-6 text-slate-600">
                 Cliente: {{ payment.client.name }}
               </p>
             }
           </div>
 
-          @if (bookingLink(payment); as link) {
+          @if (bookingLink(payment) || paymentDetailLink(payment)) {
             <div class="grid gap-2 sm:min-w-44">
-              <a
-                class="inline-flex min-h-10 items-center justify-center rounded-md bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 focus:outline focus:outline-2 focus:outline-slate-700"
-                [routerLink]="link"
-              >
-                Ver reserva
-              </a>
+              @if (paymentDetailLink(payment); as detailLink) {
+                <a
+                  class="inline-flex min-h-10 items-center justify-center rounded-md bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 focus:outline focus:outline-2 focus:outline-slate-700"
+                  [routerLink]="detailLink"
+                >
+                  Ver detalle
+                </a>
+              }
+              @if (bookingLink(payment); as link) {
+                <a
+                  class="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-slate-700"
+                  [routerLink]="link"
+                >
+                  Ver reserva
+                </a>
+              }
+              @if (retryLink(payment); as retryLink) {
+                <a
+                  class="inline-flex min-h-10 items-center justify-center rounded-md border border-indigo-300 bg-indigo-50 px-4 py-2 text-sm font-bold text-indigo-800 shadow-sm transition hover:bg-indigo-100 focus:outline focus:outline-2 focus:outline-indigo-700"
+                  [routerLink]="retryLink"
+                >
+                  Intentar nuevamente
+                </a>
+              }
             </div>
           }
         </div>
 
-        @if (payment.failure_reason) {
+        @if (failureReason(payment); as failureReason) {
           <div class="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-950">
-            {{ payment.failure_reason }}
+            {{ failureReason }}
           </div>
+        } @else if (statusMessage(payment); as statusMessage) {
+          <p class="mt-4 text-sm leading-6 text-slate-600">{{ statusMessage }}</p>
         }
       </article>
     }

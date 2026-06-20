@@ -2,13 +2,15 @@ import { DestroyRef, Injectable, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   Observable,
+  EMPTY,
   catchError,
   defer,
-  exhaustMap,
+  expand,
   finalize,
   map,
   of,
   shareReplay,
+  switchMap,
   takeWhile,
   timer,
 } from 'rxjs';
@@ -21,14 +23,27 @@ import {
 } from '../data-access/payments.models';
 
 const TERMINAL_PAYMENT_INTENT_STATUSES: PaymentIntentStatus[] = [
+  'paid',
   'succeeded',
+  'completed',
   'failed',
+  'denied',
   'cancelled',
   'expired',
 ];
 
-export const PROVIDER_RETURN_POLLING_INTERVAL_MS = 3_000;
-export const PROVIDER_RETURN_MAX_ATTEMPTS = 20;
+/** First request is immediate; these values delay each following request. */
+export const PROVIDER_RETURN_POLLING_BACKOFF_MS = [
+  3_000,
+  3_000,
+  5_000,
+  5_000,
+  10_000,
+  15_000,
+  20_000,
+] as const;
+export const PROVIDER_RETURN_MAX_ATTEMPTS = PROVIDER_RETURN_POLLING_BACKOFF_MS.length + 1;
+export const PROVIDER_RETURN_MAX_DURATION_MS = 90_000;
 
 export type PaymentPollingEvent =
   | {
@@ -36,7 +51,7 @@ export type PaymentPollingEvent =
       result: PaymentStatusResult;
       attempt: number;
       done: boolean;
-      reason: 'terminal' | 'max_attempts' | null;
+      reason: 'terminal' | 'max_attempts' | 'max_duration' | null;
     }
   | {
       type: 'error';
@@ -64,42 +79,25 @@ export class PaymentStatusPollerService {
     if (activePoll) return activePoll;
 
     const poll = defer(() => {
-      let attempts = 0;
+      const startedAt = Date.now();
 
-      return timer(0, PROVIDER_RETURN_POLLING_INTERVAL_MS).pipe(
-        exhaustMap(() => {
-          attempts += 1;
+      return this.requestStatus(paymentIntentId, 1).pipe(
+        expand((event) => {
+          if (event.done) return EMPTY;
 
-          return this.api.getPaymentStatus(paymentIntentId).pipe(
-            map((result): PaymentPollingEvent => {
-              const status = result.payment_intent.status;
-              const isTerminal = TERMINAL_PAYMENT_INTENT_STATUSES.includes(status);
-              const maxReached = attempts >= PROVIDER_RETURN_MAX_ATTEMPTS;
+          const delay = this.nextDelay(event.result, event.attempt);
+          const elapsed = Date.now() - startedAt;
 
-              return {
-                type: 'result',
-                result,
-                attempt: attempts,
-                done: isTerminal || maxReached,
-                reason: isTerminal
-                  ? 'terminal'
-                  : maxReached
-                    ? 'max_attempts'
-                    : null,
-              };
-            }),
-            catchError((error: unknown) =>
-              of<PaymentPollingEvent>({
-                type: 'error',
-                error,
-                attempt: attempts,
-                done: true,
-                reason:
-                  error instanceof ApiClientError && error.status === 429
-                    ? 'rate_limited'
-                    : 'request_failed',
-              }),
-            ),
+          if (elapsed + delay > PROVIDER_RETURN_MAX_DURATION_MS) {
+            return of<PaymentPollingEvent>({
+              ...event,
+              done: true,
+              reason: 'max_duration',
+            });
+          }
+
+          return timer(delay).pipe(
+            switchMap(() => this.requestStatus(paymentIntentId, event.attempt + 1)),
           );
         }),
         takeWhile((event) => !event.done, true),
@@ -112,6 +110,45 @@ export class PaymentStatusPollerService {
 
     this.activePolls.set(paymentIntentId, poll);
     return poll;
+  }
+
+  private requestStatus(paymentIntentId: string, attempt: number): Observable<PaymentPollingEvent> {
+    return this.api.getPaymentStatus(paymentIntentId).pipe(
+      map((result): PaymentPollingEvent => {
+        const status = result.payment_intent.status;
+        const isTerminal = TERMINAL_PAYMENT_INTENT_STATUSES.includes(status);
+        const maxReached = attempt >= PROVIDER_RETURN_MAX_ATTEMPTS;
+
+        return {
+          type: 'result',
+          result,
+          attempt,
+          done: isTerminal || maxReached,
+          reason: isTerminal ? 'terminal' : maxReached ? 'max_attempts' : null,
+        };
+      }),
+      catchError((error: unknown) =>
+        of<PaymentPollingEvent>({
+          type: 'error',
+          error,
+          attempt,
+          done: true,
+          reason:
+            error instanceof ApiClientError && error.status === 429
+              ? 'rate_limited'
+              : 'request_failed',
+        }),
+      ),
+    );
+  }
+
+  private nextDelay(result: PaymentStatusResult, attempt: number): number {
+    const serverDelay = result.next_poll_after_seconds ?? result.payment_intent.next_poll_after_seconds;
+    if (typeof serverDelay === 'number' && Number.isFinite(serverDelay) && serverDelay > 0) {
+      return serverDelay * 1_000;
+    }
+
+    return PROVIDER_RETURN_POLLING_BACKOFF_MS[attempt - 1] ?? 0;
   }
 }
 
