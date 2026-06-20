@@ -131,7 +131,8 @@ describe('PaymentsApi', () => {
     const detail = await firstValueFrom(service.getMyPayment('payment-1'));
 
     expect(apiClient.get).toHaveBeenCalledWith('me/payments/payment-1');
-    expect(detail.payment.id).toBe('payment-1');
+    expect(detail.source).toBe('payment');
+    expect(detail.payment?.id).toBe('payment-1');
     expect(detail.related_attempts).toEqual([]);
   });
 

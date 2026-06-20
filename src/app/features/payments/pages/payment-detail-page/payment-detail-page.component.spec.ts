@@ -3,7 +3,12 @@ import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/route
 import { of } from 'rxjs';
 
 import { PaymentsApi } from '../../data-access/payments.api';
-import { Payment, PaymentDetail, PaymentIntent } from '../../data-access/payments.models';
+import {
+  Payment,
+  PaymentDetail,
+  PaymentHistoryItem,
+  PaymentIntent,
+} from '../../data-access/payments.models';
 import { PaymentDetailPageComponent } from './payment-detail-page.component';
 
 const payment: Payment = {
@@ -54,8 +59,31 @@ const successfulIntent: PaymentIntent = {
   updated_at: '2026-06-20 18:39:43',
 };
 
+const operation: PaymentHistoryItem = {
+  id: 'payment-1',
+  source: 'payment',
+  payment_id: 'payment-1',
+  payment_intent_id: 'intent-success',
+  booking_id: 'booking-1',
+  package_product_id: null,
+  provider: 'paypal',
+  status: 'succeeded',
+  amount: 1800,
+  currency: 'UYU',
+  provider_reference: '5GP76217KU6931916',
+  provider_payment_id: '8LB81893HJ324133N',
+  paid_at: '2026-06-20 18:39:43',
+  failed_at: null,
+  cancelled_at: null,
+  created_at: '2026-06-20 18:39:43',
+  failure_reason: null,
+};
+
 const detail: PaymentDetail = {
+  source: 'payment',
+  operation,
   payment,
+  payment_intent: successfulIntent,
   booking: {
     id: 'booking-1',
     status: 'cancelled',
