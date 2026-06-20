@@ -51,7 +51,6 @@ export class PublicActiveFiltersComponent {
     }
     if (query.duration_minutes) chips.push({ key: 'duration_minutes', label: `${query.duration_minutes} min` });
     if (query.available_date) chips.push({ key: 'available_date', label: query.available_date });
-    if (query.is_verified) chips.push({ key: 'is_verified', label: 'Verificados' });
     if (query.latitude !== null && query.latitude !== undefined && query.longitude !== null && query.longitude !== undefined) {
       chips.push({ key: 'location', label: `Ubicacion - ${query.radius_km ?? 20} km` });
     }

@@ -83,7 +83,6 @@ export class PublicServicesPageComponent implements OnInit {
         hasMaxPrice ||
         query.duration_minutes ||
         query.available_date ||
-        query.is_verified ||
         hasLatitude ||
         hasLongitude ||
         hasRadius
@@ -212,8 +211,6 @@ export class PublicServicesPageComponent implements OnInit {
         return { duration_minutes: null };
       case 'available_date':
         return { available_date: null };
-      case 'is_verified':
-        return { is_verified: null };
       case 'latitude':
         return { latitude: null };
       case 'longitude':
