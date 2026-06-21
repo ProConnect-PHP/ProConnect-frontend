@@ -27,14 +27,14 @@
   </header>
 
   <!-- Feedback -->
-  @if (successMessage() || errorMessage()) {
+  @if (successMessage() || pageErrorMessage()) {
     <section class="mt-5 grid gap-3" aria-live="polite">
       @if (successMessage()) {
         <app-alert [message]="successMessage()" variant="success" />
       }
 
-      @if (errorMessage()) {
-        <app-alert [message]="errorMessage()" variant="danger" />
+      @if (pageErrorMessage()) {
+        <app-alert [message]="pageErrorMessage()" variant="danger" />
       }
     </section>
   }
@@ -68,8 +68,10 @@
           [initialValue]="editingPackageProduct()"
           [services]="services()"
           [submitting]="saving()"
-          [errorMessage]="errorMessage()"
+          [errorMessage]="formErrorMessage()"
+          [fieldErrors]="formFieldErrors()"
           (submitted)="savePackageProduct($event)"
+          (valueChanged)="clearFormFeedback()"
           (cancelled)="cancelForm()"
         />
       </section>

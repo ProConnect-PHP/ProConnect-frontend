@@ -14,6 +14,7 @@ export type PaymentIntentStatus =
   | 'checkout_created'
   | 'processing'
   | 'pending_capture'
+  | 'approved'
   | 'paid'
   | 'succeeded'
   | 'completed'
@@ -207,6 +208,15 @@ export interface PaymentDetail {
   package_product: PaymentPackageProductSummary | null;
   successful_intent: PaymentIntent | null;
   related_attempts: PaymentIntent[];
+}
+
+/** Raw detail envelope returned by `GET /me/payments/{paymentId}`. */
+export interface PaymentDetailApiResponse {
+  item: PaymentHistoryItem;
+  booking: PaymentDetail['booking'] | null;
+  package_product: PaymentDetail['package_product'] | null;
+  successful_intent?: PaymentIntent | null;
+  related_attempts?: PaymentIntent[];
 }
 
 export interface PaymentsPaginationMeta {

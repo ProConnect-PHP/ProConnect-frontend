@@ -1,5 +1,12 @@
 import { ApiClientError } from '../../../core/http/models/api-error.model';
 
+export type PackageProductFieldErrors = Partial<
+  Record<
+    'service_id' | 'name' | 'description' | 'sessions_count' | 'price' | 'validity_days' | 'is_active',
+    string
+  >
+>;
+
 export function mapPackageError(errorCode?: string, fallback?: string): string {
   switch (errorCode) {
     case 'EmailNotVerified':
@@ -36,6 +43,18 @@ export function mapPackageError(errorCode?: string, fallback?: string): string {
 
 export function mapPackageApiError(error: unknown, fallback?: string): string {
   if (error instanceof ApiClientError) {
+    if (error.status === 401) {
+      return 'Tu sesion expiro. Inicia sesion nuevamente.';
+    }
+
+    if (error.status === 403) {
+      return 'No tenes permisos para crear paquetes.';
+    }
+
+    if (error.status >= 500) {
+      return 'El servidor no pudo crear el paquete. Intenta nuevamente en unos minutos.';
+    }
+
     return mapPackageError(error.code ?? error.type, error.message || fallback);
   }
 
@@ -44,4 +63,32 @@ export function mapPackageApiError(error: unknown, fallback?: string): string {
   }
 
   return fallback ?? 'No pudimos procesar la operacion del paquete.';
+}
+
+export function mapPackageProductFieldErrors(error: unknown): PackageProductFieldErrors {
+  if (!(error instanceof ApiClientError) || error.status !== 422 || !error.details) {
+    return {};
+  }
+
+  const supportedFields = new Set<keyof PackageProductFieldErrors>([
+    'service_id',
+    'name',
+    'description',
+    'sessions_count',
+    'price',
+    'validity_days',
+    'is_active',
+  ]);
+
+  return Object.entries(error.details).reduce<PackageProductFieldErrors>(
+    (fieldErrors, [field, messages]) => {
+      if (!supportedFields.has(field as keyof PackageProductFieldErrors) || !messages[0]) {
+        return fieldErrors;
+      }
+
+      fieldErrors[field as keyof PackageProductFieldErrors] = messages[0];
+      return fieldErrors;
+    },
+    {},
+  );
 }

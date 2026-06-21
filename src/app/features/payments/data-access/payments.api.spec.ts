@@ -176,18 +176,54 @@ describe('PaymentsApi', () => {
   it('requests a payment detail with its related attempts', async () => {
     apiClient.get.mockReturnValue(
       of({
-        payment: {
-          id: 'payment-1',
+        item: {
+          id: 'payment:payment-1',
+          source: 'payment',
+          payment_id: 'payment-1',
           payment_intent_id: 'intent-1',
-          provider: 'paypal',
+          booking_id: null,
+          package_product_id: 'package-1',
+          provider: 'mercadopago',
           status: 'succeeded',
-          amount: 1800,
+          display_status: 'paid',
+          amount: 4000,
           currency: 'UYU',
+          provider_reference: 'mp-payment-1',
+          provider_payment_id: 'provider-payment-1',
+          paid_at: '2026-06-21 15:39:54',
+          failed_at: null,
+          cancelled_at: null,
+          created_at: '2026-06-21 16:39:55',
+          failure_reason: null,
+          booking: null,
+          package_product: {
+            id: 'package-1',
+            name: 'Seguimiento nutricional mensual',
+            sessions_count: 4,
+            service_id: 'service-1',
+          },
         },
         booking: null,
-        package_product: null,
-        successful_intent: null,
-        related_attempts: [],
+        package_product: {
+          id: 'package-1',
+          name: 'Seguimiento nutricional mensual',
+          sessions_count: 4,
+          service_id: 'service-1',
+        },
+        related_attempts: [
+          {
+            id: 'intent-1',
+            payable_type: 'package',
+            payable_id: 'package-1',
+            package_product_id: 'package-1',
+            provider: 'mercadopago',
+            status: 'succeeded',
+            amount: 4000,
+            currency: 'UYU',
+            provider_reference: 'mp-preference-1',
+            created_at: '2026-06-21 16:37:25',
+          },
+        ],
       }),
     );
     const service = TestBed.inject(PaymentsApi);
@@ -196,8 +232,10 @@ describe('PaymentsApi', () => {
 
     expect(apiClient.get).toHaveBeenCalledWith('me/payments/payment-1');
     expect(detail.source).toBe('payment');
-    expect(detail.payment?.id).toBe('payment-1');
-    expect(detail.related_attempts).toEqual([]);
+    expect(detail.operation.id).toBe('payment:payment-1');
+    expect(detail.related_attempts).toHaveLength(1);
+    expect(detail.successful_intent?.id).toBe('intent-1');
+    expect(detail.package_product?.name).toBe('Seguimiento nutricional mensual');
   });
 
   it('keeps the unified movements endpoint behind its explicit legacy method', async () => {

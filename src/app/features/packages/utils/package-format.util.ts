@@ -1,4 +1,4 @@
-import { formatMoney } from '../../../shared/utils/money.util';
+import { formatMoneyDecimal } from '../../../shared/utils/money.util';
 
 export function formatPackageValidity(validityDays: number | null): string {
   if (!validityDays) return 'Sin vencimiento definido';
@@ -12,5 +12,5 @@ export function formatPackagePricePerSession(
   currency = 'UYU',
 ): string {
   const divisor = sessionsCount > 0 ? sessionsCount : 1;
-  return `${formatMoney(price / divisor, currency)} por sesion`;
+  return `${formatMoneyDecimal(price / divisor, currency)} por sesion`;
 }
