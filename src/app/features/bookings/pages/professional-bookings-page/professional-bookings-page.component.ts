@@ -10,6 +10,7 @@ import { Booking, BookingListFilter } from '../../models/booking.models';
 import { bookingErrorMessage } from '../../utils/booking-error-message.util';
 import { BookingCancelDialogComponent } from '../../components/booking-cancel-dialog/booking-cancel-dialog.component';
 import { BookingCardComponent } from '../../components/booking-card/booking-card.component';
+import { BookingCompleteDialogComponent } from '../../components/booking-complete-dialog/booking-complete-dialog.component';
 import { BookingEmptyStateComponent } from '../../components/booking-empty-state/booking-empty-state.component';
 import { BookingFiltersComponent } from '../../components/booking-filters/booking-filters.component';
 import { BookingRescheduleDialogComponent } from '../../components/booking-reschedule-dialog/booking-reschedule-dialog.component';
@@ -27,6 +28,7 @@ type ActionState = {
     AppAlertComponent,
     BookingCancelDialogComponent,
     BookingCardComponent,
+    BookingCompleteDialogComponent,
     BookingEmptyStateComponent,
     BookingFiltersComponent,
     BookingRescheduleDialogComponent,
@@ -47,6 +49,7 @@ export class ProfessionalBookingsPageComponent implements OnInit {
   readonly activeFilter = signal<BookingListFilter>('all');
   readonly dateFilter = signal<string | null>(null);
   readonly selectedCancelBooking = signal<Booking | null>(null);
+  readonly selectedCompleteBooking = signal<Booking | null>(null);
   readonly selectedRescheduleBooking = signal<Booking | null>(null);
   readonly actionState = signal<ActionState | null>(null);
 
@@ -121,12 +124,17 @@ export class ProfessionalBookingsPageComponent implements OnInit {
     this.selectedCancelBooking.set(booking);
   }
 
+  openCompleteDialog(booking: Booking): void {
+    this.selectedCompleteBooking.set(booking);
+  }
+
   openRescheduleDialog(booking: Booking): void {
     this.selectedRescheduleBooking.set(booking);
   }
 
   closeDialogs(): void {
     this.selectedCancelBooking.set(null);
+    this.selectedCompleteBooking.set(null);
     this.selectedRescheduleBooking.set(null);
   }
 
