@@ -20,21 +20,28 @@
     Servicio asociado
     <select
       class="min-h-11 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm focus:outline focus:outline-2 focus:outline-indigo-600"
-      formControlName="service_id">
+      formControlName="service_id"
+      [attr.aria-invalid]="fieldError('service_id') ? 'true' : null"
+      [attr.aria-describedby]="fieldError('service_id') ? 'package-service-error' : null">
       <option value="">Paquete general sin servicio especifico</option>
       @for (service of services(); track service.id) {
       <option [value]="service.id">{{ service.name }}</option>
       }
     </select>
+    @if (fieldError('service_id')) {
+    <span id="package-service-error" class="text-sm text-rose-700">{{ fieldError('service_id') }}</span>
+    }
   </label>
 
   <label class="grid gap-2 text-sm font-semibold text-slate-700">
     Nombre
     <input
       class="min-h-11 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-950 shadow-sm focus:outline focus:outline-2 focus:outline-indigo-600"
-      type="text" maxlength="150" formControlName="name" />
+      type="text" maxlength="150" formControlName="name"
+      [attr.aria-invalid]="fieldError('name') ? 'true' : null"
+      [attr.aria-describedby]="fieldError('name') ? 'package-name-error' : null" />
     @if (fieldError('name')) {
-    <span class="text-sm text-rose-700">{{ fieldError('name') }}</span>
+    <span id="package-name-error" class="text-sm text-rose-700">{{ fieldError('name') }}</span>
     }
   </label>
 
@@ -42,8 +49,13 @@
     Descripcion
     <textarea
       class="min-h-28 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-950 shadow-sm focus:outline focus:outline-2 focus:outline-indigo-600"
-      maxlength="3000" formControlName="description"></textarea>
-    <span class="text-xs text-slate-500">{{ descriptionLength() }} / 3000</span>
+      maxlength="3000" formControlName="description"
+      [attr.aria-invalid]="fieldError('description') ? 'true' : null"
+      [attr.aria-describedby]="fieldError('description') ? 'package-description-count package-description-error' : 'package-description-count'"></textarea>
+    <span id="package-description-count" class="text-xs text-slate-500">{{ descriptionLength() }} / 3000</span>
+    @if (fieldError('description')) {
+    <span id="package-description-error" class="text-sm text-rose-700">{{ fieldError('description') }}</span>
+    }
   </label>
 
   <div class="grid gap-4 sm:grid-cols-2">
@@ -51,14 +63,24 @@
       Sesiones
       <input
         class="min-h-11 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-950 shadow-sm focus:outline focus:outline-2 focus:outline-indigo-600"
-        type="number" min="1" max="100" formControlName="sessions_count" />
+        type="number" min="1" max="100" step="1" inputmode="numeric" formControlName="sessions_count"
+        [attr.aria-invalid]="fieldError('sessions_count') ? 'true' : null"
+        [attr.aria-describedby]="fieldError('sessions_count') ? 'package-sessions-error' : null" />
+      @if (fieldError('sessions_count')) {
+      <span id="package-sessions-error" class="text-sm text-rose-700">{{ fieldError('sessions_count') }}</span>
+      }
     </label>
 
     <label class="grid gap-2 text-sm font-semibold text-slate-700">
       Precio
       <input
         class="min-h-11 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-950 shadow-sm focus:outline focus:outline-2 focus:outline-indigo-600"
-        type="number" min="0" step="1" formControlName="price" />
+        type="number" min="1" max="999999" step="1" inputmode="numeric" formControlName="price"
+        [attr.aria-invalid]="fieldError('price') ? 'true' : null"
+        [attr.aria-describedby]="fieldError('price') ? 'package-price-error' : null" />
+      @if (fieldError('price')) {
+      <span id="package-price-error" class="text-sm text-rose-700">{{ fieldError('price') }}</span>
+      }
     </label>
   </div>
 
@@ -67,7 +89,12 @@
       Vigencia en dias
       <input
         class="min-h-11 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-950 shadow-sm focus:outline focus:outline-2 focus:outline-indigo-600"
-        type="number" min="1" max="3650" formControlName="validity_days" />
+        type="number" min="1" max="3650" step="1" inputmode="numeric" formControlName="validity_days"
+        [attr.aria-invalid]="fieldError('validity_days') ? 'true' : null"
+        [attr.aria-describedby]="fieldError('validity_days') ? 'package-validity-error' : null" />
+      @if (fieldError('validity_days')) {
+      <span id="package-validity-error" class="text-sm text-rose-700">{{ fieldError('validity_days') }}</span>
+      }
     </label>
 
     <div class="grid gap-2 text-sm font-semibold text-slate-700">
@@ -79,8 +106,15 @@
     </div>
   </div>
 
-  <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-950">
-    Preview: {{ pricePreview() }}
+  <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950">
+    <p class="font-bold">Precio estimado por sesion: {{ pricePreview() }}</p>
+    <p class="mt-1">Precio total del paquete: {{ totalPricePreview() }}</p>
+    <p class="mt-1">Cantidad de sesiones: {{ sessionsPreview() }}</p>
+    @if (hasLowPriceWarning()) {
+    <p class="mt-3 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 font-semibold text-amber-950" role="status">
+      El precio por sesion parece demasiado bajo. Revisa el precio total.
+    </p>
+    }
   </div>
 
   <label class="flex items-center gap-3 text-sm font-semibold text-slate-700">

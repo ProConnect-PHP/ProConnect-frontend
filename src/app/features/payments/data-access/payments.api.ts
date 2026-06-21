@@ -8,6 +8,7 @@ import {
   CreatePaymentIntentRequest,
   PaginatedPayments,
   PaymentDetail,
+  PaymentDetailApiResponse,
   PaymentHistoryItem,
   PaymentIntent,
   PaymentListParams,
@@ -112,7 +113,7 @@ export class PaymentsApi {
 
   getMyPayment(paymentId: string): Observable<PaymentDetail> {
     return this.api
-      .get<unknown>(`me/payments/${paymentId}`)
+      .get<PaymentDetailApiResponse>(`me/payments/${paymentId}`)
       .pipe(map((response) => unwrapPaymentDetailResponse(response)));
   }
 
