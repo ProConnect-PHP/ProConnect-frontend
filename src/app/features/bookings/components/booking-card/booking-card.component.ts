@@ -78,6 +78,7 @@ import { BookingStatusBadgeComponent } from '../booking-status-badge/booking-sta
           [context]="context()"
           [loadingAction]="loadingAction()"
           (confirmClicked)="confirmClicked.emit(booking())"
+          (completeClicked)="completeClicked.emit(booking())"
           (cancelClicked)="cancelClicked.emit(booking())"
           (rescheduleClicked)="rescheduleClicked.emit(booking())"
         />
@@ -92,6 +93,7 @@ export class BookingCardComponent {
   readonly loadingAction = input<string | null>(null);
 
   readonly confirmClicked = output<Booking>();
+  readonly completeClicked = output<Booking>();
   readonly cancelClicked = output<Booking>();
   readonly rescheduleClicked = output<Booking>();
 

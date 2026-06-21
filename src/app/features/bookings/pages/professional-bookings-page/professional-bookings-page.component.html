@@ -48,6 +48,7 @@
           context="professional"
           [loadingAction]="cardLoadingAction(booking)"
           (confirmClicked)="confirmBooking($event)"
+          (completeClicked)="openCompleteDialog($event)"
           (cancelClicked)="openCancelDialog($event)"
           (rescheduleClicked)="openRescheduleDialog($event)"
         />
@@ -60,6 +61,13 @@
     [booking]="selectedCancelBooking()"
     (closed)="closeDialogs()"
     (bookingUpdated)="onBookingUpdated($event, 'Reserva cancelada correctamente.')"
+  />
+
+  <app-booking-complete-dialog
+    [open]="!!selectedCompleteBooking()"
+    [booking]="selectedCompleteBooking()"
+    (closed)="closeDialogs()"
+    (bookingUpdated)="onBookingUpdated($event, 'Reserva finalizada correctamente.')"
   />
 
   <app-booking-reschedule-dialog

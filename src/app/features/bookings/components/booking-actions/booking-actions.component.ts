@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 
 import { Booking, BookingContext } from '../../models/booking.models';
+import { canCompleteBooking } from '../../utils/booking-actions.util';
 
 @Component({
   selector: 'app-booking-actions',
@@ -15,6 +16,17 @@ import { Booking, BookingContext } from '../../models/booking.models';
             (click)="confirmClicked.emit()"
           >
             {{ loadingAction() === 'confirm' ? 'Confirmando...' : 'Confirmar' }}
+          </button>
+        }
+
+        @if (canComplete()) {
+          <button
+            type="button"
+            class="inline-flex min-h-10 items-center justify-center rounded-md bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 focus:outline focus:outline-2 focus:outline-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+            [disabled]="loadingAction() === 'complete'"
+            (click)="completeClicked.emit()"
+          >
+            {{ loadingAction() === 'complete' ? 'Finalizando...' : 'Finalizar sesión' }}
           </button>
         }
 
@@ -50,11 +62,15 @@ export class BookingActionsComponent {
   readonly loadingAction = input<string | null>(null);
 
   readonly confirmClicked = output<void>();
+  readonly completeClicked = output<void>();
   readonly cancelClicked = output<void>();
   readonly rescheduleClicked = output<void>();
 
   readonly canConfirm = computed(
     () => this.context() === 'professional' && this.booking().status === 'pending',
+  );
+  readonly canComplete = computed(
+    () => this.context() === 'professional' && canCompleteBooking(this.booking()),
   );
   readonly canCancel = computed(() =>
     ['pending', 'confirmed', 'paid'].includes(this.booking().status),
@@ -63,6 +79,6 @@ export class BookingActionsComponent {
     ['pending', 'confirmed'].includes(this.booking().status),
   );
   readonly hasActions = computed(
-    () => this.canConfirm() || this.canCancel() || this.canReschedule(),
+    () => this.canConfirm() || this.canComplete() || this.canCancel() || this.canReschedule(),
   );
 }

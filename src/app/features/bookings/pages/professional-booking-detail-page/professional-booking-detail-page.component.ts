@@ -14,6 +14,7 @@ import { Booking, BookingResponse } from '../../models/booking.models';
 import { bookingErrorMessage } from '../../utils/booking-error-message.util';
 import { BookingActionsComponent } from '../../components/booking-actions/booking-actions.component';
 import { BookingCancelDialogComponent } from '../../components/booking-cancel-dialog/booking-cancel-dialog.component';
+import { BookingCompleteDialogComponent } from '../../components/booking-complete-dialog/booking-complete-dialog.component';
 import { BookingDetailCardComponent } from '../../components/booking-detail-card/booking-detail-card.component';
 import { BookingRescheduleDialogComponent } from '../../components/booking-reschedule-dialog/booking-reschedule-dialog.component';
 import { BookingSkeletonComponent } from '../../components/booking-skeleton/booking-skeleton.component';
@@ -27,6 +28,7 @@ import { BookingTimelineComponent } from '../../components/booking-timeline/book
     AppEmptyStateComponent,
     BookingActionsComponent,
     BookingCancelDialogComponent,
+    BookingCompleteDialogComponent,
     BookingDetailCardComponent,
     BookingPackageSummaryComponent,
     BookingRescheduleDialogComponent,
@@ -48,6 +50,7 @@ export class ProfessionalBookingDetailPageComponent implements OnInit {
   readonly successMessage = signal<string | null>(null);
   readonly loadingAction = signal<string | null>(null);
   readonly cancelDialogOpen = signal(false);
+  readonly completeDialogOpen = signal(false);
   readonly rescheduleDialogOpen = signal(false);
 
   ngOnInit(): void {
@@ -83,12 +86,17 @@ export class ProfessionalBookingDetailPageComponent implements OnInit {
     this.cancelDialogOpen.set(true);
   }
 
+  openCompleteDialog(): void {
+    this.completeDialogOpen.set(true);
+  }
+
   openRescheduleDialog(): void {
     this.rescheduleDialogOpen.set(true);
   }
 
   closeDialogs(): void {
     this.cancelDialogOpen.set(false);
+    this.completeDialogOpen.set(false);
     this.rescheduleDialogOpen.set(false);
   }
 

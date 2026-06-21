@@ -13,6 +13,13 @@ import {
 import { BookingAvailableActionsResponse } from './booking-available-actions.dto';
 import { mapBookingAvailableActionsResponse } from './booking-available-actions.mapper';
 
+type CompleteBookingResponse =
+  | BookingResponse
+  | {
+      data: BookingResponse['booking'];
+      message?: string;
+    };
+
 @Injectable({ providedIn: 'root' })
 export class BookingsApi {
   private readonly api = inject(ApiClient);
@@ -52,6 +59,15 @@ export class BookingsApi {
     );
   }
 
+  completeBooking(bookingId: string): Observable<BookingResponse> {
+    return this.api
+      .post<CompleteBookingResponse, Record<string, never>>(
+        `professional/bookings/${bookingId}/complete`,
+        {},
+      )
+      .pipe(map(mapCompleteBookingResponse));
+  }
+
   cancelBooking(
     bookingId: string,
     payload: CancelBookingRequest,
@@ -71,4 +87,13 @@ export class BookingsApi {
       payload,
     );
   }
+}
+
+function mapCompleteBookingResponse(response: CompleteBookingResponse): BookingResponse {
+  if ('booking' in response) return response;
+
+  return {
+    booking: response.data,
+    message: response.message,
+  };
 }

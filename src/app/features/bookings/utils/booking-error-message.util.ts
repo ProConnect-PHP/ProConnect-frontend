@@ -39,3 +39,20 @@ export function bookingErrorMessageFromType(
       return fallback;
   }
 }
+
+export function completeBookingErrorMessage(error: unknown): string {
+  if (!(error instanceof ApiClientError)) {
+    return 'No se pudo finalizar la reserva. Intentá nuevamente.';
+  }
+
+  switch (error.status) {
+    case 403:
+      return 'No tenés permisos para finalizar esta reserva.';
+    case 404:
+      return 'La reserva ya no existe.';
+    case 422:
+      return error.message || 'Esta reserva no puede finalizarse.';
+    default:
+      return 'No se pudo finalizar la reserva. Intentá nuevamente.';
+  }
+}
