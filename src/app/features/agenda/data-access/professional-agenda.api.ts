@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { ApiClient } from '../../../core/http/api.client';
 
 import {
-  ProfessionalAgendaQuery,
+  ProfessionalAgendaMonthQuery,
   ProfessionalAgendaResponse,
 } from './professional-agenda.models';
 
@@ -13,13 +13,13 @@ import {
 export class ProfessionalAgendaApi {
   private readonly api = inject(ApiClient);
 
-  list(query: ProfessionalAgendaQuery): Observable<ProfessionalAgendaResponse> {
+  getProfessionalAgenda(
+    query: ProfessionalAgendaMonthQuery,
+  ): Observable<ProfessionalAgendaResponse> {
     return this.api.get<ProfessionalAgendaResponse>('/professional/agenda', {
       params: {
-        from: query.from,
-        to: query.to,
-        status: query.status,
-        service_id: query.service_id,
+        view: query.view,
+        date: query.date,
       },
     });
   }

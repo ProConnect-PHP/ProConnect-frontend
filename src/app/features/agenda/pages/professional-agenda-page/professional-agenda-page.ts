@@ -12,6 +12,9 @@ import { finalize } from 'rxjs/operators';
 
 import { AppAlertComponent } from '../../../../shared/ui/alert/alert.component';
 import { AppLoadingSpinnerComponent } from '../../../../shared/ui/loading-spinner/loading-spinner.component';
+import { AgendaEventCardComponent } from '../../components/agenda-event-card/agenda-event-card.component';
+import { AgendaSummaryCardsComponent } from '../../components/agenda-summary-cards/agenda-summary-cards.component';
+import { AgendaToolbarComponent } from '../../components/agenda-toolbar/agenda-toolbar.component';
 import { ProfessionalAgendaApi } from '../../data-access/professional-agenda.api';
 import {
   AgendaStatusFilter,
@@ -21,16 +24,12 @@ import {
 } from '../../data-access/professional-agenda.models';
 import {
   AgendaDay,
-  addDays,
-  buildWeekDays,
+  addMonths,
+  buildMonthDays,
   dateKeyFromIso,
-  formatAgendaRangeTitle,
-  startOfWeek,
+  formatAgendaMonthTitle,
   toDateInputValue,
 } from '../../utils/agenda-date.util';
-import { AgendaEventCardComponent } from "../../components/agenda-event-card/agenda-event-card.component";
-import { AgendaSummaryCardsComponent } from "../../components/agenda-summary-cards/agenda-summary-cards.component";
-import { AgendaToolbarComponent } from "../../components/agenda-toolbar/agenda-toolbar.component";
 
 const emptySummary: ProfessionalAgendaSummary = {
   total: 0,
@@ -50,8 +49,8 @@ const emptySummary: ProfessionalAgendaSummary = {
     AppLoadingSpinnerComponent,
     AgendaEventCardComponent,
     AgendaSummaryCardsComponent,
-    AgendaToolbarComponent
-],
+    AgendaToolbarComponent,
+  ],
   templateUrl: './professional-agenda-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -62,23 +61,29 @@ export class ProfessionalAgendaPage implements OnInit {
   readonly agenda = signal<ProfessionalAgendaResponse | null>(null);
   readonly loading = signal(false);
   readonly errorMessage = signal<string | null>(null);
-
-  readonly referenceDate = signal(new Date());
+  readonly visibleDate = signal(new Date());
   readonly activeStatus = signal<AgendaStatusFilter>('all');
 
-  readonly days = computed<AgendaDay[]>(() => buildWeekDays(this.referenceDate()));
-  readonly weekTitle = computed(() => formatAgendaRangeTitle(this.referenceDate()));
-  readonly summary = computed(() => this.agenda()?.summary ?? emptySummary);
+  readonly days = computed<AgendaDay[]>(() => buildMonthDays(this.visibleDate()));
+  readonly monthTitle = computed(() => formatAgendaMonthTitle(this.visibleDate()));
+  readonly globalSummary = computed(
+    () => this.agenda()?.global_summary ?? this.agenda()?.summary ?? emptySummary,
+  );
+  readonly rangeSummary = computed(
+    () => this.agenda()?.range_summary ?? this.agenda()?.summary ?? emptySummary,
+  );
   readonly events = computed(() => this.agenda()?.events ?? []);
+  readonly filteredEvents = computed(() => {
+    const status = this.activeStatus();
+    const events = this.events();
+
+    return status === 'all' ? events : events.filter((event) => event.status === status);
+  });
 
   readonly eventsByDay = computed(() => {
     const map = new Map<string, ProfessionalAgendaEvent[]>();
 
-    for (const day of this.days()) {
-      map.set(day.key, []);
-    }
-
-    for (const event of this.events()) {
+    for (const event of this.filteredEvents()) {
       const key = dateKeyFromIso(event.starts_at);
       const currentEvents = map.get(key) ?? [];
 
@@ -87,16 +92,18 @@ export class ProfessionalAgendaPage implements OnInit {
     }
 
     for (const [key, events] of map.entries()) {
-      map.set(
-        key,
-        [...events].sort(
-          (first, second) =>
-            new Date(first.starts_at).getTime() - new Date(second.starts_at).getTime(),
-        ),
-      );
+      map.set(key, [...events].sort((first, second) => first.starts_at.localeCompare(second.starts_at)));
     }
 
     return map;
+  });
+
+  readonly mobileDays = computed(() => {
+    const eventsByDay = this.eventsByDay();
+
+    return this.days().filter(
+      (day) => !day.isOutsideMonth && (eventsByDay.get(day.key)?.length ?? 0) > 0,
+    );
   });
 
   readonly statusFilters: { value: AgendaStatusFilter; label: string }[] = [
@@ -113,28 +120,25 @@ export class ProfessionalAgendaPage implements OnInit {
     this.loadAgenda();
   }
 
-  previousWeek(): void {
-    this.referenceDate.update((date) => addDays(date, -7));
+  previousMonth(): void {
+    this.visibleDate.update((date) => addMonths(date, -1));
     this.loadAgenda();
   }
 
-  nextWeek(): void {
-    this.referenceDate.update((date) => addDays(date, 7));
+  nextMonth(): void {
+    this.visibleDate.update((date) => addMonths(date, 1));
     this.loadAgenda();
   }
 
   goToday(): void {
-    this.referenceDate.set(new Date());
+    this.visibleDate.set(new Date());
     this.loadAgenda();
   }
 
   setStatus(status: AgendaStatusFilter): void {
-    if (this.activeStatus() === status) {
-      return;
-    }
+    if (this.activeStatus() === status) return;
 
     this.activeStatus.set(status);
-    this.loadAgenda();
   }
 
   eventsForDay(day: AgendaDay): ProfessionalAgendaEvent[] {
@@ -142,18 +146,13 @@ export class ProfessionalAgendaPage implements OnInit {
   }
 
   loadAgenda(): void {
-    const weekStart = startOfWeek(this.referenceDate());
-    const weekEnd = addDays(weekStart, 6);
-    const status = this.activeStatus();
-
     this.loading.set(true);
     this.errorMessage.set(null);
 
     this.api
-      .list({
-        from: toDateInputValue(weekStart),
-        to: toDateInputValue(weekEnd),
-        status: status === 'all' ? undefined : status,
+      .getProfessionalAgenda({
+        view: 'month',
+        date: toDateInputValue(this.visibleDate()),
       })
       .pipe(
         finalize(() => this.loading.set(false)),

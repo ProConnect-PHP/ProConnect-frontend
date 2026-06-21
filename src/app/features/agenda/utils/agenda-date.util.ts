@@ -5,6 +5,7 @@ export type AgendaDay = {
   shortLabel: string;
   dayNumber: string;
   isToday: boolean;
+  isOutsideMonth: boolean;
 };
 
 export function startOfWeek(date: Date): Date {
@@ -24,6 +25,13 @@ export function addDays(date: Date, days: number): Date {
   return target;
 }
 
+export function addMonths(date: Date, months: number): Date {
+  const target = new Date(date);
+  target.setDate(1);
+  target.setMonth(target.getMonth() + months);
+  return target;
+}
+
 export function toDateInputValue(date: Date): string {
   const year = date.getFullYear();
   const month = `${date.getMonth() + 1}`.padStart(2, '0');
@@ -33,6 +41,9 @@ export function toDateInputValue(date: Date): string {
 }
 
 export function dateKeyFromIso(value: string): string {
+  const datePart = value.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
+  if (datePart) return datePart;
+
   return toDateInputValue(new Date(value));
 }
 
@@ -59,6 +70,38 @@ export function buildWeekDays(referenceDate: Date): AgendaDay[] {
         day: '2-digit',
       }).format(date),
       isToday: key === todayKey,
+      isOutsideMonth: false,
+    };
+  });
+}
+
+export function buildMonthDays(referenceDate: Date): AgendaDay[] {
+  const firstDay = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 1);
+  const day = firstDay.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  const start = addDays(firstDay, diff);
+  const todayKey = toDateInputValue(new Date());
+
+  return Array.from({ length: 42 }).map((_, index) => {
+    const date = addDays(start, index);
+    const key = toDateInputValue(date);
+
+    return {
+      date,
+      key,
+      label: new Intl.DateTimeFormat('es-UY', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+      }).format(date),
+      shortLabel: new Intl.DateTimeFormat('es-UY', {
+        weekday: 'short',
+      }).format(date),
+      dayNumber: new Intl.DateTimeFormat('es-UY', {
+        day: '2-digit',
+      }).format(date),
+      isToday: key === todayKey,
+      isOutsideMonth: date.getMonth() !== referenceDate.getMonth(),
     };
   });
 }
@@ -79,6 +122,17 @@ export function formatAgendaRangeTitle(referenceDate: Date): string {
   }).format(end);
 
   return `${startLabel} - ${endLabel}`;
+}
+
+export function formatAgendaMonthTitle(referenceDate: Date): string {
+  const formatted = new Intl.DateTimeFormat('es-UY', {
+    month: 'long',
+    year: 'numeric',
+  })
+    .format(referenceDate)
+    .replace(' de ', ' ');
+
+  return formatted.charAt(0).toLocaleUpperCase('es-UY') + formatted.slice(1);
 }
 
 export function formatEventTimeRange(startsAt: string, endsAt: string): string {

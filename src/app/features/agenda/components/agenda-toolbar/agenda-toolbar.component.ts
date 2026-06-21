@@ -10,12 +10,12 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
           class="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600"
           (click)="previous.emit()"
         >
-          Semana anterior
+          Mes anterior
         </button>
 
         <div class="text-center">
           <p class="text-xs font-bold uppercase tracking-wide text-slate-500">
-            Semana
+            Mes
           </p>
 
           <h2 class="mt-1 text-lg font-black tracking-tight text-slate-950 sm:text-xl">

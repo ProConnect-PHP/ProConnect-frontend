@@ -99,14 +99,15 @@ export type ProfessionalAgendaRange = {
 
 export type ProfessionalAgendaResponse = {
   timezone: string;
+  view: 'month' | 'week';
   range: ProfessionalAgendaRange;
   events: ProfessionalAgendaEvent[];
-  summary: ProfessionalAgendaSummary;
+  summary?: ProfessionalAgendaSummary;
+  range_summary?: ProfessionalAgendaSummary;
+  global_summary?: ProfessionalAgendaSummary;
 };
 
-export type ProfessionalAgendaQuery = {
-  from: string;
-  to: string;
-  status?: AgendaBookingStatus;
-  service_id?: number;
+export type ProfessionalAgendaMonthQuery = {
+  view: 'month';
+  date: string;
 };

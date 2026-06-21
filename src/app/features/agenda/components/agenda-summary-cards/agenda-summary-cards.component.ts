@@ -7,7 +7,7 @@ import { ProfessionalAgendaSummary } from '../../data-access/professional-agenda
   template: `
     <section class="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
       <article class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Total</p>
+        <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Total histórico</p>
         <p class="mt-2 text-2xl font-black text-slate-950">{{ summary().total }}</p>
       </article>
 
