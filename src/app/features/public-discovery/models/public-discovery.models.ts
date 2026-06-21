@@ -19,7 +19,6 @@ export type PublicServiceFilterKey =
   | 'max_price'
   | 'duration_minutes'
   | 'available_date'
-  | 'is_verified'
   | 'latitude'
   | 'longitude'
   | 'radius_km';
@@ -92,7 +91,6 @@ export type PublicServicesQuery = {
   max_price?: number | null;
   duration_minutes?: PublicServiceDuration | null;
   available_date?: string | null;
-  is_verified?: boolean | null;
   latitude?: number | null;
   longitude?: number | null;
   radius_km?: number | null;

@@ -56,7 +56,6 @@ export class PublicServiceFiltersDrawerComponent {
     max_price: this.fb.control<number | null>(null),
     duration_minutes: this.fb.control<PublicServiceDuration | ''>(''),
     available_date: this.fb.control<string>(''),
-    is_verified: this.fb.control(false, { nonNullable: true }),
   });
 
   constructor() {
@@ -81,7 +80,6 @@ export class PublicServiceFiltersDrawerComponent {
       max_price: numberOrNull(value.max_price),
       duration_minutes: value.duration_minutes || null,
       available_date: stringOrNull(value.available_date),
-      is_verified: value.is_verified ? true : null,
       latitude: selectedLocation?.coordinates.latitude ?? null,
       longitude: selectedLocation?.coordinates.longitude ?? null,
       radius_km: selectedLocation ? this.selectedRadius() : null,
@@ -97,7 +95,6 @@ export class PublicServiceFiltersDrawerComponent {
         max_price: null,
         duration_minutes: '',
         available_date: '',
-        is_verified: false,
       },
       { emitEvent: false },
     );
@@ -128,7 +125,6 @@ export class PublicServiceFiltersDrawerComponent {
         max_price: query.max_price ?? null,
         duration_minutes: query.duration_minutes ?? '',
         available_date: query.available_date ?? '',
-        is_verified: query.is_verified ?? false,
       },
       { emitEvent: false },
     );

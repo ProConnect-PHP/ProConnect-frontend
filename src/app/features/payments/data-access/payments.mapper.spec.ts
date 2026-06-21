@@ -2,6 +2,7 @@ import {
   unwrapPaymentMovementsResponse,
   unwrapPaymentMovementResponse,
   unwrapPaginatedPaymentsResponse,
+  unwrapPaymentDetailResponse,
   unwrapPaymentIntentResponse,
   unwrapPaymentResponse,
   unwrapPaymentStatusResponse,
@@ -80,6 +81,98 @@ describe('payments mapper', () => {
     expect(result.payment_intent.payable_type).toBe('package');
     expect(result.payment_intent.package_product_id).toBe('package-1');
     expect(result.payment?.status).toBe('succeeded');
+  });
+
+  it('unwraps payment details from the item envelope using nested payment data', () => {
+    const detail = unwrapPaymentDetailResponse({
+      item: {
+        id: 'payment:payment-1',
+        source: 'payment',
+        payment_id: 'payment-1',
+        payment_intent_id: 'intent-1',
+        booking_id: 'booking-1',
+        package_product_id: null,
+        provider: 'paypal',
+        status: 'succeeded',
+        display_status: 'paid',
+        amount: 500,
+        currency: 'UYU',
+        provider_reference: 'paypal-order-1',
+        provider_payment_id: 'paypal-capture-1',
+        paid_at: '2026-06-20 23:16:52',
+        failed_at: null,
+        created_at: '2026-06-20 20:16:53',
+        failure_reason: null,
+        can_retry: false,
+        payment: {
+          id: 'payment-1',
+          payment_intent_id: 'intent-1',
+          booking_id: 'booking-1',
+          package_product_id: null,
+          provider: 'paypal',
+          status: 'succeeded',
+          amount: 500,
+          currency: 'UYU',
+          provider_reference: 'paypal-order-1',
+          provider_payment_id: 'paypal-capture-1',
+          paid_at: '2026-06-20 23:16:52',
+          failed_at: null,
+          created_at: '2026-06-20 20:16:53',
+        },
+        payment_intent: {
+          id: 'intent-1',
+          payable_type: 'booking',
+          payable_id: 'booking-1',
+          booking_id: 'booking-1',
+          package_product_id: null,
+          provider: 'paypal',
+          status: 'succeeded',
+          amount: 500,
+          currency: 'UYU',
+          provider_reference: 'paypal-order-1',
+          succeeded_at: '2026-06-20 23:16:52',
+          created_at: '2026-06-20 20:16:25',
+        },
+        booking: {
+          id: 'booking-1',
+          status: 'paid',
+          starts_at: '2026-06-22 09:00:00',
+          ends_at: '2026-06-22 10:00:00',
+          service_id: 'service-1',
+        },
+        package_product: null,
+        related_attempts: [
+          {
+            id: 'intent-1',
+            payable_type: 'booking',
+            payable_id: 'booking-1',
+            booking_id: 'booking-1',
+            provider: 'paypal',
+            status: 'succeeded',
+            amount: 500,
+            currency: 'UYU',
+            provider_reference: 'paypal-order-1',
+            succeeded_at: '2026-06-20 23:16:52',
+            created_at: '2026-06-20 20:16:25',
+          },
+        ],
+      },
+    });
+
+    expect(detail.source).toBe('payment');
+    expect(detail.operation).toMatchObject({
+      id: 'payment:payment-1',
+      status: 'succeeded',
+      display_status: 'paid',
+      amount: 500,
+      paid_at: '2026-06-20 23:16:52',
+      provider_payment_id: 'paypal-capture-1',
+    });
+    expect(detail.payment?.id).toBe('payment-1');
+    expect(detail.payment_intent?.id).toBe('intent-1');
+    expect(detail.booking?.status).toBe('paid');
+    expect(detail.successful_intent?.id).toBe('intent-1');
+    expect(detail.related_attempts).toHaveLength(1);
   });
 
   it('unwraps paginated payment responses', () => {
