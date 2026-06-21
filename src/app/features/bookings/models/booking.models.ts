@@ -48,9 +48,7 @@ export type Booking = {
   reschedule_reason: string | null;
   service?: PublicService | null;
   review?: Review | null;
-  // TODO backend: BookingResource should include payment when loading booking details.
   payment?: Payment | null;
-  // TODO backend: BookingResource should include client_package/package_session for package-backed bookings.
   client_package?: ClientPackage | null;
   package_session?: PackageSession | null;
   video_session?: VideoSession | null;

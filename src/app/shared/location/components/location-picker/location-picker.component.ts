@@ -35,6 +35,7 @@ export class LocationPickerComponent {
   readonly initialLocation = input<SelectedLocation | null>(null);
   readonly initialRadiusKm = input<LocationRadiusKm>(20);
   readonly disabled = input(false);
+  readonly showCoordinates = input(false);
   readonly searchPlaceholder = input('Buscar barrio, ciudad o direccion...');
   readonly mapHeightClass = input('h-72 sm:h-80');
 

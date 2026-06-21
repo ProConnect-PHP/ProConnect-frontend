@@ -10,7 +10,13 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 
 import { LocationPickerComponent } from '../../../../shared/location/components/location-picker/location-picker.component';
 import { LocationRadiusKm, SelectedLocation } from '../../../../shared/location/models/location.models';
@@ -24,6 +30,7 @@ import {
   publicServiceDurations,
   publicServiceModalities,
 } from '../../utils/public-service-query.util';
+import { modalityLabel } from '../../utils/modality-label.util';
 
 @Component({
   selector: 'app-public-service-filters-drawer',
@@ -49,14 +56,15 @@ export class PublicServiceFiltersDrawerComponent {
   readonly pickerLocation = computed(() => this.selectedLocation());
   readonly modalities = publicServiceModalities;
   readonly durations = publicServiceDurations;
+  readonly activeFilterCount = computed(() => countActiveFilters(this.query()));
 
   readonly form = this.fb.group({
     modality: this.fb.control<PublicServiceModality | ''>(''),
-    min_price: this.fb.control<number | null>(null),
-    max_price: this.fb.control<number | null>(null),
+    min_price: this.fb.control<number | null>(null, { validators: [Validators.min(0)] }),
+    max_price: this.fb.control<number | null>(null, { validators: [Validators.min(0)] }),
     duration_minutes: this.fb.control<PublicServiceDuration | ''>(''),
     available_date: this.fb.control<string>(''),
-  });
+  }, { validators: [priceRangeValidator] });
 
   constructor() {
     effect(() => this.patchFromQuery(this.query()));
@@ -64,6 +72,7 @@ export class PublicServiceFiltersDrawerComponent {
       if (!this.open()) return;
       queueMicrotask(() => this.closeButton()?.nativeElement.focus());
     });
+
   }
 
   closeFromKeyboard(): void {
@@ -71,6 +80,11 @@ export class PublicServiceFiltersDrawerComponent {
   }
 
   applyFilters(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
     const value = this.form.getRawValue();
     const selectedLocation = this.selectedLocation();
 
@@ -117,6 +131,18 @@ export class PublicServiceFiltersDrawerComponent {
     this.selectedRadius.set(20);
   }
 
+  selectModality(modality: PublicServiceModality | ''): void {
+    this.form.controls.modality.setValue(modality);
+  }
+
+  isModalitySelected(modality: PublicServiceModality | ''): boolean {
+    return this.form.controls.modality.value === modality;
+  }
+
+  modalityLabel(modality: PublicServiceModality): string {
+    return modalityLabel(modality);
+  }
+
   private patchFromQuery(query: PublicServicesQuery): void {
     this.form.patchValue(
       {
@@ -146,6 +172,31 @@ export class PublicServiceFiltersDrawerComponent {
       coordinates,
     });
   }
+}
+
+function countActiveFilters(query: PublicServicesQuery): number {
+  const hasPrice = query.min_price !== null && query.min_price !== undefined ||
+    query.max_price !== null && query.max_price !== undefined;
+  const hasLocation = query.latitude !== null && query.latitude !== undefined &&
+    query.longitude !== null && query.longitude !== undefined;
+
+  return [
+    !!query.modality,
+    hasPrice,
+    !!query.duration_minutes,
+    !!query.available_date,
+    hasLocation,
+  ].filter(Boolean).length;
+}
+
+function priceRangeValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value as { min_price?: number | null; max_price?: number | null };
+  const minPrice = numberOrNull(value.min_price);
+  const maxPrice = numberOrNull(value.max_price);
+
+  return minPrice !== null && maxPrice !== null && maxPrice < minPrice
+    ? { priceRange: true }
+    : null;
 }
 
 function numberOrNull(value: number | string | null | undefined): number | null {

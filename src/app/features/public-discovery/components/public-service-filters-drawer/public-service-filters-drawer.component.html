@@ -2,159 +2,216 @@
   <div class="fixed inset-0 z-50">
     <button
       type="button"
-      class="absolute inset-0 bg-slate-950/40 backdrop-blur-sm"
+      class="absolute inset-0 bg-slate-950/55 backdrop-blur-sm"
       aria-label="Cerrar filtros"
       (click)="closed.emit()"
     ></button>
 
     <section
-      class="absolute inset-x-0 bottom-0 flex max-h-[92dvh] flex-col overflow-hidden rounded-t-[2rem] bg-white shadow-2xl sm:inset-y-0 sm:left-auto sm:right-0 sm:h-dvh sm:max-h-none sm:w-[420px] sm:rounded-l-[2rem] sm:rounded-tr-none"
+      class="absolute inset-0 flex h-[100dvh] w-full min-w-0 max-w-full flex-col overflow-x-hidden bg-white shadow-2xl md:inset-y-0 md:left-auto md:right-0 md:h-dvh md:max-w-[440px] md:border-l md:border-slate-200 xl:max-w-[520px]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="advanced-filters-title"
+      aria-describedby="advanced-filters-description"
     >
       <form class="flex min-h-0 flex-1 flex-col" [formGroup]="form" (ngSubmit)="applyFilters()">
-        <div class="flex items-start justify-between gap-4 border-b border-slate-100 p-5">
-          <div class="min-w-0">
-            <p class="text-xs font-bold uppercase tracking-[0.2em] text-indigo-600">
-              Filtros
-            </p>
+        <header class="sticky top-0 z-10 shrink-0 border-b border-slate-200 bg-white px-4 py-4 sm:px-6 sm:py-5">
+          <div class="flex min-w-0 items-start justify-between gap-4">
+            <div class="min-w-0">
+              <div class="flex flex-wrap items-center gap-2">
+                <p class="text-xs font-bold uppercase tracking-[0.2em] text-indigo-600">Filtros</p>
+                @if (activeFilterCount() > 0) {
+                  <span class="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700">
+                    {{ activeFilterCount() }} activos
+                  </span>
+                }
+              </div>
 
-            <h2
-              id="advanced-filters-title"
-              class="mt-1 text-2xl font-black tracking-tight text-slate-950"
-            >
-              Mas filtros
-            </h2>
-          </div>
-
-          <button
-            #closeButton
-            type="button"
-            class="rounded-2xl px-3 py-2 text-sm font-bold text-slate-600 transition hover:bg-slate-100 focus:outline focus:outline-2 focus:outline-indigo-600"
-            (click)="closed.emit()"
-          >
-            Cerrar
-          </button>
-        </div>
-
-        <div class="grid min-h-0 flex-1 gap-5 overflow-y-auto p-5">
-          <section class="grid gap-2">
-            <label for="drawer-modality" class="text-sm font-bold text-slate-800">
-              Modalidad
-            </label>
-
-            <select
-              id="drawer-modality"
-              class="min-h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
-              formControlName="modality"
-            >
-              <option value="">Todas</option>
-              @for (modality of modalities; track modality) {
-                <option [value]="modality">{{ modality }}</option>
-              }
-            </select>
-          </section>
-
-          <section class="grid gap-3">
-            <div>
-              <p class="text-sm font-bold text-slate-800">Precio</p>
-              <p class="mt-1 text-xs text-slate-500">
-                Rango opcional para ajustar resultados.
+              <h2 id="advanced-filters-title" class="mt-2 text-2xl font-black tracking-tight text-slate-950">
+                Más filtros
+              </h2>
+              <p id="advanced-filters-description" class="mt-2 max-w-md text-sm leading-6 text-slate-600">
+                Ajustá la búsqueda según modalidad, precio, disponibilidad y ubicación.
               </p>
             </div>
 
-            <div class="grid gap-3 sm:grid-cols-2">
-              <div>
-                <label for="drawer-min-price" class="text-sm font-semibold text-slate-700">
-                  Minimo
-                </label>
-
-                <input
-                  id="drawer-min-price"
-                  type="number"
-                  min="0"
-                  inputmode="decimal"
-                  class="mt-2 min-h-11 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
-                  formControlName="min_price"
-                />
-              </div>
-
-              <div>
-                <label for="drawer-max-price" class="text-sm font-semibold text-slate-700">
-                  Maximo
-                </label>
-
-                <input
-                  id="drawer-max-price"
-                  type="number"
-                  min="0"
-                  inputmode="decimal"
-                  class="mt-2 min-h-11 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
-                  formControlName="max_price"
-                />
-              </div>
-            </div>
-          </section>
-
-          <section class="grid gap-2">
-            <label for="drawer-duration" class="text-sm font-bold text-slate-800">
-              Duracion
-            </label>
-
-            <select
-              id="drawer-duration"
-              class="min-h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
-              formControlName="duration_minutes"
+            <button
+              #closeButton
+              type="button"
+              class="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-xl font-medium leading-none text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              aria-label="Cerrar filtros"
+              (click)="closed.emit()"
             >
-              <option [ngValue]="''">Todas</option>
-              @for (duration of durations; track duration) {
-                <option [ngValue]="duration">{{ duration }} min</option>
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+        </header>
+
+        <div class="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-5 sm:px-6 sm:py-6">
+          <div class="grid min-w-0 gap-5">
+            <section class="min-w-0 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+              <div>
+                <h3 class="text-base font-black tracking-tight text-slate-950">Modalidad</h3>
+                <p class="mt-1 text-sm leading-6 text-slate-600">
+                  Elegí cómo preferís recibir el servicio.
+                </p>
+              </div>
+
+              <div class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4" role="group" aria-label="Modalidad">
+                <button
+                  type="button"
+                  class="inline-flex min-h-11 min-w-0 items-center justify-center rounded-xl border px-3 py-2 text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                  [class.border-indigo-600]="isModalitySelected('')"
+                  [class.bg-indigo-600]="isModalitySelected('')"
+                  [class.text-white]="isModalitySelected('')"
+                  [class.border-slate-200]="!isModalitySelected('')"
+                  [class.bg-white]="!isModalitySelected('')"
+                  [class.text-slate-700]="!isModalitySelected('')"
+                  [attr.aria-pressed]="isModalitySelected('')"
+                  (click)="selectModality('')"
+                >
+                  Todas
+                </button>
+
+                @for (modality of modalities; track modality) {
+                  <button
+                    type="button"
+                    class="inline-flex min-h-11 min-w-0 items-center justify-center rounded-xl border px-3 py-2 text-center text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                    [class.border-indigo-600]="isModalitySelected(modality)"
+                    [class.bg-indigo-600]="isModalitySelected(modality)"
+                    [class.text-white]="isModalitySelected(modality)"
+                    [class.border-slate-200]="!isModalitySelected(modality)"
+                    [class.bg-white]="!isModalitySelected(modality)"
+                    [class.text-slate-700]="!isModalitySelected(modality)"
+                    [attr.aria-pressed]="isModalitySelected(modality)"
+                    (click)="selectModality(modality)"
+                  >
+                    {{ modalityLabel(modality) }}
+                  </button>
+                }
+              </div>
+            </section>
+
+            <section class="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+              <div>
+                <h3 class="text-base font-black tracking-tight text-slate-950">Precio</h3>
+                <p id="price-help" class="mt-1 text-sm leading-6 text-slate-600">
+                  Opcional. Filtrá servicios dentro de tu presupuesto.
+                </p>
+              </div>
+
+              <div class="mt-4 grid min-w-0 gap-3 sm:grid-cols-2">
+                <div class="min-w-0">
+                  <label for="drawer-min-price" class="text-sm font-bold text-slate-800">Mínimo</label>
+                  <input
+                    id="drawer-min-price"
+                    type="number"
+                    min="0"
+                    inputmode="decimal"
+                    placeholder="$ 0"
+                    aria-describedby="price-help"
+                    class="mt-2 min-h-11 w-full min-w-0 rounded-xl border bg-white px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+                    [class.border-rose-300]="form.hasError('priceRange')"
+                    [class.border-slate-200]="!form.hasError('priceRange')"
+                    formControlName="min_price"
+                  />
+                </div>
+
+                <div class="min-w-0">
+                  <label for="drawer-max-price" class="text-sm font-bold text-slate-800">Máximo</label>
+                  <input
+                    id="drawer-max-price"
+                    type="number"
+                    min="0"
+                    inputmode="decimal"
+                    placeholder="$ 2000"
+                    aria-describedby="price-help"
+                    class="mt-2 min-h-11 w-full min-w-0 rounded-xl border bg-white px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+                    [class.border-rose-300]="form.hasError('priceRange')"
+                    [class.border-slate-200]="!form.hasError('priceRange')"
+                    formControlName="max_price"
+                  />
+                </div>
+              </div>
+
+              @if (form.hasError('priceRange')) {
+                <p class="mt-3 text-sm font-semibold text-rose-700" role="alert">
+                  El precio máximo debe ser mayor o igual al mínimo.
+                </p>
               }
-            </select>
-          </section>
+            </section>
 
-          <section class="grid gap-2">
-            <label for="drawer-date" class="text-sm font-bold text-slate-800">
-              Fecha disponible
-            </label>
+            <section class="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+              <label for="drawer-duration" class="text-base font-black tracking-tight text-slate-950">
+                Duración
+              </label>
+              <p id="duration-help" class="mt-1 text-sm leading-6 text-slate-600">
+                Elegí una duración si querés acotar los resultados.
+              </p>
 
-            <input
-              id="drawer-date"
-              type="date"
-              class="min-h-11 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
-              formControlName="available_date"
+              <select
+                id="drawer-duration"
+                class="mt-4 min-h-11 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+                aria-describedby="duration-help"
+                formControlName="duration_minutes"
+              >
+                <option [ngValue]="''">Todas las duraciones</option>
+                @for (duration of durations; track duration) {
+                  <option [ngValue]="duration">{{ duration }} min</option>
+                }
+              </select>
+            </section>
+
+            <section class="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+              <label for="drawer-date" class="text-base font-black tracking-tight text-slate-950">
+                Disponibilidad
+              </label>
+              <p id="date-help" class="mt-1 text-sm leading-6 text-slate-600">
+                Mostramos profesionales con horarios disponibles ese día.
+              </p>
+
+              <input
+                id="drawer-date"
+                type="date"
+                class="mt-4 min-h-11 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+                aria-describedby="date-help"
+                formControlName="available_date"
+              />
+            </section>
+
+            <app-location-picker
+              [showRadius]="true"
+              [showMap]="false"
+              [initialLocation]="pickerLocation()"
+              [initialRadiusKm]="selectedRadius()"
+              [showCoordinates]="false"
+              searchPlaceholder="Buscar barrio, ciudad o dirección…"
+              (locationChanged)="onLocationChanged($event)"
+              (radiusChanged)="onRadiusChanged($event)"
+              (cleared)="clearLocation()"
             />
-          </section>
-
-          <app-location-picker
-            [showRadius]="true"
-            [showMap]="false"
-            [initialLocation]="pickerLocation()"
-            [initialRadiusKm]="selectedRadius()"
-            searchPlaceholder="Buscar barrio, ciudad o direccion..."
-            (locationChanged)="onLocationChanged($event)"
-            (radiusChanged)="onRadiusChanged($event)"
-            (cleared)="clearLocation()"
-          />
+          </div>
         </div>
 
-        <div class="grid gap-3 border-t border-slate-200 bg-white p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:grid-cols-2">
-          <button
-            type="button"
-            class="inline-flex min-h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600"
-            (click)="clearAll()"
-          >
-            Limpiar filtros
-          </button>
+        <footer class="sticky bottom-0 z-10 shrink-0 border-t border-slate-200 bg-white px-4 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(15,23,42,0.06)] sm:px-6">
+          <div class="grid gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              class="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              (click)="clearAll()"
+            >
+              Limpiar filtros
+            </button>
 
-          <button
-            type="submit"
-            class="inline-flex min-h-11 items-center justify-center rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 focus:outline focus:outline-2 focus:outline-indigo-700"
-          >
-            Aplicar filtros
-          </button>
-        </div>
+            <button
+              type="submit"
+              class="inline-flex min-h-11 items-center justify-center rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-700 disabled:cursor-not-allowed disabled:bg-indigo-300"
+              [disabled]="form.invalid"
+            >
+              Aplicar filtros
+            </button>
+          </div>
+        </footer>
       </form>
     </section>
   </div>

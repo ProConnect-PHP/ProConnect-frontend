@@ -1,11 +1,11 @@
-<section class="grid gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-  <div>
-    <h3 class="text-base font-semibold text-slate-950">Ubicacion</h3>
+<section class="grid min-w-0 gap-5 overflow-x-hidden rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+  <div class="min-w-0">
+    <h3 class="text-base font-black tracking-tight text-slate-950">Ubicación</h3>
     <p class="mt-1 text-sm leading-6 text-slate-600">
       @if (showMap()) {
-        Busca una direccion, usa tu ubicacion actual o selecciona un punto en el mapa.
+        Buscá una dirección, usá tu ubicación actual o seleccioná un punto en el mapa.
       } @else {
-        Busca una direccion o usa tu ubicacion actual.
+        Buscá una dirección o usá tu ubicación actual.
       }
     </p>
   </div>
@@ -18,9 +18,9 @@
     (cleared)="clearLocation()"
   />
 
-  <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
+  <div class="grid min-w-0 gap-3">
     @if (showRadius()) {
-      <div class="sm:w-44">
+      <div class="min-w-0">
         <app-location-radius-select
           selectId="location-picker-radius"
           [radiusKm]="selectedRadius()"
@@ -30,24 +30,24 @@
       </div>
     }
 
-    <div class="flex flex-1 flex-col gap-2 sm:flex-row sm:justify-end">
+    <div class="grid min-w-0 gap-2 sm:grid-cols-2">
       <button
         type="button"
-        class="inline-flex min-h-10 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60"
-        aria-label="Usar mi ubicacion actual"
+        class="inline-flex min-h-11 min-w-0 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60"
+        aria-label="Usar mi ubicación actual"
         [disabled]="disabled() || loadingLocation()"
         (click)="useCurrentLocation()"
       >
-        {{ loadingLocation() ? 'Buscando...' : 'Usar mi ubicacion' }}
+        {{ loadingLocation() ? 'Buscando...' : 'Usar mi ubicación' }}
       </button>
       <button
         type="button"
-        class="inline-flex min-h-10 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60"
-        aria-label="Limpiar ubicacion seleccionada"
+        class="inline-flex min-h-11 min-w-0 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-60"
+        aria-label="Limpiar ubicación seleccionada"
         [disabled]="disabled() || !selectedLocation()"
         (click)="clearLocation()"
       >
-        Limpiar ubicacion
+        Limpiar ubicación
       </button>
     </div>
   </div>
@@ -70,5 +70,9 @@
     />
   }
 
-  <app-mapbox-marker-preview [location]="selectedLocation()" />
+  <app-mapbox-marker-preview
+    [location]="selectedLocation()"
+    [showCoordinates]="showCoordinates()"
+    [showMapHint]="showMap()"
+  />
 </section>
