@@ -27,31 +27,44 @@
         </p>
 
         <div class="mt-8 rounded-3xl border border-white/10 bg-white/[0.08] p-2 shadow-2xl shadow-black/20 backdrop-blur-xl">
-          <form class="grid gap-2 md:grid-cols-[1fr_0.8fr_auto]" aria-label="Buscar servicios">
+          <form
+            class="grid gap-2 md:grid-cols-[1fr_0.8fr_auto]"
+            aria-label="Buscar servicios"
+            (ngSubmit)="submitSearch()"
+          >
             <label class="group flex min-h-14 items-center gap-3 rounded-2xl bg-white px-4 text-slate-700 ring-1 ring-white/10 transition focus-within:ring-2 focus-within:ring-blue-400">
               <span class="text-lg" aria-hidden="true">⌕</span>
               <input
                 type="search"
                 class="w-full bg-transparent text-sm font-medium outline-none placeholder:text-slate-400"
+                aria-label="Buscar servicios"
+                [value]="searchTerm()"
+                (input)="searchTerm.set($any($event.target).value)"
                 placeholder="Buscar coaching, terapia, consultoría..."
               />
             </label>
 
             <label class="group flex min-h-14 items-center gap-3 rounded-2xl bg-white px-4 text-slate-700 ring-1 ring-white/10 transition focus-within:ring-2 focus-within:ring-blue-400">
               <span class="text-lg" aria-hidden="true">⌁</span>
-              <select class="w-full bg-transparent text-sm font-medium outline-none">
-                <option>Online</option>
-                <option>Presencial</option>
+              <select
+                class="w-full bg-transparent text-sm font-medium outline-none"
+                aria-label="Modalidad"
+                [value]="selectedModality()"
+                (change)="selectedModality.set($any($event.target).value)"
+              >
+                <option value="">Todas las modalidades</option>
+                <option value="online">Online</option>
+                <option value="presencial">Presencial</option>
                 <option>Híbrido</option>
               </select>
             </label>
 
-            <a
-              routerLink="/services"
+            <button
+              type="submit"
               class="inline-flex min-h-14 items-center justify-center rounded-2xl bg-blue-500 px-6 text-sm font-bold text-white shadow-lg shadow-blue-500/30 transition hover:-translate-y-0.5 hover:bg-blue-400 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-blue-300"
             >
               Buscar
-            </a>
+            </button>
           </form>
         </div>
 

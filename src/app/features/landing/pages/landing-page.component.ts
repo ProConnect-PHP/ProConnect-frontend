@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 
 type Tone = 'blue' | 'emerald' | 'amber' | 'rose' | 'violet' | 'slate';
 type FeatureIcon =
@@ -35,12 +36,17 @@ interface Feature {
 
 @Component({
   selector: 'app-landing-page',
-  imports: [RouterLink],
+  imports: [FormsModule, RouterLink],
   templateUrl: './landing-page.component.html',
   styleUrl: './landing-page.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LandingPageComponent {
+  private readonly router = inject(Router);
+
+  readonly searchTerm = signal('');
+  readonly selectedModality = signal('');
+
   readonly metrics: Metric[] = [
     {
       value: '24/7',
@@ -145,4 +151,42 @@ export class LandingPageComponent {
       tone: 'emerald',
     },
   ];
+
+  submitSearch(): void {
+    const search = this.searchTerm().trim();
+    const modality = this.mapHomeModalityToApiModality(this.selectedModality());
+    const queryParams: Record<string, string | number> = {
+      page: 1,
+      per_page: 12,
+      sort: 'recent',
+    };
+
+    if (search) {
+      queryParams['search'] = search;
+    }
+
+    if (modality) {
+      queryParams['modality'] = modality;
+    }
+
+    void this.router.navigate(['/services'], { queryParams });
+  }
+
+  private mapHomeModalityToApiModality(value: string): 'presencial' | 'remota' | 'hibrida' | null {
+    switch (value.trim().toLowerCase()) {
+      case 'online':
+      case 'remote':
+      case 'remota':
+        return 'remota';
+      case 'presencial':
+        return 'presencial';
+      case 'hybrid':
+      case 'hibrida':
+      case 'híbrida':
+      case 'híbrido':
+        return 'hibrida';
+      default:
+        return null;
+    }
+  }
 }
