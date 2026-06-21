@@ -1,8 +1,5 @@
-<form
-  class="grid gap-4 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm"
-  [formGroup]="form"
-  (ngSubmit)="submit()"
->
+<form class="grid gap-4 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm" [formGroup]="form"
+  (ngSubmit)="submit()">
   <div>
     <h2 class="text-lg font-black tracking-tight text-slate-950">
       {{ mode() === 'create' ? 'Crear paquete' : 'Editar paquete' }}
@@ -13,20 +10,20 @@
   </div>
 
   @if (errorMessage()) {
-    <div class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-950" aria-live="assertive">
-      {{ errorMessage() }}
-    </div>
+  <div class="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-950"
+    aria-live="assertive">
+    {{ errorMessage() }}
+  </div>
   }
 
   <label class="grid gap-2 text-sm font-semibold text-slate-700">
     Servicio asociado
     <select
       class="min-h-11 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm focus:outline focus:outline-2 focus:outline-indigo-600"
-      formControlName="service_id"
-    >
+      formControlName="service_id">
       <option value="">Paquete general sin servicio especifico</option>
       @for (service of services(); track service.id) {
-        <option [value]="service.id">{{ service.name }}</option>
+      <option [value]="service.id">{{ service.name }}</option>
       }
     </select>
   </label>
@@ -35,12 +32,9 @@
     Nombre
     <input
       class="min-h-11 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-950 shadow-sm focus:outline focus:outline-2 focus:outline-indigo-600"
-      type="text"
-      maxlength="150"
-      formControlName="name"
-    />
+      type="text" maxlength="150" formControlName="name" />
     @if (fieldError('name')) {
-      <span class="text-sm text-rose-700">{{ fieldError('name') }}</span>
+    <span class="text-sm text-rose-700">{{ fieldError('name') }}</span>
     }
   </label>
 
@@ -48,9 +42,7 @@
     Descripcion
     <textarea
       class="min-h-28 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-950 shadow-sm focus:outline focus:outline-2 focus:outline-indigo-600"
-      maxlength="3000"
-      formControlName="description"
-    ></textarea>
+      maxlength="3000" formControlName="description"></textarea>
     <span class="text-xs text-slate-500">{{ descriptionLength() }} / 3000</span>
   </label>
 
@@ -59,46 +51,32 @@
       Sesiones
       <input
         class="min-h-11 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-950 shadow-sm focus:outline focus:outline-2 focus:outline-indigo-600"
-        type="number"
-        min="1"
-        max="100"
-        formControlName="sessions_count"
-      />
+        type="number" min="1" max="100" formControlName="sessions_count" />
     </label>
 
     <label class="grid gap-2 text-sm font-semibold text-slate-700">
       Precio
       <input
         class="min-h-11 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-950 shadow-sm focus:outline focus:outline-2 focus:outline-indigo-600"
-        type="number"
-        min="0"
-        step="1"
-        formControlName="price"
-      />
+        type="number" min="0" step="1" formControlName="price" />
     </label>
   </div>
 
   <div class="grid gap-4 sm:grid-cols-2">
     <label class="grid gap-2 text-sm font-semibold text-slate-700">
-      Moneda
-      <input
-        class="min-h-11 rounded-md border border-slate-300 px-3 py-2 text-sm uppercase text-slate-950 shadow-sm focus:outline focus:outline-2 focus:outline-indigo-600"
-        type="text"
-        maxlength="3"
-        formControlName="currency"
-      />
-    </label>
-
-    <label class="grid gap-2 text-sm font-semibold text-slate-700">
       Vigencia en dias
       <input
         class="min-h-11 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-950 shadow-sm focus:outline focus:outline-2 focus:outline-indigo-600"
-        type="number"
-        min="1"
-        max="3650"
-        formControlName="validity_days"
-      />
+        type="number" min="1" max="3650" formControlName="validity_days" />
     </label>
+
+    <div class="grid gap-2 text-sm font-semibold text-slate-700">
+      Moneda
+      <div
+        class="flex min-h-11 items-center rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-black text-slate-700">
+        UYU
+      </div>
+    </div>
   </div>
 
   <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-950">
@@ -106,27 +84,20 @@
   </div>
 
   <label class="flex items-center gap-3 text-sm font-semibold text-slate-700">
-    <input
-      type="checkbox"
-      class="size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600"
-      formControlName="is_active"
-    />
+    <input type="checkbox" class="size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600"
+      formControlName="is_active" />
     Paquete activo
   </label>
 
   <div class="flex flex-col gap-2 sm:flex-row">
-    <button
-      type="submit"
+    <button type="submit"
       class="inline-flex min-h-11 items-center justify-center rounded-md bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 focus:outline focus:outline-2 focus:outline-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
-      [disabled]="form.invalid || submitting()"
-    >
+      [disabled]="form.invalid || submitting()">
       {{ submitting() ? 'Guardando...' : mode() === 'create' ? 'Crear paquete' : 'Guardar cambios' }}
     </button>
-    <button
-      type="button"
+    <button type="button"
       class="inline-flex min-h-11 items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50 focus:outline focus:outline-2 focus:outline-indigo-600"
-      (click)="cancelled.emit()"
-    >
+      (click)="cancelled.emit()">
       Cancelar
     </button>
   </div>

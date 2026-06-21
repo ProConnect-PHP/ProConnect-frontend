@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PaymentsApi } from '../../data-access/payments.api';
 import {
@@ -118,12 +119,14 @@ const notConfirmedOperation: PaymentHistoryItem = {
 };
 
 describe('MyPaymentsPageComponent', () => {
-  const api = {
-    getMyPayments: vi.fn(),
+  let api: {
+    getMyPayments: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(async () => {
-    api.getMyPayments.mockReset();
+    api = {
+      getMyPayments: vi.fn(),
+    };
 
     await TestBed.configureTestingModule({
       imports: [MyPaymentsPageComponent],
@@ -133,7 +136,6 @@ describe('MyPaymentsPageComponent', () => {
       ],
     }).compileComponents();
   });
-
   it('loads and shows only confirmed payments returned by the payments endpoint', () => {
     api.getMyPayments.mockReturnValue(
       of(paginatedPayments([confirmedPaymentOperation])),
